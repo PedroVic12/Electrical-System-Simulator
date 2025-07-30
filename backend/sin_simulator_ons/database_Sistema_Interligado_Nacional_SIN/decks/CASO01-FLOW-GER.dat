@@ -1,0 +1,90 @@
+(
+( Alteração de Geração com Inércia MÍNIMA
+(
+( Planilha: FLOW_v9.0_geracao_despacho_SIN.xlsm
+( Aba     : R_REDESPACHO
+( Usuário : pedrovictor.veras@RJ-DK-222-24678
+( Data    : terça-feira, 22 de julho de 2025 - 10:58:33
+(
+DBAR
+(Num)OETGb(   nome   )Gl( V)( A)( Pg)( Qg)( Qn)( Qm)(Bc  )( Pl)( Ql)( Sh)Are(Vf)
+   20M    MARIMBUHE008          1042.
+  983M    MAUA--UHE002           143.
+  984M    MAUA--PCH001             4.
+  800M    GBMUNHUHE002  1050     670.
+  810M    GNBRAGUHE002           504.
+  925M    SSANTIUHE002           568.
+  919M    SOSO14UHE002           291.
+  921M    SOSO56UHE001           152.
+  808M    GJRICHUHE002           496.
+ 9356M    BAIGUAUHE002           141.
+  806M    SCLARAUHE001            49.
+ 2475M    FUNDAOUHE001            49.
+ 9740M    SROQUEUHE002            56.
+ 9735M    GARIBAUHE002            76.
+ 1157M    CNOVOSUHE002           352.
+ 1150M    BGRANDUHE002           276.
+  915M    MACHADUHE002           456.
+  904M    ITA---UHE002           580.
+  917M    PFUNDOUHE001            93.
+  931M    MONJOLUHE001            30.
+ 1070M    FCHAPEUHE002           342.
+ 2836M    QQUEIXUHE002            48.
+ 9220M    SJOSE-UHE001            20.
+ 9218M    PSJOAOUHE001            31.
+ 1175M    PREAL-UHE001            61.
+ 1162M    JACUI-UHE003            72.
+ 1155M    ITAUBAUHE002           200.
+ 1176M    DFRANCUHE001            50.
+ 1166M    CALVESUHE002            52.
+ 1159M    MCLAROUHE001            52.
+ 1168M    14JUL-UHE001            41.
+ 2051M    CAN-G1UHE001             8.
+ 9194M    CAN-G2UHE001             8.
+ 2863M    SPILAOUHE001            76.
+  804M    GPSOUZUHE002           104.
+99999
+DLIN
+(De )d O d(Pa )NcEP ( R% )( X% )(Mvar)(Tap)(Tmn)(Tmx)(Phs)(Bc  )(Cn)(Ce)Ns
+99999
+(
+( Acerto de SINCRONOS
+(
+DBAR
+(Num)OETGb(   nome   )Gl( V)( A)( Pg)( Qg)( Qn)( Qm)(Bc  )( Pl)( Ql)( Sh)Are(Vf)
+  801M    GBMUNHSIN002  1050               -744  650       15.0  7.3
+  809M    GJRICHSIN002                     -500329.4       10.0  4.8
+  811M    GNBRAGSIN002                    -412.  345       12.0  5.8
+  920M    SOSO14SIN002                     -234  218        6.0  2.9
+  922M    SOSO56SIN001                     -110  120        3.0  1.5
+  926M    SSANTISIN002                     -582  390       10.0  4.8
+  805M    GPSOUZSIN002                      -86  116        8.0  3.9
+  905M    ITA---SIN003                     -690  480       15.0  7.3
+  916M    MACHADSIN001                     -320  240        6.0  2.9
+  918M    PFUNDOSIN001                     -103   82        4.5  2.2
+ 1073M    FCHAPESIN002                     -386  186        6.0  2.9
+ 1151M    BGRANDSIN001                     -210   98        6.0  2.9
+ 1158M    CNOVOSSIN001                     -238  168        4.5  2.2
+ 1156M    ITAUBASIN002                     -220  190        5.0  2.4
+ 1177M    DFRANCSIN001                      -50   40        1.2  0.6
+99999
+DLIN
+(De )d O d(Pa )NcEP ( R% )( X% )(Mvar)(Tap)(Tmn)(Tmx)(Phs)(Bc  )(Cn)(Ce)Ns
+  824  M    801 1           1.68
+  897  M    809 1           2.04
+  856  M    811 1            2.1
+ 1047  M    920 1          3.338
+ 1047  M    922 1          6.782
+ 1060  M    926 1         2.2275
+  817  M    805 1           9.53
+  996  M    905 1         1.5383
+ 1030  M    916 1          4.131
+ 1041  M    918 1           9.33
+ 1071  M   1073 1          2.866
+  936  M   1151 1          5.595
+  953  M   1158 1          4.111
+ 1215  M   1156 1         4.7265
+ 1223  M   1177 1         17.143
+99999
+EXLF
+FIM
