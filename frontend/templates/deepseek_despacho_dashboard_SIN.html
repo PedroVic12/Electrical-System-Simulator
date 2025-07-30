@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Despacho de Energia Elétrica - ONS</title>
+    <title>Painel de Despacho de Energia - ONS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -22,16 +21,17 @@
         }
         .grid-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr;
             grid-template-rows: auto auto auto auto;
             gap: 20px;
             grid-template-areas:
-                "header header header"
-                "map map sidebar"
-                "cards cards sidebar"
-                "chart chart chart";
+                "header header"
+                "table table"
+                "map sidebar"
+                "cards chart";
         }
         .header { grid-area: header; }
+        .table-container { grid-area: table; }
         .map-container { grid-area: map; }
         .sidebar { grid-area: sidebar; }
         .cards-container { grid-area: cards; }
@@ -74,7 +74,6 @@
             border-radius: 4px;
         }
         input[type="range"] {
-            -webkit-appearance: none;
             width: 100%;
             height: 8px;
             border-radius: 4px;
@@ -129,6 +128,49 @@
             padding-bottom: 12px;
             margin-bottom: 12px;
         }
+        .power-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .power-table th {
+            background-color: #1e293b;
+            color: #94a3b8;
+            text-align: left;
+            padding: 8px 12px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .power-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #334155;
+        }
+        .power-table tbody tr {
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+        .power-table tbody tr:nth-child(even) {
+            background-color: rgba(30, 41, 59, 0.7);
+        }
+        .power-table tbody tr:hover {
+            background-color: rgba(56, 71, 98, 0.7);
+        }
+        .table-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 12px;
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid #334155;
+        }
+        .table-header {
+            background: rgba(15, 23, 42, 0.9);
+            padding: 15px;
+            border-bottom: 1px solid #334155;
+        }
+        .highlight-row {
+            background-color: rgba(245, 158, 11, 0.2) !important;
+            outline: 2px solid #f59e0b;
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
@@ -137,121 +179,239 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
         
-        // Dados iniciais das barras
-        const initialBusData = [
+        // Dados iniciais das usinas (barras)
+        const initialPlantData = [
             {
                 id: "N-101",
                 name: "Tucuruí",
-                region: "Norte",
-                voltage: 500,
-                loadMW: 1240,
-                loadMvar: 310,
-                generationMW: 8370,
-                generationType: "Hidráulica",
-                dispatchPercentage: 85,
-                isSwing: false,
-                position: [-3.83, -49.67]
+                busNumber: 101,
+                nominalPower: 8370,
+                minPower: 1000,
+                maxPower: 8370,
+                minReactive: -500,
+                maxReactive: 500,
+                currentDispatchMW: 7115,
+                currentDispatchPercentage: 85,
+                currentReactive: -39,
+                voltage: 1.000,
+                newDispatchMW: 7115,
+                newDispatchPercentage: 85,
+                forceMachines: null,
+                dispatchSynchronous: null,
+                maxDispatchMachines: 18,
+                dispatchedMachines: 18,
+                maxUnits: 23,
+                status: "Operacional",
+                subsystem: "Norte",
+                plantType: "Hidráulica",
+                river: "Rio Tocantins",
+                basin: "Tocantins/Araguaia",
+                influenceRegion: "Norte",
+                dispatchVsInstalled: "85.0%",
+                plantVsBasin: "32.5%",
+                dispatchVsBasin: "28.7%",
+                lineData: { pf: 0.98, circuit: 1, fromBus: "N-101", toBus: "N-102" },
+                position: [-3.83, -49.67],
+                isSwing: false
             },
             {
                 id: "NE-205",
                 name: "Sobradinho",
-                region: "Nordeste",
-                voltage: 500,
-                loadMW: 1870,
-                loadMvar: 468,
-                generationMW: 1050,
-                generationType: "Hidráulica",
-                dispatchPercentage: 70,
-                isSwing: false,
-                position: [-9.42, -40.82]
+                busNumber: 205,
+                nominalPower: 1050,
+                minPower: 200,
+                maxPower: 1050,
+                minReactive: -300,
+                maxReactive: 300,
+                currentDispatchMW: 735,
+                currentDispatchPercentage: 70,
+                currentReactive: -45,
+                voltage: 0.909,
+                newDispatchMW: 735,
+                newDispatchPercentage: 70,
+                forceMachines: null,
+                dispatchSynchronous: null,
+                maxDispatchMachines: 6,
+                dispatchedMachines: 6,
+                maxUnits: 8,
+                status: "Operacional",
+                subsystem: "Nordeste",
+                plantType: "Hidráulica",
+                river: "Rio São Francisco",
+                basin: "São Francisco",
+                influenceRegion: "Nordeste",
+                dispatchVsInstalled: "70.0%",
+                plantVsBasin: "15.8%",
+                dispatchVsBasin: "11.2%",
+                lineData: { pf: 0.95, circuit: 2, fromBus: "NE-205", toBus: "NE-206" },
+                position: [-9.42, -40.82],
+                isSwing: false
             },
             {
                 id: "SE-301",
                 name: "Itaipu",
-                region: "Sudeste",
-                voltage: 750,
-                loadMW: 0,
-                loadMvar: 0,
-                generationMW: 14000,
-                generationType: "Hidráulica",
-                dispatchPercentage: 92,
-                isSwing: false,
-                position: [-25.41, -54.59]
+                busNumber: 301,
+                nominalPower: 14000,
+                minPower: 7000,
+                maxPower: 14000,
+                minReactive: -800,
+                maxReactive: 800,
+                currentDispatchMW: 12880,
+                currentDispatchPercentage: 92,
+                currentReactive: -120,
+                voltage: 0.998,
+                newDispatchMW: 12880,
+                newDispatchPercentage: 92,
+                forceMachines: null,
+                dispatchSynchronous: null,
+                maxDispatchMachines: 20,
+                dispatchedMachines: 20,
+                maxUnits: 20,
+                status: "Operacional",
+                subsystem: "Sudeste",
+                plantType: "Hidráulica",
+                river: "Rio Paraná",
+                basin: "Paraná",
+                influenceRegion: "Sudeste",
+                dispatchVsInstalled: "92.0%",
+                plantVsBasin: "22.5%",
+                dispatchVsBasin: "20.7%",
+                lineData: { pf: 0.99, circuit: 1, fromBus: "SE-301", toBus: "SE-302" },
+                position: [-25.41, -54.59],
+                isSwing: false
             },
             {
                 id: "SE-302",
                 name: "Furnas",
-                region: "Sudeste",
-                voltage: 500,
-                loadMW: 2450,
-                loadMvar: 612,
-                generationMW: 0,
-                generationType: "",
-                dispatchPercentage: 100,
-                isSwing: true,
-                position: [-20.27, -46.0]
+                busNumber: 302,
+                nominalPower: 0,
+                minPower: 0,
+                maxPower: 0,
+                minReactive: -600,
+                maxReactive: 600,
+                currentDispatchMW: 0,
+                currentDispatchPercentage: 0,
+                currentReactive: 245,
+                voltage: 1.050,
+                newDispatchMW: 0,
+                newDispatchPercentage: 0,
+                forceMachines: null,
+                dispatchSynchronous: null,
+                maxDispatchMachines: 0,
+                dispatchedMachines: 0,
+                maxUnits: 0,
+                status: "Operacional",
+                subsystem: "Sudeste",
+                plantType: "Subestação",
+                river: "N/A",
+                basin: "N/A",
+                influenceRegion: "Sudeste",
+                dispatchVsInstalled: "N/A",
+                plantVsBasin: "N/A",
+                dispatchVsBasin: "N/A",
+                lineData: { pf: 1.00, circuit: 3, fromBus: "SE-302", toBus: "S-401" },
+                position: [-20.27, -46.0],
+                isSwing: true
             },
             {
                 id: "S-401",
                 name: "Itá",
-                region: "Sul",
-                voltage: 500,
-                loadMW: 980,
-                loadMvar: 245,
-                generationMW: 1450,
-                generationType: "Hidráulica",
-                dispatchPercentage: 78,
-                isSwing: false,
-                position: [-27.07, -52.32]
-            },
-            {
-                id: "NE-206",
-                name: "Canindé",
-                region: "Nordeste",
-                voltage: 230,
-                loadMW: 650,
-                loadMvar: 162,
-                generationMW: 0,
-                generationType: "",
-                dispatchPercentage: 100,
-                isSwing: false,
-                position: [-4.36, -39.31]
+                busNumber: 401,
+                nominalPower: 1450,
+                minPower: 300,
+                maxPower: 1450,
+                minReactive: -350,
+                maxReactive: 350,
+                currentDispatchMW: 1131,
+                currentDispatchPercentage: 78,
+                currentReactive: -85,
+                voltage: 0.980,
+                newDispatchMW: 1131,
+                newDispatchPercentage: 78,
+                forceMachines: null,
+                dispatchSynchronous: null,
+                maxDispatchMachines: 8,
+                dispatchedMachines: 8,
+                maxUnits: 10,
+                status: "Operacional",
+                subsystem: "Sul",
+                plantType: "Hidráulica",
+                river: "Rio Uruguai",
+                basin: "Uruguai",
+                influenceRegion: "Sul",
+                dispatchVsInstalled: "78.0%",
+                plantVsBasin: "18.7%",
+                dispatchVsBasin: "14.6%",
+                lineData: { pf: 0.97, circuit: 2, fromBus: "S-401", toBus: "S-402" },
+                position: [-27.07, -52.32],
+                isSwing: false
             },
             {
                 id: "S-402",
-                name: "Machadinho",
-                region: "Sul",
-                voltage: 230,
-                loadMW: 720,
-                loadMvar: 180,
-                generationMW: 1140,
-                generationType: "Hidráulica",
-                dispatchPercentage: 65,
-                isSwing: false,
-                position: [-27.57, -51.67]
+                name: "Garibaldi",
+                busNumber: 402,
+                nominalPower: 189,
+                minPower: 45,
+                maxPower: 63,
+                minReactive: -32,
+                maxReactive: 32,
+                currentDispatchMW: 180,
+                currentDispatchPercentage: 95,
+                currentReactive: -15,
+                voltage: 0.995,
+                newDispatchMW: 180,
+                newDispatchPercentage: 95,
+                forceMachines: null,
+                dispatchSynchronous: null,
+                maxDispatchMachines: 3,
+                dispatchedMachines: 3,
+                maxUnits: 3,
+                status: "Operacional",
+                subsystem: "Sul",
+                plantType: "Hidráulica",
+                river: "Rio Canoas",
+                basin: "Rio Uruguai",
+                influenceRegion: "Sul",
+                dispatchVsInstalled: "95.2%",
+                plantVsBasin: "3.2%",
+                dispatchVsBasin: "0.0%",
+                lineData: { pf: 0.96, circuit: 1, fromBus: "S-402", toBus: "S-401" },
+                position: [-27.57, -51.67],
+                isSwing: false
             },
             {
-                id: "N-102",
-                name: "Jirau",
-                region: "Norte",
-                voltage: 500,
-                loadMW: 0,
-                loadMvar: 0,
-                generationMW: 3750,
-                generationType: "Hidráulica",
-                dispatchPercentage: 88,
-                isSwing: false,
-                position: [-9.25, -64.38]
+                id: "S-403",
+                name: "Gov. José Richa (Salto Caxias)",
+                busNumber: 403,
+                nominalPower: 1240,
+                minPower: 235,
+                maxPower: 310,
+                minReactive: -150,
+                maxReactive: 112,
+                currentDispatchMW: 1100,
+                currentDispatchPercentage: 89,
+                currentReactive: -75,
+                voltage: 0.975,
+                newDispatchMW: 1100,
+                newDispatchPercentage: 89,
+                forceMachines: null,
+                dispatchSynchronous: null,
+                maxDispatchMachines: 4,
+                dispatchedMachines: 4,
+                maxUnits: 4,
+                status: "Operacional",
+                subsystem: "Sul",
+                plantType: "Hidráulica",
+                river: "Rio Iguaçu",
+                basin: "Bacia do Iguaçu",
+                influenceRegion: "Sul",
+                dispatchVsInstalled: "89.0%",
+                plantVsBasin: "15.3%",
+                dispatchVsBasin: "13.6%",
+                lineData: { pf: 0.94, circuit: 2, fromBus: "S-403", toBus: "S-401" },
+                position: [-25.78, -53.47],
+                isSwing: false
             }
-        ];
-
-        // Dados de fluxo entre regiões
-        const initialFlowData = [
-            { source: "Norte", target: "Nordeste", value: 3200 },
-            { source: "Norte", target: "Sudeste", value: 4200 },
-            { source: "Nordeste", target: "Sudeste", value: 2800 },
-            { source: "Sudeste", target: "Sul", value: 3800 },
-            { source: "Sul", target: "Sudeste", value: 1500 }
         ];
 
         // Configurações de cores por região
@@ -262,9 +422,145 @@
             "Sul": "#8b5cf6"
         };
 
+        // Classe Repository para gerenciar os dados
+        class BusRepository {
+            constructor() {
+                this.storageKey = 'powerDispatchData_v1';
+                this.data = this.loadFromStorage();
+            }
+            
+            loadFromStorage() {
+                try {
+                    const data = localStorage.getItem(this.storageKey);
+                    return data ? JSON.parse(data) : initialPlantData;
+                } catch (e) {
+                    return initialPlantData;
+                }
+            }
+            
+            saveToStorage() {
+                try {
+                    localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+                } catch (e) {
+                    console.error("Erro ao salvar dados:", e);
+                }
+            }
+            
+            getAll() {
+                return this.data;
+            }
+            
+            updatePlant(id, updates) {
+                this.data = this.data.map(plant => 
+                    plant.id === id ? { ...plant, ...updates } : plant
+                );
+                this.saveToStorage();
+                return this.data;
+            }
+            
+            updateAll(newData) {
+                this.data = newData;
+                this.saveToStorage();
+                return this.data;
+            }
+            
+            // Função para despacho automático
+            autoDispatch() {
+                const swingBus = this.data.find(plant => plant.isSwing);
+                if (!swingBus) return this.data;
+                
+                // Lógica simplificada de despacho automático
+                const updatedData = this.data.map(plant => {
+                    if (plant.plantType === "Hidráulica") {
+                        const newDispatch = Math.min(
+                            plant.maxPower, 
+                            Math.max(plant.minPower, plant.nominalPower * 0.9)
+                        );
+                        const newPercentage = Math.round((newDispatch / plant.nominalPower) * 100);
+                        
+                        return {
+                            ...plant,
+                            newDispatchMW: newDispatch,
+                            newDispatchPercentage: newPercentage
+                        };
+                    }
+                    return plant;
+                });
+                
+                this.data = updatedData;
+                this.saveToStorage();
+                return this.data;
+            }
+        }
+
+        // Componente para a tabela de usinas
+        const PowerPlantTable = ({ plants, onSelectPlant }) => {
+            const [selectedId, setSelectedId] = useState(null);
+            
+            const handleSelect = (id) => {
+                setSelectedId(id);
+                onSelectPlant(id);
+            };
+            
+            return (
+                <div className="table-container">
+                    <div className="table-header">
+                        <h2 className="text-xl font-bold text-white">Tabela de Usinas e Barras</h2>
+                        <p className="text-slate-400 text-sm">
+                            {plants.length} usinas monitoradas | Clique em uma linha para destacar no mapa
+                        </p>
+                    </div>
+                    <table className="power-table">
+                        <thead>
+                            <tr>
+                                <th>Nome da Usina</th>
+                                <th>Número da Barra</th>
+                                <th>Potência Nominal (MW)</th>
+                                <th>Pmín Unidade (MW)</th>
+                                <th>Pmáx Unidade (MW)</th>
+                                <th>Qmin (Mvar)</th>
+                                <th>Qmáx (Mvar)</th>
+                                <th>Despacho Atual (MW)</th>
+                                <th>Despacho Atual (%)</th>
+                                <th>Despacho Novo (MW)</th>
+                                <th>Despacho Novo (%)</th>
+                                <th>Estado</th>
+                                <th>Subsistema</th>
+                                <th>Tipo de Usina</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {plants.map(plant => (
+                                <tr 
+                                    key={plant.id}
+                                    onClick={() => handleSelect(plant.id)}
+                                    className={selectedId === plant.id ? "highlight-row" : ""}
+                                >
+                                    <td>{plant.name}</td>
+                                    <td>{plant.busNumber}</td>
+                                    <td>{plant.nominalPower.toLocaleString('pt-BR')}</td>
+                                    <td>{plant.minPower.toLocaleString('pt-BR')}</td>
+                                    <td>{plant.maxPower.toLocaleString('pt-BR')}</td>
+                                    <td>{plant.minReactive}</td>
+                                    <td>{plant.maxReactive}</td>
+                                    <td>{plant.currentDispatchMW.toLocaleString('pt-BR')}</td>
+                                    <td>{plant.currentDispatchPercentage}%</td>
+                                    <td>{plant.newDispatchMW.toLocaleString('pt-BR')}</td>
+                                    <td>{plant.newDispatchPercentage}%</td>
+                                    <td>{plant.status}</td>
+                                    <td>{plant.subsystem}</td>
+                                    <td>{plant.plantType}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        };
+
         // Componente para o card de barra
         const BusCard = ({ bus, onDispatchChange }) => {
-            const voltagePercentage = Math.min(100, Math.max(0, (bus.voltage - 200) / 5));
+            const voltagePercentage = Math.min(100, Math.max(0, (bus.voltage - 0.9) * 100));
             
             return (
                 <div className={`bus-card rounded-xl p-5 relative overflow-hidden ${bus.isSwing ? 'swing' : ''}`}>
@@ -278,26 +574,26 @@
                         <div>
                             <h3 className="text-xl font-bold text-white">{bus.name}</h3>
                             <div className="flex items-center mt-1">
-                                <span className="text-sm text-slate-300 mr-2">{bus.id}</span>
+                                <span className="text-sm text-slate-300 mr-2">Barra {bus.busNumber}</span>
                                 <span className="generation-badge" style={{ 
-                                    backgroundColor: regionColors[bus.region] + '20', 
-                                    color: regionColors[bus.region],
-                                    border: `1px solid ${regionColors[bus.region]}`
+                                    backgroundColor: regionColors[bus.subsystem] + '20', 
+                                    color: regionColors[bus.subsystem],
+                                    border: `1px solid ${regionColors[bus.subsystem]}`
                                 }}>
-                                    {bus.region}
+                                    {bus.subsystem}
                                 </span>
                             </div>
                         </div>
                         <div className="text-right">
-                            <span className="text-2xl font-bold" style={{ color: regionColors[bus.region] }}>
-                                {bus.voltage}kV
+                            <span className="text-2xl font-bold" style={{ color: regionColors[bus.subsystem] }}>
+                                {bus.voltage} pu
                             </span>
                             <div className="voltage-indicator w-24 bg-slate-700 mt-1">
                                 <div 
                                     className="voltage-fill" 
                                     style={{ 
                                         width: `${voltagePercentage}%`, 
-                                        background: `linear-gradient(90deg, ${regionColors[bus.region]}, ${regionColors[bus.region]}bb)`
+                                        background: `linear-gradient(90deg, ${regionColors[bus.subsystem]}, ${regionColors[bus.subsystem]}bb)`
                                     }}
                                 ></div>
                             </div>
@@ -307,32 +603,36 @@
                     <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="bg-slate-800 rounded-lg p-3">
                             <div className="text-slate-400 text-sm mb-1">Carga MW</div>
-                            <div className="text-lg font-bold text-blue-300">{bus.loadMW.toLocaleString('pt-BR')}</div>
+                            <div className="text-lg font-bold text-blue-300">
+                                {bus.currentDispatchMW.toLocaleString('pt-BR')}
+                            </div>
                         </div>
                         <div className="bg-slate-800 rounded-lg p-3">
                             <div className="text-slate-400 text-sm mb-1">Carga Mvar</div>
-                            <div className="text-lg font-bold text-purple-300">{bus.loadMvar.toLocaleString('pt-BR')}</div>
+                            <div className="text-lg font-bold text-purple-300">
+                                {bus.currentReactive.toLocaleString('pt-BR')}
+                            </div>
                         </div>
                     </div>
                     
-                    {bus.generationMW > 0 && (
+                    {bus.plantType === "Hidráulica" && (
                         <div className="mb-4">
                             <div className="flex justify-between text-sm text-slate-400 mb-2">
                                 <span>Despacho de Geração</span>
-                                <span>{bus.dispatchPercentage}% ({Math.round(bus.generationMW * bus.dispatchPercentage / 100).toLocaleString('pt-BR')} MW)</span>
+                                <span>{bus.newDispatchPercentage}% ({bus.newDispatchMW.toLocaleString('pt-BR')} MW)</span>
                             </div>
                             <input 
                                 type="range" 
-                                min="0" 
-                                max="100" 
-                                value={bus.dispatchPercentage} 
+                                min={bus.minPower} 
+                                max={bus.maxPower} 
+                                value={bus.newDispatchMW} 
                                 onChange={(e) => onDispatchChange(bus.id, parseInt(e.target.value))}
                                 className="mb-2"
-                                style={{ background: `linear-gradient(90deg, ${regionColors[bus.region]} 0%, ${regionColors[bus.region]} ${bus.dispatchPercentage}%, #334155 ${bus.dispatchPercentage}%, #334155 100%)` }}
+                                style={{ background: `linear-gradient(90deg, ${regionColors[bus.subsystem]} 0%, ${regionColors[bus.subsystem]} ${bus.newDispatchPercentage}%, #334155 ${bus.newDispatchPercentage}%, #334155 100%)` }}
                             />
                             <div className="text-sm text-slate-400 flex justify-between">
-                                <span>{bus.generationType}</span>
-                                <span>Capacidade: {bus.generationMW.toLocaleString('pt-BR')} MW</span>
+                                <span>{bus.plantType}</span>
+                                <span>Capacidade: {bus.nominalPower.toLocaleString('pt-BR')} MW</span>
                             </div>
                         </div>
                     )}
@@ -345,7 +645,7 @@
                                     <i className="fas fa-minus"></i>
                                 </button>
                                 <div className="flex-1 text-center mx-2">
-                                    <div className="text-xl font-bold text-amber-400">1.05 pu</div>
+                                    <div className="text-xl font-bold text-amber-400">{bus.voltage} pu</div>
                                     <div className="text-xs text-slate-400">Tensão Atual</div>
                                 </div>
                                 <button className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-1 px-3 rounded-r-lg">
@@ -359,7 +659,7 @@
         };
 
         // Componente do mapa do Brasil
-        const BrazilMap = ({ buses, onBusSelect }) => {
+        const BrazilMap = ({ plants, onSelectPlant }) => {
             const mapRef = useRef(null);
             const markersRef = useRef([]);
             
@@ -372,9 +672,9 @@
                     attribution: '&copy; OpenStreetMap contributors'
                 }).addTo(mapRef.current);
                 
-                // Adiciona marcadores para cada barra
-                markersRef.current = buses.map(bus => {
-                    const marker = L.marker(bus.position, {
+                // Adiciona marcadores para cada usina
+                markersRef.current = plants.map(plant => {
+                    const marker = L.marker(plant.position, {
                         icon: L.divIcon({
                             className: 'leaflet-div-icon',
                             html: `
@@ -382,7 +682,7 @@
                                     <div style="
                                         width: 24px; 
                                         height: 24px; 
-                                        background: ${regionColors[bus.region]};
+                                        background: ${regionColors[plant.subsystem]};
                                         border-radius: 50%;
                                         border: 2px solid white;
                                         box-shadow: 0 0 10px rgba(0,0,0,0.3);
@@ -393,9 +693,9 @@
                                         font-weight: bold;
                                         font-size: 10px;
                                     ">
-                                        ${bus.voltage}
+                                        ${plant.busNumber}
                                     </div>
-                                    ${bus.isSwing ? `
+                                    ${plant.isSwing ? `
                                     <div style="
                                         position: absolute;
                                         top: -5px;
@@ -419,13 +719,13 @@
                     
                     marker.bindTooltip(`
                         <div class="map-tooltip">
-                            <strong>${bus.name}</strong> (${bus.id})<br>
-                            <span style="color: ${regionColors[bus.region]}">${bus.region}</span><br>
-                            ${bus.generationMW > 0 ? `Geração: ${bus.generationMW} MW` : `Carga: ${bus.loadMW} MW`}
+                            <strong>${plant.name}</strong> (Barra ${plant.busNumber})<br>
+                            <span style="color: ${regionColors[plant.subsystem]}">${plant.subsystem}</span><br>
+                            ${plant.plantType === "Hidráulica" ? `Geração: ${plant.newDispatchMW} MW` : `Subestação`}
                         </div>
                     `);
                     
-                    marker.on('click', () => onBusSelect(bus.id));
+                    marker.on('click', () => onSelectPlant(plant.id));
                     
                     return marker;
                 });
@@ -460,104 +760,26 @@
             return <div id="map" className="w-full"></div>;
         };
 
-        // Componente do gráfico Sankey
-        const FlowChart = ({ flowData }) => {
-            const chartRef = useRef(null);
-            
-            useEffect(() => {
-                if (!flowData || flowData.length === 0) return;
-                
-                // Preparar dados para o Sankey
-                const nodes = [];
-                const links = [];
-                const nodeNames = new Set();
-                
-                // Adicionar nós
-                flowData.forEach(flow => {
-                    if (!nodeNames.has(flow.source)) {
-                        nodes.push({ label: flow.source, color: regionColors[flow.source] });
-                        nodeNames.add(flow.source);
-                    }
-                    if (!nodeNames.has(flow.target)) {
-                        nodes.push({ label: flow.target, color: regionColors[flow.target] });
-                        nodeNames.add(flow.target);
-                    }
-                });
-                
-                // Adicionar links
-                flowData.forEach(flow => {
-                    const sourceIndex = Array.from(nodeNames).indexOf(flow.source);
-                    const targetIndex = Array.from(nodeNames).indexOf(flow.target);
-                    
-                    links.push({
-                        source: sourceIndex,
-                        target: targetIndex,
-                        value: flow.value,
-                        color: regionColors[flow.source] + '99'
-                    });
-                });
-                
-                // Criar o gráfico
-                const data = {
-                    type: "sankey",
-                    orientation: "h",
-                    node: {
-                        pad: 15,
-                        thickness: 30,
-                        line: { color: "black", width: 0.5 },
-                        label: nodes.map(node => node.label),
-                        color: nodes.map(node => node.color)
-                    },
-                    link: {
-                        source: links.map(link => link.source),
-                        target: links.map(link => link.target),
-                        value: links.map(link => link.value),
-                        color: links.map(link => link.color)
-                    }
-                };
-                
-                const layout = {
-                    title: "Fluxo de Energia entre Regiões (MW)",
-                    font: { size: 12, color: "#e2e8f0" },
-                    paper_bgcolor: "rgba(0,0,0,0)",
-                    plot_bgcolor: "rgba(0,0,0,0)",
-                    margin: { t: 40, l: 0, r: 0, b: 20 }
-                };
-                
-                if (chartRef.current) {
-                    Plotly.newPlot(chartRef.current, [data], layout);
-                }
-                
-                return () => {
-                    if (chartRef.current) {
-                        Plotly.purge(chartRef.current);
-                    }
-                };
-            }, [flowData]);
-            
-            return <div ref={chartRef} className="sankey-chart"></div>;
-        };
-
         // Componente de resumo do sistema
-        const SystemSummary = ({ buses }) => {
-            // Calcular totais por região
-            const regionTotals = {
+        const SystemSummary = ({ plants, onAutoDispatch, onApplyChanges }) => {
+            // Calcular totais por subsistema
+            const subsystemTotals = {
                 "Norte": { loadMW: 0, loadMvar: 0, generationMW: 0 },
                 "Nordeste": { loadMW: 0, loadMvar: 0, generationMW: 0 },
                 "Sudeste": { loadMW: 0, loadMvar: 0, generationMW: 0 },
                 "Sul": { loadMW: 0, loadMvar: 0, generationMW: 0 }
             };
             
-            buses.forEach(bus => {
-                regionTotals[bus.region].loadMW += bus.loadMW;
-                regionTotals[bus.region].loadMvar += bus.loadMvar;
-                regionTotals[bus.region].generationMW += bus.generationMW;
+            plants.forEach(plant => {
+                subsystemTotals[plant.subsystem].loadMW += plant.currentDispatchMW;
+                subsystemTotals[plant.subsystem].loadMvar += plant.currentReactive;
+                subsystemTotals[plant.subsystem].generationMW += plant.plantType === "Hidráulica" ? plant.newDispatchMW : 0;
             });
             
             // Calcular totais gerais
-            const totalLoadMW = Object.values(regionTotals).reduce((sum, region) => sum + region.loadMW, 0);
-            const totalLoadMvar = Object.values(regionTotals).reduce((sum, region) => sum + region.loadMvar, 0);
-            const totalGenerationMW = Object.values(regionTotals).reduce((sum, region) => sum + region.generationMW, 0);
+            const totalLoadMW = Object.values(subsystemTotals).reduce((sum, region) => sum + region.loadMW, 0);
+            const totalLoadMvar = Object.values(subsystemTotals).reduce((sum, region) => sum + region.loadMvar, 0);
+            const totalGenerationMW = Object.values(subsystemTotals).reduce((sum, region) => sum + region.generationMW, 0);
             const balanceMW = totalGenerationMW - totalLoadMW;
             
             return (
@@ -589,13 +811,13 @@
                     </div>
                     
                     <div className="mb-5">
-                        <h3 className="font-bold text-slate-300 mb-3">Resumo por Região</h3>
-                        {Object.entries(regionTotals).map(([region, data]) => (
-                            <div key={region} className="mb-3">
+                        <h3 className="font-bold text-slate-300 mb-3">Resumo por Subsistema</h3>
+                        {Object.entries(subsystemTotals).map(([subsystem, data]) => (
+                            <div key={subsystem} className="mb-3">
                                 <div className="flex justify-between mb-1">
                                     <div className="flex items-center">
-                                        <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: regionColors[region] }}></div>
-                                        <span className="text-slate-300">{region}</span>
+                                        <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: regionColors[subsystem] }}></div>
+                                        <span className="text-slate-300">{subsystem}</span>
                                     </div>
                                     <span className="text-slate-400">{data.generationMW > 0 ? 'Geração' : 'Carga'}</span>
                                 </div>
@@ -605,7 +827,7 @@
                                             className="h-2.5 rounded-full" 
                                             style={{ 
                                                 width: `${(data.generationMW > 0 ? data.generationMW : data.loadMW) / 15000 * 100}%`, 
-                                                background: `linear-gradient(90deg, ${regionColors[region]}, ${regionColors[region]}bb)`
+                                                background: `linear-gradient(90deg, ${regionColors[subsystem]}, ${regionColors[subsystem]}bb)`
                                             }}
                                         ></div>
                                     </div>
@@ -620,10 +842,16 @@
                     </div>
                     
                     <div className="flex justify-between">
-                        <button className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2 px-4 rounded-lg flex items-center">
+                        <button 
+                            className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2 px-4 rounded-lg flex items-center"
+                            onClick={onAutoDispatch}
+                        >
                             <i className="fas fa-bolt mr-2"></i> Despacho Automático
                         </button>
-                        <button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                        <button 
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
+                            onClick={onApplyChanges}
+                        >
                             <i className="fas fa-check mr-2"></i> Aplicar Alterações
                         </button>
                     </div>
@@ -633,30 +861,60 @@
 
         // Componente principal
         const App = () => {
-            const [buses, setBuses] = useState(initialBusData);
-            const [flowData, setFlowData] = useState(initialFlowData);
-            const [selectedBus, setSelectedBus] = useState(null);
+            const busRepo = useRef(new BusRepository());
+            const [plants, setPlants] = useState(busRepo.current.getAll());
+            const [selectedPlant, setSelectedPlant] = useState(null);
+            const [flowData, setFlowData] = useState([
+                { source: "Norte", target: "Nordeste", value: 3200 },
+                { source: "Norte", target: "Sudeste", value: 4200 },
+                { source: "Nordeste", target: "Sudeste", value: 2800 },
+                { source: "Sudeste", target: "Sul", value: 3800 },
+                { source: "Sul", target: "Sudeste", value: 1500 }
+            ]);
             
-            const handleDispatchChange = (busId, newPercentage) => {
-                setBuses(prevBuses => 
-                    prevBuses.map(bus => 
-                        bus.id === busId ? { ...bus, dispatchPercentage: newPercentage } : bus
-                    )
-                );
+            const handleDispatchChange = (plantId, newMW) => {
+                const updatedPlants = busRepo.current.updatePlant(plantId, {
+                    newDispatchMW: newMW,
+                    newDispatchPercentage: Math.round((newMW / plants.find(p => p.id === plantId).nominalPower) * 100)
+                });
+                setPlants(updatedPlants);
             };
             
-            const handleBusSelect = (busId) => {
-                setSelectedBus(busId);
+            const handlePlantSelect = (plantId) => {
+                setSelectedPlant(plantId);
                 
                 // Scroll para o card selecionado
                 setTimeout(() => {
-                    const element = document.getElementById(`bus-${busId}`);
+                    const element = document.getElementById(`plant-${plantId}`);
                     if (element) {
                         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         element.classList.add('ring-2', 'ring-amber-400');
                         setTimeout(() => element.classList.remove('ring-2', 'ring-amber-400'), 2000);
                     }
                 }, 100);
+            };
+            
+            const handleAutoDispatch = () => {
+                const updatedPlants = busRepo.current.autoDispatch();
+                setPlants(updatedPlants);
+            };
+            
+            const handleApplyChanges = () => {
+                // Atualizar o despacho atual com os novos valores
+                const updatedPlants = plants.map(plant => ({
+                    ...plant,
+                    currentDispatchMW: plant.newDispatchMW,
+                    currentDispatchPercentage: plant.newDispatchPercentage
+                }));
+                
+                busRepo.current.updateAll(updatedPlants);
+                setPlants(updatedPlants);
+                
+                // Simular atualização do fluxo de energia
+                setFlowData(prev => prev.map(flow => ({
+                    ...flow,
+                    value: Math.round(flow.value * (0.9 + Math.random() * 0.2))
+                })));
             };
             
             return (
@@ -666,10 +924,10 @@
                             <div>
                                 <h1 className="text-3xl md:text-4xl font-bold text-white">
                                     <i className="fas fa-bolt text-amber-400 mr-3"></i>
-                                    Painel de Despacho de Energia
+                                    Painel de Despacho de Energia - ONS
                                 </h1>
                                 <p className="mt-2 text-slate-400">
-                                    Controle e monitoramento do Sistema Interligado Nacional - Operador Nacional do Sistema
+                                    Controle e monitoramento do Sistema Interligado Nacional
                                 </p>
                             </div>
                             <div className="flex items-center gap-3">
@@ -685,6 +943,10 @@
                     </header>
                     
                     <div className="grid-layout">
+                        <div className="table-container">
+                            <PowerPlantTable plants={plants} onSelectPlant={handlePlantSelect} />
+                        </div>
+                        
                         <div className="map-container">
                             <div className="bg-slate-800 rounded-xl p-5 h-full">
                                 <div className="flex justify-between items-center mb-4">
@@ -698,27 +960,31 @@
                                         </button>
                                     </div>
                                 </div>
-                                <BrazilMap buses={buses} onBusSelect={handleBusSelect} />
+                                <BrazilMap plants={plants} onSelectPlant={handlePlantSelect} />
                             </div>
                         </div>
                         
                         <div className="sidebar">
-                            <SystemSummary buses={buses} />
+                            <SystemSummary 
+                                plants={plants} 
+                                onAutoDispatch={handleAutoDispatch}
+                                onApplyChanges={handleApplyChanges}
+                            />
                         </div>
                         
                         <div className="cards-container">
                             <div className="bg-slate-800 rounded-xl p-5 h-full">
                                 <div className="card-header">
-                                    <h2 className="text-xl font-bold text-white">Barras do Sistema</h2>
+                                    <h2 className="text-xl font-bold text-white">Usinas do Sistema</h2>
                                     <p className="text-slate-400 text-sm">
-                                        {buses.length} barras monitoradas | {buses.filter(b => b.isSwing).length} barra swing
+                                        {plants.length} usinas monitoradas | {plants.filter(b => b.isSwing).length} barra swing
                                     </p>
                                 </div>
                                 <div className="grid-stack">
-                                    {buses.map(bus => (
-                                        <div key={bus.id} id={`bus-${bus.id}`}>
+                                    {plants.map(plant => (
+                                        <div key={plant.id} id={`plant-${plant.id}`}>
                                             <BusCard 
-                                                bus={bus} 
+                                                bus={plant} 
                                                 onDispatchChange={handleDispatchChange} 
                                             />
                                         </div>
@@ -730,12 +996,40 @@
                         <div className="chart-container">
                             <div className="bg-slate-800 rounded-xl p-5 h-full">
                                 <div className="flex justify-between items-center mb-4">
-                                    <h2 className="text-xl font-bold text-white">Fluxo de Energia entre Regiões</h2>
+                                    <h2 className="text-xl font-bold text-white">Fluxo de Energia entre Subsistemas</h2>
                                     <div className="text-sm text-slate-400">
                                         Dados em tempo real | Atualizado: agora
                                     </div>
                                 </div>
-                                <FlowChart flowData={flowData} />
+                                <div className="sankey-chart">
+                                    <div className="flex flex-wrap gap-4">
+                                        {flowData.map((flow, index) => (
+                                            <div key={index} className="flex items-center">
+                                                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: regionColors[flow.source] }}>
+                                                    <span className="text-xs font-bold">{flow.source.charAt(0)}</span>
+                                                </div>
+                                                <div className="mx-2 text-amber-400">
+                                                    <i className="fas fa-arrow-right"></i>
+                                                </div>
+                                                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: regionColors[flow.target] }}>
+                                                    <span className="text-xs font-bold">{flow.target.charAt(0)}</span>
+                                                </div>
+                                                <div className="ml-2">
+                                                    <span className="font-bold">{flow.value.toLocaleString('pt-BR')}</span>
+                                                    <span className="text-slate-400 text-sm"> MW</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-6 grid grid-cols-3 gap-4">
+                                        {Object.entries(regionColors).map(([region, color]) => (
+                                            <div key={region} className="flex items-center">
+                                                <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: color }}></div>
+                                                <span className="text-sm">{region}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
