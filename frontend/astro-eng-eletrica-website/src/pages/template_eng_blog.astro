@@ -1,0 +1,258 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+// Carrega o conteúdo dos arquivos Markdown
+const geracaoNote = await getCollection('notes', ({ id }) => id === 'geracao');
+const transmissaoNote = await getCollection('notes', ({ id }) => id === 'transmissao');
+const distribuicaoNote = await getCollection('notes', ({ id }) => id === 'distribuicao');
+const componentesNote = await getCollection('notes', ({ id }) => id === 'componentes');
+
+const { Content: GeracaoContent } = geracaoNote[0];
+const { Content: TransmissaoContent } = transmissaoNote[0];
+const { Content: DistribuicaoContent } = distribuicaoNote[0];
+const { Content: ComponentesContent } = componentesNote[0];
+---
+
+<BaseLayout title="Sistema de Potência Interativo" description="Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que move nosso mundo.">
+    <header class="text-center mb-12">
+        <h1 class="text-4xl md:text-5xl font-bold text-cyan-900 mb-2">Sistema de Potência Interativo</h1>
+        <p class="text-lg text-slate-600 max-w-3xl mx-auto">Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que move nosso mundo.</p>
+    </header>
+
+    <main>
+        <!-- Fluxo Principal -->
+        <div class="flex flex-col md:flex-row items-center justify-center text-center mb-8">
+            <div id="btn-geracao" class="m-2 cursor-pointer p-4 border-2 border-transparent rounded-lg hover:bg-cyan-100 hover:border-cyan-300 transition-all duration-300">
+                <h2 class="text-2xl font-bold text-cyan-800">⚡ Geração</h2>
+                <p class="text-slate-500">Onde tudo começa</p>
+            </div>
+            <div class="flow-arrow hidden md:block mx-4">→</div>
+            <div class="flow-arrow block md:hidden my-2">↓</div>
+            <div id="btn-transmissao" class="m-2 cursor-pointer p-4 border-2 border-transparent rounded-lg hover:bg-cyan-100 hover:border-cyan-300 transition-all duration-300">
+                <h2 class="text-2xl font-bold text-cyan-800">🗼 Transmissão</h2>
+                <p class="text-slate-500">Levando energia longe</p>
+            </div>
+            <div class="flow-arrow hidden md:block mx-4">→</div>
+            <div class="flow-arrow block md:hidden my-2">↓</div>
+            <div id="btn-distribuicao" class="m-2 cursor-pointer p-4 border-2 border-transparent rounded-lg hover:bg-cyan-100 hover:border-cyan-300 transition-all duration-300">
+                <h2 class="text-2xl font-bold text-cyan-800">🏠 Distribuição</h2>
+                <p class="text-slate-500">Energia na sua porta</p>
+            </div>
+        </div>
+
+        <!-- Seções de Conteúdo Detalhado -->
+        <div id="content-container" class="mt-4">
+
+            <!-- 1. Geração -->
+            <section id="content-geracao" class="content-section bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8 border border-slate-200">
+                <h3 class="text-3xl font-bold text-cyan-900 mb-4">{geracaoNote[0].data.title}</h3>
+                <p class="text-slate-600 mb-6">{geracaoNote[0].data.description} Clique nas abas abaixo para aprender sobre cada fonte.</p>
+
+                <div class="flex flex-col lg:flex-row gap-8">
+                    <div class="lg:w-1/2">
+                        <div id="tabs-container" class="flex flex-wrap gap-2 mb-4 border-b border-slate-200 pb-2">
+                            <!-- As abas serão inseridas aqui pelo JS -->
+                        </div>
+                        <div id="tab-content-container" class="p-4 bg-slate-50 rounded-lg min-h-[200px]">
+                            <!-- O conteúdo da aba será inserido aqui pelo JS -->
+                        </div>
+                    </div>
+                    <div class="lg:w-1/2 flex flex-col items-center">
+                         <h4 class="text-xl font-semibold text-center mb-4 text-slate-700">Exemplo de Matriz Energética</h4>
+                         <div class="chart-container relative w-full max-w-sm mx-auto h-72 md:h-80">
+                            <canvas id="generationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="prose max-w-none">
+                    <GeracaoContent />
+                </div>
+            </section>
+
+            <!-- 2. Transmissão -->
+            <section id="content-transmissao" class="content-section bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8 border border-slate-200">
+                <h3 class="text-3xl font-bold text-cyan-900 mb-4">{transmissaoNote[0].data.title}</h3>
+                <p class="text-slate-600 mb-6">{transmissaoNote[0].data.description}</p>
+                <div class="prose max-w-none">
+                    <TransmissaoContent />
+                </div>
+            </section>
+
+            <!-- 3. Distribuição -->
+            <section id="content-distribuicao" class="content-section bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8 border border-slate-200">
+                <h3 class="text-3xl font-bold text-cyan-900 mb-4">{distribuicaoNote[0].data.title}</h3>
+                <p class="text-slate-600 mb-6">{distribuicaoNote[0].data.description}</p>
+                <div class="prose max-w-none">
+                    <DistribuicaoContent />
+                </div>
+            </section>
+        </div>
+
+        <!-- 4. Componentes Chave -->
+        <section class="bg-white rounded-xl shadow-lg p-6 md:p-8 mt-12 border border-slate-200">
+            <h3 class="text-3xl font-bold text-center text-cyan-900 mb-2">{componentesNote[0].data.title}</h3>
+            <p class="text-slate-600 mb-8 text-center max-w-3xl mx-auto">{componentesNote[0].data.description}</p>
+            <div id="components-btn-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+                <!-- Botões dos componentes serão inseridos aqui -->
+            </div>
+            <div id="component-content-display" class="p-6 bg-cyan-50 text-cyan-900 rounded-lg min-h-[100px] transition-all duration-300">
+                <p class="text-center">Selecione um componente para ver sua descrição.</p>
+            </div>
+            <div class="prose max-w-none hidden">
+                <ComponentesContent />
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center mt-12 text-slate-500 text-sm">
+        <p>Aplicação Interativa desenvolvida para fins educacionais.</p>
+    </footer>
+</BaseLayout>
+
+<script is:inline>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- Dados (mantidos no JS para interatividade) ---
+    const generationData = [
+        { name: 'Hidrelétricas', description: 'Utilizam a força da água para girar turbinas e geradores. São uma fonte limpa e renovável, mas dependem de recursos hídricos.' },
+        { name: 'Termelétricas', description: 'Queimam combustíveis fósseis (carvão, gás natural, óleo) ou biomassa para aquecer água, produzir vapor e girar turbinas. São flexíveis, mas emitem gases de efeito estufa.' },
+        { name: 'Nucleares', description: 'Utilizam a fissão nuclear para gerar calor, que produz vapor para as turbinas. São eficientes e não emitem gases de efeito estufa, mas geram resíduos radioativos.' },
+        { name: 'Eólicas', description: 'Convertem a energia do vento em eletricidade através de aerogeradores. São renováveis e limpas, mas intermitentes.' },
+        { name: 'Solares', description: 'Convertem a luz do sol em eletricidade, seja por painéis fotovoltaicos (diretamente) ou por usinas termossolares. Também são renováveis e limpas, mas intermitentes.' }
+    ];
+
+    const componentsData = [
+        { name: 'Geradores', description: 'Convertem outras formas de energia (mecânica, térmica, etc.) em energia elétrica. São o coração das usinas.' },
+        { name: 'Transformadores', description: 'Alteram os níveis de tensão da eletricidade. Elevam a tensão para a transmissão e a reduzem para a distribuição e consumo.' },
+        { name: 'Linhas', description: 'Conduzem a energia através de cabos aéreos ou subterrâneos, formando as redes de transmissão e distribuição.' },
+        { name: 'Disjuntores e Chaves', description: 'Controlam o fluxo de energia e protegem o sistema contra falhas. Atuam como interruptores de grande porte.' },
+        { name: 'Relés de Proteção', description: 'Detectam condições anormais (como curtos-circuitos) e acionam os disjuntores para isolar a falha e proteger o resto do sistema.' },
+        { name: 'Barramentos', description: 'São barras condutoras que conectam vários circuitos em uma subestação, funcionando como um nó de distribuição de energia.' },
+        { name: 'Capacitores e Reatores', description: 'São usados para controlar a tensão e compensar a potência reativa na rede, melhorando a eficiência e a estabilidade do sistema.' }
+    ];
+
+    // --- Lógica de Navegação Principal (G-T-D) ---
+    const btnGeracao = document.getElementById('btn-geracao');
+    const btnTransmissao = document.getElementById('btn-transmissao');
+    const btnDistribuicao = document.getElementById('btn-distribuicao');
+    const contentGeracao = document.getElementById('content-geracao');
+    const contentTransmissao = document.getElementById('content-transmissao');
+    const contentDistribuicao = document.getElementById('content-distribuicao');
+    const allContentSections = document.querySelectorAll('.content-section');
+
+    const toggleSection = (sectionToOpen) => {
+        allContentSections.forEach(section => {
+            if (section === sectionToOpen) {
+                section.classList.toggle('open');
+            } else {
+                section.classList.remove('open');
+            }
+        });
+    };
+
+    btnGeracao.addEventListener('click', () => toggleSection(contentGeracao));
+    btnTransmissao.addEventListener('click', () => toggleSection(contentTransmissao));
+    btnDistribuicao.addEventListener('click', () => toggleSection(contentDistribuicao));
+
+    // --- Lógica da Seção de Geração (Abas) ---
+    const tabsContainer = document.getElementById('tabs-container');
+    const tabContentContainer = document.getElementById('tab-content-container');
+
+    generationData.forEach((item, index) => {
+        const tabBtn = document.createElement('button');
+        tabBtn.className = 'tab-btn px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-slate-200 hover:bg-cyan-500 hover:text-white';
+        tabBtn.textContent = item.name;
+        tabBtn.dataset.index = index;
+        tabsContainer.appendChild(tabBtn);
+    });
+
+    tabsContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('tab-btn')) {
+            const index = e.target.dataset.index;
+            tabContentContainer.innerHTML = `<p>${generationData[index].description}</p>`;
+
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+        }
+    });
+
+    // Ativa a primeira aba por padrão
+    tabsContainer.querySelector('.tab-btn').click();
+
+    // --- Lógica do Gráfico de Geração ---
+    const ctx = document.getElementById('generationChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Hidrelétrica', 'Termelétrica', 'Eólica', 'Solar', 'Nuclear & Outras'],
+            datasets: [{
+                label: 'Matriz Energética (%)',
+                data: [62, 20, 11, 5, 2],
+                backgroundColor: [
+                    '#06b6d4', // cyan-500
+                    '#64748b', // slate-500
+                    '#38bdf8', // lightBlue-400
+                    '#facc15', // yellow-400
+                    '#a8a29e'  // stone-400
+                ],
+                borderColor: '#ffffff',
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            size: 12,
+                            family: 'Inter'
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed !== null) {
+                                label += context.parsed + '%';
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // --- Lógica dos Componentes Chave ---
+    const componentsBtnContainer = document.getElementById('components-btn-container');
+    const componentContentDisplay = document.getElementById('component-content-display');
+
+    componentsData.forEach((item, index) => {
+        const componentBtn = document.createElement('button');
+        componentBtn.className = 'component-btn p-3 text-center rounded-lg bg-slate-100 hover:bg-cyan-600 hover:text-white font-semibold transition-all duration-200';
+        componentBtn.textContent = item.name;
+        componentBtn.dataset.index = index;
+        componentsBtnContainer.appendChild(componentBtn);
+    });
+
+    componentsBtnContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('component-btn')) {
+            const index = e.target.dataset.index;
+            componentContentDisplay.innerHTML = `
+                <h4 class="font-bold text-lg mb-2">${componentsData[index].name}</h4>
+                <p>${componentsData[index].description}</p>
+            `;
+            document.querySelectorAll('.component-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+        }
+    });
+});
+</script>
