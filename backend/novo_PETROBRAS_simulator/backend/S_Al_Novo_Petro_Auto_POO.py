@@ -145,5 +145,5 @@ class AnomalyDetector:
 # Inicializa e executa o detector de anomalias
 if __name__ == "__main__":
     # Instanciando o objeto
-    detector = AnomalyDetector('DADOS/Adendo A.2_Conjunto de Dados_DataSet.csv')
+    detector = AnomalyDetector('/home/pedrov12/Documentos/GitHub/Electrical-System-Simulator/backend/novo_PETROBRAS_simulator/backend/DADOS/Adendo A.2_Conjunto de Dados_DataSet.csv')
     detector.run()

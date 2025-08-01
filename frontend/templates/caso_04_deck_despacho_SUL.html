@@ -9,6 +9,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chosen Palette: Dark Blue/Grey with Cyan, Red, Green, Purple Accents -->
+    <!-- Application Structure Plan: The application is structured with a primary tab navigation system. The "Dados das Usinas" tab is now the default and first, providing immediate access to the tabular data. This is followed by the "Mapa Interativo" for geographical visualization. Subsequent tabs ("Controle Operacional", "Análise Gráfica", "Importação de Dados") offer specialized functionalities. This flow prioritizes data overview, then location-based context, and finally, operational interaction and analysis. Filtering by bar type is integrated into the data table for quick segmentation. Control panel changes directly update the underlying data, which then re-renders relevant UI components (table, map, charts), ensuring a cohesive and responsive user experience. -->
+    <!-- Visualization & Content Choices:
+        - Dados das Usinas: Report Info -> Tabular data of power plants. Goal -> Present detailed plant data, allow filtering. Viz/Method -> HTML table with dynamic content. Interaction -> Dropdown filter for 'Tipo de Barra'. Justification -> Tabular format is best for detailed, comparative data; filtering enhances exploration. Library/Method -> Vanilla JS.
+        - Mapa Interativo: Report Info -> Geographical location of plants. Goal -> Visualize plant distribution and status. Viz/Method -> Leaflet.js map with markers and circles. Interaction -> Click markers for popups with plant details; reset view button. Justification -> Provides spatial context and quick overview of plant types/capacities. Library/Method -> Leaflet.js.
+        - Controle Operacional: Report Info -> Parameters for generator/bus control. Goal -> Allow simulation of operational changes. Viz/Method -> HTML forms with sliders and select boxes. Interaction -> Sliders update values; select changes active generator; "Aplicar Configurações" button updates data and re-renders table/map/charts. Justification -> Direct manipulation of key parameters for scenario testing. Library/Method -> Vanilla JS.
+        - Análise Gráfica: Report Info -> Summarized data (e.g., generation type distribution, plant capacity). Goal -> Provide visual insights into aggregated data. Viz/Method -> Chart.js Doughnut and Bar charts. Interaction -> Tooltips on hover. Justification -> Charts quickly convey trends and proportions. Library/Method -> Chart.js.
+        - Importação de Dados: Report Info -> Instructions for Excel import. Goal -> Facilitate external data loading. Viz/Method -> Text instructions, file input. Interaction -> File selection triggers validation and data loading. Justification -> Essential for dynamic data management. Library/Method -> XLSX.js.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -497,6 +506,22 @@
         .status-inactive {
             background-color: var(--accent-color);
         }
+
+        /* Specific styles for Chart.js canvas containers */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Example max-width for charts */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height, adjust with media queries */
+            max-height: 400px; /* Max height to prevent excessive vertical growth */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -507,71 +532,45 @@
         </header>
         
         <div class="tabs">
-            <button class="tab active" onclick="openTab('map-tab')"><i class="fas fa-map"></i> Mapa Interativo</button>
-            <button class="tab" onclick="openTab('data-tab')"><i class="fas fa-table"></i> Dados das Usinas</button>
-            <button class="tab" onclick="openTab('control-tab')"><i class="fas fa-sliders-h"></i> Controle Operacional</button>
-            <button class="tab" onclick="openTab('charts-tab')"><i class="fas fa-chart-bar"></i> Análise Gráfica</button>
-            <button class="tab" onclick="openTab('import-tab')"><i class="fas fa-file-import"></i> Importação de Dados</button>
+            <button class="tab active" onclick="openTab('data-tab', this)"><i class="fas fa-table"></i> Dados das Usinas</button>
+            <button class="tab" onclick="openTab('map-tab', this)"><i class="fas fa-map"></i> Mapa Interativo</button>
+            <button class="tab" onclick="openTab('control-tab', this)"><i class="fas fa-sliders-h"></i> Controle Operacional</button>
+            <button class="tab" onclick="openTab('charts-tab', this)"><i class="fas fa-chart-bar"></i> Análise Gráfica</button>
+            <button class="tab" onclick="openTab('import-tab', this)"><i class="fas fa-file-import"></i> Importação de Dados</button>
         </div>
         
-        <div id="map-tab" class="tab-content active">
-            <div class="map-container">
-                <div id="map"></div>
-            </div>
-            
-            <div class="controls">
-                <div>
-                    <button class="btn btn-primary" onclick="exportToExcel()">
-                        <i class="fas fa-file-export"></i> Exportar para Excel
-                    </button>
-                    <button class="btn btn-success" id="import-btn">
-                        <i class="fas fa-file-import"></i> Importar Excel
-                        <span class="tooltip">
-                            <strong>Estrutura do Excel obrigatória:</strong><br>
-                            - Planilha nomeada: <span class="highlight">Usinas</span><br>
-                            - Colunas obrigatórias:<br>
-                            &nbsp;&nbsp;• Nome da Usina<br>
-                            &nbsp;&nbsp;• Número da Barra<br>
-                            &nbsp;&nbsp;• Potência Nominal (MW)<br>
-                            &nbsp;&nbsp;• Pmín Unidade (MW)<br>
-                            &nbsp;&nbsp;• Pmáx Unidade (MW)<br>
-                            &nbsp;&nbsp;• Qmin por Unidade (Mvar)<br>
-                            &nbsp;&nbsp;• Qmáx por Unidade (Mvar)<br>
-                            &nbsp;&nbsp;• Estado<br>
-                            &nbsp;&nbsp;• Subsistema<br>
-                            &nbsp;&nbsp;• Tipo de Usina
-                        </span>
-                    </button>
-                    <input type="file" id="file-input" accept=".xlsx, .xls" style="display: none;">
-                </div>
-                <div>
-                    <button class="btn btn-warning" onclick="resetMapView()">
-                        <i class="fas fa-sync-alt"></i> Resetar Visualização
-                    </button>
-                    <button class="btn btn-control" onclick="simulateOperation()">
-                        <i class="fas fa-play"></i> Simular Operação
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <div id="data-tab" class="tab-content">
+        <div id="data-tab" class="tab-content active">
             <div class="card">
                 <h2><i class="fas fa-industry"></i> Dados das Usinas Elétricas</h2>
+                <div class="controls">
+                    <div class="control-group" style="flex-grow: 1;">
+                        <label for="bar-type-filter">Filtrar por Tipo de Barra:</label>
+                        <select id="bar-type-filter" onchange="filterAndDisplayPlants()">
+                            <option value="Todos">Todos</option>
+                            <option value="Swing">Swing (Referência)</option>
+                            <option value="PV">PV (Geração/Tensão)</option>
+                            <option value="PQ">PQ (Carga)</option>
+                            <option value="Shunt">Shunt (Compensação)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="exportToExcel()" style="align-self: flex-end;">
+                        <i class="fas fa-file-export"></i> Exportar para Excel
+                    </button>
+                </div>
                 <div class="data-table">
                     <table id="power-plants-table">
                         <thead>
                             <tr>
                                 <th>Nome da Usina</th>
                                 <th>Barra</th>
-                                <th>Potência (MW)</th>
-                                <th>Pmín (MW)</th>
-                                <th>Pmáx (MW)</th>
-                                <th>Qmin (Mvar)</th>
-                                <th>Qmáx (Mvar)</th>
+                                <th>Tipo Barra</th>
+                                <th>Potência Nominal (MW)</th>
+                                <th>Despacho MW</th>
+                                <th>Despacho Mvar</th>
+                                <th>Vterm</th>
                                 <th>Estado</th>
                                 <th>Subsistema</th>
-                                <th>Tipo</th>
+                                <th>Tipo Usina</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -579,6 +578,47 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+        
+        <div id="map-tab" class="tab-content">
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-success" id="import-btn-map" onclick="document.getElementById('file-input').click()">
+                    <i class="fas fa-file-import"></i> Importar Excel
+                    <span class="tooltip">
+                        <strong>Estrutura do Excel obrigatória:</strong><br>
+                        - Planilha nomeada: <span class="highlight">Usinas</span><br>
+                        - Colunas obrigatórias:<br>
+                        &nbsp;&nbsp;• Nome da Usina<br>
+                        &nbsp;&nbsp;• Número da Barra<br>
+                        &nbsp;&nbsp;• Potência Nominal (MW)<br>
+                        &nbsp;&nbsp;• Pmín Unidade (MW)<br>
+                        &nbsp;&nbsp;• Pmáx Unidade (MW)<br>
+                        &nbsp;&nbsp;• Qmin por Unidade (Mvar)<br>
+                        &nbsp;&nbsp;• Qmáx por Unidade (Mvar)<br>
+                        &nbsp;&nbsp;• Estado<br>
+                        &nbsp;&nbsp;• Subsistema<br>
+                        &nbsp;&nbsp;• Tipo de Usina<br>
+                        &nbsp;&nbsp;• Despacho Atual MW (opcional)<br>
+                        &nbsp;&nbsp;• Despacho Atual Mvar (opcional)<br>
+                        &nbsp;&nbsp;• Vterm (opcional)<br>
+                        &nbsp;&nbsp;• latitude (opcional)<br>
+                        &nbsp;&nbsp;• longitude (opcional)<br>
+                        &nbsp;&nbsp;• barType (opcional)
+                    </span>
+                </button>
+                <input type="file" id="file-input" accept=".xlsx, .xls" style="display: none;">
+                
+                <button class="btn btn-warning" onclick="resetMapView()">
+                    <i class="fas fa-sync-alt"></i> Resetar Visualização
+                </button>
+                <button class="btn btn-control" onclick="simulateOperation()">
+                    <i class="fas fa-play"></i> Simular Operação
+                </button>
             </div>
         </div>
         
@@ -600,28 +640,28 @@
                         <div class="control-group">
                             <label>Potência Ativa (MW):</label>
                             <div class="slider-container">
-                                <input type="range" id="mw-control" min="0" max="100" step="1" value="80">
-                                <span class="slider-value" id="mw-value">80 MW</span>
+                                <input type="range" id="mw-control" min="0" max="100" step="1" value="0">
+                                <span class="slider-value" id="mw-value">0 MW</span>
                             </div>
                         </div>
                         
                         <div class="control-group">
                             <label>Potência Reativa (MVAR):</label>
                             <div class="slider-container">
-                                <input type="range" id="mvar-control" min="-100" max="100" step="5" value="20">
-                                <span class="slider-value" id="mvar-value">20 MVAR</span>
+                                <input type="range" id="mvar-control" min="-100" max="100" step="5" value="0">
+                                <span class="slider-value" id="mvar-value">0 MVAR</span>
                             </div>
                         </div>
                         
                         <div class="control-group">
                             <label>Tensão Terminal (Vterm):</label>
                             <div class="slider-container">
-                                <input type="range" id="vterm-control" min="0.9" max="1.1" step="0.01" value="1.02">
-                                <span class="slider-value" id="vterm-value">1.02 p.u.</span>
+                                <input type="range" id="vterm-control" min="0.9" max="1.1" step="0.01" value="1.0">
+                                <span class="slider-value" id="vterm-value">1.0 p.u.</span>
                             </div>
                         </div>
                         
-                        <button class="btn btn-control" style="width:100%; margin-top:15px;">
+                        <button class="btn btn-control" style="width:100%; margin-top:15px;" onclick="applyGeneratorSettings()">
                             <i class="fas fa-paper-plane"></i> Aplicar Configurações
                         </button>
                     </div>
@@ -630,13 +670,15 @@
                         <h3><i class="fas fa-bolt"></i> Controle de Barras</h3>
                         
                         <div class="control-group">
-                            <label for="bus-type">Tipo de Barra:</label>
-                            <select id="bus-type">
-                                <option value="swing">Swing (Referência)</option>
-                                <option value="pv">PV (Controle de Tensão)</option>
-                                <option value="pq">PQ (Carga)</option>
-                                <option value="shunt">Shunt (Compensação)</option>
+                            <label for="bus-select">Selecione a Barra:</label>
+                            <select id="bus-select" onchange="updateBusControl()">
+                                <!-- Opções serão preenchidas por JavaScript -->
                             </select>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="bus-type-display">Tipo de Barra:</label>
+                            <input type="text" id="bus-type-display" readonly style="background: rgba(30, 40, 56, 0.5); border: none;">
                         </div>
                         
                         <div class="control-group">
@@ -663,7 +705,7 @@
                             </div>
                         </div>
                         
-                        <button class="btn btn-control" style="width:100%; margin-top:15px;">
+                        <button class="btn btn-control" style="width:100%; margin-top:15px;" onclick="applyBusSettings()">
                             <i class="fas fa-paper-plane"></i> Aplicar Configurações
                         </button>
                     </div>
@@ -695,28 +737,32 @@
                 
                 <div class="import-info">
                     <h4><i class="fas fa-info-circle"></i> Instruções para Importação</h4>
-                    <p>Para importar dados corretamente, seu arquivo Excel deve seguir a estrutura abaixo:</p>
+                    <p>Para importar dados corretamente, seu arquivo Excel deve conter uma planilha chamada <span class="highlight">"Usinas"</span> e as seguintes colunas obrigatórias:</p>
                     
                     <ul>
-                        <li><strong>Nome da planilha:</strong> <span class="highlight">Usinas</span></li>
-                        <li><strong>Colunas obrigatórias (exatamente nesta ordem):</strong></li>
-                        <li>Nome da Usina</li>
-                        <li>Número da Barra</li>
-                        <li>Potência Nominal (MW)</li>
-                        <li>Pmín Unidade (MW)</li>
-                        <li>Pmáx Unidade (MW)</li>
-                        <li>Qmin por Unidade (Mvar)</li>
-                        <li>Qmáx por Unidade (Mvar)</li>
-                        <li>Estado (Ativa/Inativa)</li>
-                        <li>Subsistema</li>
-                        <li>Tipo de Usina</li>
+                        <li><strong>Nome da Usina</strong></li>
+                        <li><strong>Número da Barra</strong></li>
+                        <li><strong>Potência Nominal (MW)</strong></li>
+                        <li><strong>Pmín Unidade (MW)</strong></li>
+                        <li><strong>Pmáx Unidade (MW)</strong></li>
+                        <li><strong>Qmin por Unidade (Mvar)</strong></li>
+                        <li><strong>Qmáx por Unidade (Mvar)</strong></li>
+                        <li><strong>Estado</strong> (ex: "Ativa", "Inativa")</li>
+                        <li><strong>Subsistema</strong> (ex: "Sul", "Sudeste")</li>
+                        <li><strong>Tipo de Usina</strong> (ex: "Hidrelétrica", "Termelétrica", "Eólica", "Biomassa")</li>
+                        <li><strong>Despacho Atual MW</strong> (opcional, será usado como `currentMW`)</li>
+                        <li><strong>Despacho Atual Mvar</strong> (opcional, será usado como `currentMVAR`)</li>
+                        <li><strong>Vterm</strong> (opcional, será usado como `currentVterm`)</li>
+                        <li><strong>latitude</strong> (opcional, para o mapa)</li>
+                        <li><strong>longitude</strong> (opcional, para o mapa)</li>
+                        <li><strong>barType</strong> (opcional, ex: "Swing", "PV", "PQ", "Shunt")</li>
                     </ul>
                     
                     <p>O sistema validará automaticamente a estrutura do arquivo durante a importação.</p>
                 </div>
                 
                 <div class="controls" style="margin-top:25px;">
-                    <button class="btn btn-success" onclick="document.getElementById('file-input').click()" style="position:relative;">
+                    <button class="btn btn-success" onclick="document.getElementById('file-input-import').click()" style="position:relative;">
                         <i class="fas fa-file-import"></i> Selecionar Arquivo Excel
                         <span class="tooltip">
                             <strong>Estrutura do Excel obrigatória:</strong><br>
@@ -731,12 +777,13 @@
                             &nbsp;&nbsp;7. Qmáx por Unidade (Mvar)<br>
                             &nbsp;&nbsp;8. Estado<br>
                             &nbsp;&nbsp;9. Subsistema<br>
-                            &nbsp;&nbsp;10. Tipo de Usina
+                            &nbsp;&nbsp;10. Tipo de Usina<br>
+                            &nbsp;&nbsp;... e opcionais para despacho, Vterm, lat/long, barType
                         </span>
                     </button>
                     <input type="file" id="file-input-import" accept=".xlsx, .xls" style="display: none;">
                     
-                    <button class="btn btn-primary" id="import-confirm-btn" disabled>
+                    <button class="btn btn-primary" id="import-confirm-btn" disabled onclick="confirmImport()">
                         <i class="fas fa-upload"></i> Confirmar Importação
                     </button>
                 </div>
@@ -755,159 +802,225 @@
     </div>
 
     <script>
-        // Dados das usinas (extraídos do documento fornecido)
-        const powerPlants = [
-            { 
-                name: "Geraldo", 
-                type: "Hidrelétrica", 
-                capacity: 62487,
-                pmin: 50000,
-                pmax: 65000,
-                qmin: -200,
-                qmax: 300,
-                state: "Ativa",
-                subsystem: "Sul",
-                latitude: -25.5, 
-                longitude: -49.3,
-                barNumber: "B001"
+        let powerPlants = []; // Global array to hold all plant data
+        let mapInstance = null; // Global map instance
+        let generationTypeChart = null; // Chart.js instance for generation type
+        let plantCapacityChart = null; // Chart.js instance for plant capacity
+
+        // Initial data (dummy data for demonstration, matching CSV headers)
+        const initialPowerPlantsData = [
+            {
+                "Nome da Usina": "Tambaqui",
+                "Número da Barra": 8615,
+                "Potência Nominal (MW)": 39,
+                "Pmín Unidade (MW)": 1.64,
+                "Pmáx Unidade (MW)": 45,
+                "Qmin por Unidade (Mvar)": -0.4,
+                "Qmáx por Unidade (Mvar)": 1.3,
+                "Despacho Atual MW": 30,
+                "Despacho Atual Mvar": 0.5,
+                "Vterm": 0.987,
+                "Estado": "Ativa",
+                "Subsistema": "SUL",
+                "Tipo de Usina": "Hidrelétrica",
+                "latitude": -25.5,
+                "longitude": -49.3,
+                "barType": "PV"
             },
-            { 
-                name: "FIPXG", 
-                type: "Termelétrica", 
-                capacity: 5166,
-                pmin: 4000,
-                pmax: 5500,
-                qmin: -100,
-                qmax: 150,
-                state: "Ativa",
-                subsystem: "Sul",
-                latitude: -27.1, 
-                longitude: -50.9,
-                barNumber: "B002"
+            {
+                "Nome da Usina": "Floresta",
+                "Número da Barra": 8830,
+                "Potência Nominal (MW)": 46,
+                "Pmín Unidade (MW)": 1.45,
+                "Pmáx Unidade (MW)": 46,
+                "Qmin por Unidade (Mvar)": -0.4,
+                "Qmáx por Unidade (Mvar)": 1.3,
+                "Despacho Atual MW": 40,
+                "Despacho Atual Mvar": 1.0,
+                "Vterm": 1.0,
+                "Estado": "Ativa",
+                "Subsistema": "SUL",
+                "Tipo de Usina": "Hidrelétrica",
+                "latitude": -26.0,
+                "longitude": -50.0,
+                "barType": "PV"
             },
-            { 
-                name: "FIXE", 
-                type: "Termelétrica", 
-                capacity: 3745,
-                pmin: 3000,
-                pmax: 4000,
-                qmin: -80,
-                qmax: 120,
-                state: "Ativa",
-                subsystem: "Sul",
-                latitude: -26.3, 
-                longitude: -51.1,
-                barNumber: "B003"
+            {
+                "Nome da Usina": "Solaris",
+                "Número da Barra": 9100,
+                "Potência Nominal (MW)": 120,
+                "Pmín Unidade (MW)": 0,
+                "Pmáx Unidade (MW)": 120,
+                "Qmin por Unidade (Mvar)": -10,
+                "Qmáx por Unidade (Mvar)": 10,
+                "Despacho Atual MW": 80,
+                "Despacho Atual Mvar": 5,
+                "Vterm": 1.01,
+                "Estado": "Ativa",
+                "Subsistema": "NORDESTE",
+                "Tipo de Usina": "Solar",
+                "latitude": -8.0,
+                "longitude": -35.0,
+                "barType": "PQ" // Solar often treated as PQ (fixed P, Q)
             },
-            { 
-                name: "Cepa 1", 
-                type: "Hidrelétrica", 
-                capacity: 10000,
-                pmin: 8000,
-                pmax: 11000,
-                qmin: -150,
-                qmax: 250,
-                state: "Ativa",
-                subsystem: "Sul",
-                latitude: -28.7, 
-                longitude: -49.3,
-                barNumber: "B004"
+            {
+                "Nome da Usina": "Ventus",
+                "Número da Barra": 9200,
+                "Potência Nominal (MW)": 150,
+                "Pmín Unidade (MW)": 0,
+                "Pmáx Unidade (MW)": 150,
+                "Qmin por Unidade (Mvar)": -15,
+                "Qmáx por Unidade (Mvar)": 15,
+                "Despacho Atual MW": 100,
+                "Despacho Atual Mvar": 8,
+                "Vterm": 0.99,
+                "Estado": "Ativa",
+                "Subsistema": "SUL",
+                "Tipo de Usina": "Eólica",
+                "latitude": -30.0,
+                "longitude": -51.0,
+                "barType": "PQ" // Wind often treated as PQ
             },
-            { 
-                name: "Cepa 2", 
-                type: "Hidrelétrica", 
-                capacity: 20130,
-                pmin: 18000,
-                pmax: 22000,
-                qmin: -180,
-                qmax: 280,
-                state: "Ativa",
-                subsystem: "Sul",
-                latitude: -27.8, 
-                longitude: -50.3,
-                barNumber: "B005"
+            {
+                "Nome da Usina": "Nucleon",
+                "Número da Barra": 9300,
+                "Potência Nominal (MW)": 1000,
+                "Pmín Unidade (MW)": 800,
+                "Pmáx Unidade (MW)": 1050,
+                "Qmin por Unidade (Mvar)": -200,
+                "Qmáx por Unidade (Mvar)": 300,
+                "Despacho Atual MW": 950,
+                "Despacho Atual Mvar": 150,
+                "Vterm": 1.03,
+                "Estado": "Ativa",
+                "Subsistema": "SUDESTE",
+                "Tipo de Usina": "Nuclear",
+                "latitude": -23.0,
+                "longitude": -44.0,
+                "barType": "PV"
             },
-            { 
-                name: "Cepa 3", 
-                type: "Eólica", 
-                capacity: 12224,
-                pmin: 10000,
-                pmax: 13000,
-                qmin: -50,
-                qmax: 80,
-                state: "Ativa",
-                subsystem: "Sul",
-                latitude: -29.1, 
-                longitude: -51.5,
-                barNumber: "B006"
+            {
+                "Nome da Usina": "Barra Swing Principal", // Not a power plant, but a conceptual "bus"
+                "Número da Barra": 1,
+                "Potência Nominal (MW)": 0, // No generation capacity
+                "Pmín Unidade (MW)": 0,
+                "Pmáx Unidade (MW)": 0,
+                "Qmin por Unidade (Mvar)": 0,
+                "Qmáx por Unidade (Mvar)": 0,
+                "Despacho Atual MW": 0,
+                "Despacho Atual Mvar": 0,
+                "Vterm": 1.05, // Fixed voltage and angle
+                "Estado": "Ativa",
+                "Subsistema": "Geral",
+                "Tipo de Usina": "Referência",
+                "latitude": -15.0,
+                "longitude": -48.0,
+                "barType": "Swing"
             },
-            { 
-                name: "Cepa 4", 
-                type: "Hidrelétrica", 
-                capacity: 15200,
-                pmin: 14000,
-                pmax: 16000,
-                qmin: -160,
-                qmax: 240,
-                state: "Ativa",
-                subsystem: "Sul",
-                latitude: -28.2, 
-                longitude: -49.8,
-                barNumber: "B007"
-            },
-            { 
-                name: "Cepa 5", 
-                type: "Biomassa", 
-                capacity: 16618,
-                pmin: 15000,
-                pmax: 17000,
-                qmin: -120,
-                qmax: 180,
-                state: "Ativa",
-                subsystem: "Sul",
-                latitude: -26.9, 
-                longitude: -50.2,
-                barNumber: "B008"
+            {
+                "Nome da Usina": "Compensador Shunt", // Not a power plant
+                "Número da Barra": 500,
+                "Potência Nominal (MW)": 0,
+                "Pmín Unidade (MW)": 0,
+                "Pmáx Unidade (MW)": 0,
+                "Qmin por Unidade (Mvar)": -50,
+                "Qmáx por Unidade (Mvar)": 50,
+                "Despacho Atual MW": 0,
+                "Despacho Atual Mvar": 20, // Initial compensation
+                "Vterm": 1.00,
+                "Estado": "Ativa",
+                "Subsistema": "SUL",
+                "Tipo de Usina": "Compensador",
+                "latitude": -27.5,
+                "longitude": -48.5,
+                "barType": "Shunt"
             }
         ];
 
-        // Inicialização do mapa
-        function initMap() {
-            const map = L.map('map').setView([-27.0, -50.5], 7);
+        // Function to initialize or update the entire application state and UI
+        function initializeApp(data) {
+            powerPlants = data; // Update the global data source
+            fillPowerPlantsTable();
+            initMap(); // Re-initialize map to clear old markers and add new ones
+            createCharts(); // Re-create charts with new data
+            initControls(); // Re-initialize control panel dropdowns
+        }
+
+        // Initialize with dummy data on load
+        initializeApp(initialPowerPlantsData);
+
+        // --- Funções de Controle de Abas ---
+        function openTab(tabId, clickedElement = null) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
             
+            if (clickedElement) {
+                clickedElement.classList.add('active');
+            } else {
+                // Fallback for programmatic calls if clickedElement is not passed
+                const tabButton = document.querySelector(`.tab[onclick*="openTab('${tabId}')"]`);
+                if (tabButton) {
+                    tabButton.classList.add('active');
+                }
+            }
+            
+            if (tabId === 'map-tab' && mapInstance) {
+                setTimeout(() => {
+                    mapInstance.invalidateSize();
+                }, 100);
+            }
+            // Re-render charts if switching to charts tab to ensure responsiveness
+            if (tabId === 'charts-tab') {
+                if (generationTypeChart) generationTypeChart.destroy();
+                if (plantCapacityChart) plantCapacityChart.destroy();
+                createCharts();
+            }
+        }
+
+        // --- Funções do Mapa ---
+        function initMap() {
+            if (mapInstance) {
+                mapInstance.remove(); // Remove existing map instance
+            }
+            mapInstance = L.map('map').setView([-22.9068, -43.1729], 5); // Centered on Brazil
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+            }).addTo(mapInstance);
             
-            // Adicionar marcadores para cada usina
             powerPlants.forEach(plant => {
-                const marker = L.marker([plant.latitude, plant.longitude]).addTo(map);
-                
-                // Popup com informações da usina
-                marker.bindPopup(`
-                    <div style="font-weight:bold; font-size:1.2rem; margin-bottom:10px;">${plant.name}</div>
-                    <div><span style="color:#64b5f6;">Tipo:</span> ${plant.type}</div>
-                    <div><span style="color:#64b5f6;">Potência:</span> ${plant.capacity.toLocaleString()} MW</div>
-                    <div><span style="color:#64b5f6;">Estado:</span> ${plant.state}</div>
-                    <div><span style="color:#64b5f6;">Barra:</span> ${plant.barNumber}</div>
-                    <div style="margin-top:10px;">
-                        <button onclick="focusOnPlant('${plant.name}')" style="background:#3498db; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">
-                            <i class="fas fa-search"></i> Detalhes
-                        </button>
-                    </div>
-                `);
-                
-                // Círculo de capacidade
-                const radius = Math.sqrt(plant.capacity) * 15;
-                const circle = L.circle([plant.latitude, plant.longitude], {
-                    color: getColorByType(plant.type),
-                    fillColor: getColorByType(plant.type),
-                    fillOpacity: 0.3,
-                    radius: radius
-                }).addTo(map);
+                if (plant.latitude && plant.longitude) {
+                    const marker = L.marker([plant.latitude, plant.longitude]).addTo(mapInstance);
+                    
+                    marker.bindPopup(`
+                        <div style="font-weight:bold; font-size:1.2rem; margin-bottom:10px;">${plant['Nome da Usina']}</div>
+                        <div><span style="color:#64b5f6;">Tipo Usina:</span> ${plant['Tipo de Usina']}</div>
+                        <div><span style="color:#64b5f6;">Tipo Barra:</span> ${plant.barType || 'Não Definido'}</div>
+                        <div><span style="color:#64b5f6;">Potência Nominal:</span> ${plant['Potência Nominal (MW)'].toLocaleString()} MW</div>
+                        <div><span style="color:#64b5f6;">Despacho Atual:</span> ${plant['Despacho Atual MW'].toLocaleString()} MW</div>
+                        <div><span style="color:#64b5f6;">Estado:</span> ${plant.Estado}</div>
+                        <div style="margin-top:10px;">
+                            <button onclick="focusOnPlant('${plant['Nome da Usina']}')" style="background:#3498db; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">
+                                <i class="fas fa-search"></i> Detalhes
+                            </button>
+                        </div>
+                    `);
+                    
+                    const radius = Math.sqrt(plant['Potência Nominal (MW)']) * 15; // Scale radius by capacity
+                    const circle = L.circle([plant.latitude, plant.longitude], {
+                        color: getColorByType(plant['Tipo de Usina']),
+                        fillColor: getColorByType(plant['Tipo de Usina']),
+                        fillOpacity: 0.3,
+                        radius: radius
+                    }).addTo(mapInstance);
+                }
             });
             
-            // Adicionar legenda
             const legend = L.control({position: 'bottomright'});
             
             legend.onAdd = function(map) {
@@ -918,64 +1031,111 @@
                     <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div> Termelétrica</div>
                     <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div> Eólica</div>
                     <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div> Biomassa</div>
-                    <div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div> Outras</div>
+                    <div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div> Nuclear</div>
+                    <div class="legend-item"><div class="legend-color" style="background:#7f8c8d"></div> Outras</div>
                 `;
                 return div;
             };
             
-            legend.addTo(map);
-            
-            window.map = map;
+            legend.addTo(mapInstance);
         }
         
-        // Função para obter cor baseada no tipo de usina
         function getColorByType(type) {
             switch(type) {
                 case 'Hidrelétrica': return '#3498db';
                 case 'Termelétrica': return '#e74c3c';
                 case 'Eólica': return '#2ecc71';
                 case 'Biomassa': return '#f39c12';
-                default: return '#9b59b6';
+                case 'Nuclear': return '#9b59b6';
+                case 'Solar': return '#ffeb3b'; // Added Solar color
+                default: return '#7f8c8d'; // Grey for 'Outras' or undefined
             }
         }
         
-        // Preencher tabela com dados das usinas
+        function resetMapView() {
+            if (mapInstance) {
+                mapInstance.setView([-22.9068, -43.1729], 5); // Reset to initial view
+            }
+        }
+
+        function focusOnPlant(plantName) {
+            const plant = powerPlants.find(p => p['Nome da Usina'] === plantName);
+            if (plant && mapInstance) {
+                mapInstance.setView([plant.latitude, plant.longitude], 10);
+                // Optionally open the popup
+                mapInstance.eachLayer(layer => {
+                    if (layer instanceof L.Marker && layer.getLatLng().lat === plant.latitude && layer.getLatLng().lng === plant.longitude) {
+                        layer.openPopup();
+                    }
+                });
+            }
+        }
+
+        // --- Funções da Tabela de Dados ---
         function fillPowerPlantsTable() {
             const tableBody = document.querySelector('#power-plants-table tbody');
             tableBody.innerHTML = '';
             
-            powerPlants.forEach(plant => {
+            const selectedBarType = document.getElementById('bar-type-filter').value;
+            const filteredPlants = powerPlants.filter(plant => 
+                selectedBarType === "Todos" || plant.barType === selectedBarType
+            );
+
+            filteredPlants.forEach(plant => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${plant.name}</td>
-                    <td>${plant.barNumber}</td>
-                    <td>${plant.capacity.toLocaleString()}</td>
-                    <td>${plant.pmin.toLocaleString()}</td>
-                    <td>${plant.pmax.toLocaleString()}</td>
-                    <td>${plant.qmin}</td>
-                    <td>${plant.qmax}</td>
-                    <td><span class="status-indicator ${plant.state === 'Ativa' ? 'status-active' : 'status-inactive'}"></span> ${plant.state}</td>
-                    <td>${plant.subsystem}</td>
-                    <td>${plant.type}</td>
+                    <td>${plant['Nome da Usina']}</td>
+                    <td>${plant['Número da Barra']}</td>
+                    <td>${plant.barType || 'N/A'}</td>
+                    <td>${plant['Potência Nominal (MW)'].toLocaleString()}</td>
+                    <td>${(plant['Despacho Atual MW'] || 0).toLocaleString()}</td>
+                    <td>${(plant['Despacho Atual Mvar'] || 0).toLocaleString()}</td>
+                    <td>${(plant.Vterm || 'N/A')}</td>
+                    <td><span class="status-indicator ${plant.Estado === 'Ativa' ? 'status-active' : 'status-inactive'}"></span> ${plant.Estado}</td>
+                    <td>${plant.Subsistema || 'N/A'}</td>
+                    <td>${plant['Tipo de Usina'] || 'N/A'}</td>
                 `;
                 tableBody.appendChild(row);
             });
         }
+
+        function filterAndDisplayPlants() {
+            fillPowerPlantsTable(); // Re-render table with current filter
+        }
         
-        // Criar gráficos
+        // --- Funções de Gráficos ---
         function createCharts() {
-            // Agrupar por tipo de geração
+            // Destroy existing charts if they exist to prevent memory leaks and re-render issues
+            if (generationTypeChart) generationTypeChart.destroy();
+            if (plantCapacityChart) plantCapacityChart.destroy();
+
+            // Aggregate data for charts
             const typeCounts = {};
+            const plantNames = [];
+            const plantCapacities = [];
+
             powerPlants.forEach(plant => {
-                typeCounts[plant.type] = (typeCounts[plant.type] || 0) + plant.capacity;
+                const type = plant['Tipo de Usina'] || 'Outras';
+                typeCounts[type] = (typeCounts[type] || 0) + plant['Potência Nominal (MW)'];
+                plantNames.push(plant['Nome da Usina']);
+                plantCapacities.push(plant['Potência Nominal (MW)']);
             });
             
-            // Gráfico de tipos de geração
+            // Chart 1: Distribution by Generation Type
             const typeCtx = document.getElementById('generation-type-chart').getContext('2d');
-            new Chart(typeCtx, {
+            generationTypeChart = new Chart(typeCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: Object.keys(typeCounts),
+                    labels: Object.keys(typeCounts).map(label => {
+                        // Custom label wrapping for Chart.js
+                        if (label.length > 16) {
+                            const words = label.split(' ');
+                            if (words.length > 1) {
+                                return [words.slice(0, words.length / 2).join(' '), words.slice(words.length / 2).join(' ')];
+                            }
+                        }
+                        return label;
+                    }),
                     datasets: [{
                         data: Object.values(typeCounts),
                         backgroundColor: Object.keys(typeCounts).map(type => getColorByType(type)),
@@ -999,10 +1159,13 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    const label = context.label || '';
+                                    let label = context.label || '';
+                                    if (Array.isArray(label)) { // Handle wrapped labels
+                                        label = label.join(' ');
+                                    }
                                     const value = context.raw || 0;
                                     const total = context.chart.getDatasetMeta(0).total;
-                                    const percentage = Math.round((value / total) * 100);
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                                     return `${label}: ${value.toLocaleString()} MW (${percentage}%)`;
                                 }
                             }
@@ -1011,16 +1174,24 @@
                 }
             });
             
-            // Gráfico de capacidade por usina
+            // Chart 2: Capacity by Plant
             const capacityCtx = document.getElementById('plant-capacity-chart').getContext('2d');
-            new Chart(capacityCtx, {
+            plantCapacityChart = new Chart(capacityCtx, {
                 type: 'bar',
                 data: {
-                    labels: powerPlants.map(plant => plant.name),
+                    labels: plantNames.map(label => {
+                        if (label.length > 16) {
+                            const words = label.split(' ');
+                            if (words.length > 1) {
+                                return [words.slice(0, words.length / 2).join(' '), words.slice(words.length / 2).join(' ')];
+                            }
+                        }
+                        return label;
+                    }),
                     datasets: [{
                         label: 'Capacidade (MW)',
-                        data: powerPlants.map(plant => plant.capacity),
-                        backgroundColor: powerPlants.map(plant => getColorByType(plant.type)),
+                        data: plantCapacities,
+                        backgroundColor: powerPlants.map(plant => getColorByType(plant['Tipo de Usina'])),
                         borderWidth: 0,
                         borderRadius: 5,
                         borderSkipped: false,
@@ -1056,29 +1227,54 @@
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toLocaleString() + ' MW';
+                                    }
+                                    return label;
+                                }
+                            }
                         }
                     }
                 }
             });
         }
         
-        // Inicializar controles
+        // --- Funções de Controle Operacional ---
         function initControls() {
-            // Preencher seletor de geradores
             const generatorSelect = document.getElementById('generator-select');
             generatorSelect.innerHTML = '';
-            
-            powerPlants.forEach((plant, index) => {
+            const busSelect = document.getElementById('bus-select');
+            busSelect.innerHTML = '';
+
+            // Populate generator select (only actual generators)
+            powerPlants.filter(p => p.barType === 'PV' || p.barType === 'Swing').forEach((plant, index) => {
                 const option = document.createElement('option');
-                option.value = index;
-                option.textContent = `${plant.name} (${plant.barNumber})`;
+                option.value = powerPlants.indexOf(plant); // Use actual index in global array
+                option.textContent = `${plant['Nome da Usina']} (${plant['Número da Barra']})`;
                 generatorSelect.appendChild(option);
             });
+
+            // Populate bus select (all types of buses)
+            powerPlants.forEach((plant, index) => {
+                const option = document.createElement('option');
+                option.value = index; // Use actual index in global array
+                option.textContent = `${plant['Nome da Usina']} (${plant['Número da Barra']}) - ${plant.barType || 'N/A'}`;
+                busSelect.appendChild(option);
+            });
             
-            // Atualizar controles baseados no primeiro gerador
+            // Set initial values for sliders based on first generator/bus
             updateGeneratorControl();
-            
-            // Configurar eventos de slider
+            updateBusControl();
+
+            // Add event listeners for sliders
             document.getElementById('mw-control').addEventListener('input', function() {
                 document.getElementById('mw-value').textContent = `${this.value} MW`;
             });
@@ -1088,11 +1284,11 @@
             });
             
             document.getElementById('vterm-control').addEventListener('input', function() {
-                document.getElementById('vterm-value').textContent = `${this.value} p.u.`;
+                document.getElementById('vterm-value').textContent = `${parseFloat(this.value).toFixed(2)} p.u.`;
             });
             
             document.getElementById('bus-voltage').addEventListener('input', function() {
-                document.getElementById('bus-voltage-value').textContent = `${this.value} p.u.`;
+                document.getElementById('bus-voltage-value').textContent = `${parseFloat(this.value).toFixed(2)} p.u.`;
             });
             
             document.getElementById('bus-angle').addEventListener('input', function() {
@@ -1104,172 +1300,241 @@
             });
         }
         
-        // Atualizar controles do gerador selecionado
         function updateGeneratorControl() {
             const generatorSelect = document.getElementById('generator-select');
-            const selectedPlant = powerPlants[generatorSelect.value];
+            const selectedIndex = generatorSelect.value;
+            const selectedPlant = powerPlants[selectedIndex];
             
             if (selectedPlant) {
-                document.getElementById('mw-control').value = selectedPlant.capacity;
-                document.getElementById('mw-value').textContent = `${selectedPlant.capacity} MW`;
+                document.getElementById('mw-control').value = selectedPlant['Despacho Atual MW'] || 0;
+                document.getElementById('mw-value').textContent = `${selectedPlant['Despacho Atual MW'] || 0} MW`;
+                document.getElementById('mw-control').max = selectedPlant['Pmáx Unidade (MW)'];
+                document.getElementById('mw-control').min = selectedPlant['Pmín Unidade (MW)'];
                 
-                document.getElementById('mw-control').max = selectedPlant.pmax;
-                document.getElementById('mw-control').min = selectedPlant.pmin;
+                document.getElementById('mvar-control').value = selectedPlant['Despacho Atual Mvar'] || 0;
+                document.getElementById('mvar-value').textContent = `${selectedPlant['Despacho Atual Mvar'] || 0} MVAR`;
+                document.getElementById('mvar-control').max = selectedPlant['Qmáx por Unidade (Mvar)'];
+                document.getElementById('mvar-control').min = selectedPlant['Qmin por Unidade (Mvar)'];
                 
-                document.getElementById('mvar-control').value = (selectedPlant.qmin + selectedPlant.qmax) / 2;
-                document.getElementById('mvar-value').textContent = `${(selectedPlant.qmin + selectedPlant.qmax) / 2} MVAR`;
+                document.getElementById('vterm-control').value = selectedPlant.Vterm || 1.0;
+                document.getElementById('vterm-value').textContent = `${parseFloat(selectedPlant.Vterm || 1.0).toFixed(2)} p.u.`;
+            }
+        }
+
+        function applyGeneratorSettings() {
+            const generatorSelect = document.getElementById('generator-select');
+            const selectedIndex = generatorSelect.value;
+            const selectedPlant = powerPlants[selectedIndex];
+
+            if (selectedPlant) {
+                selectedPlant['Despacho Atual MW'] = parseFloat(document.getElementById('mw-control').value);
+                selectedPlant['Despacho Atual Mvar'] = parseFloat(document.getElementById('mvar-control').value);
+                selectedPlant.Vterm = parseFloat(document.getElementById('vterm-control').value);
+
+                alert(`Configurações aplicadas para ${selectedPlant['Nome da Usina']}.`);
+                // Re-render relevant parts of the UI
+                fillPowerPlantsTable();
+                initMap(); // Update map markers/popups
+                createCharts(); // Update charts if they use dispatch data
+            }
+        }
+
+        function updateBusControl() {
+            const busSelect = document.getElementById('bus-select');
+            const selectedIndex = busSelect.value;
+            const selectedBus = powerPlants[selectedIndex]; // Using powerPlants for bus data too for simplicity
+
+            if (selectedBus) {
+                document.getElementById('bus-type-display').value = selectedBus.barType || 'N/A';
+                document.getElementById('bus-voltage').value = selectedBus.Vterm || 1.0;
+                document.getElementById('bus-voltage-value').textContent = `${parseFloat(selectedBus.Vterm || 1.0).toFixed(2)} p.u.`;
                 
-                document.getElementById('vterm-control').value = 1.02;
-                document.getElementById('vterm-value').textContent = "1.02 p.u.";
+                // Angle is typically only for Swing bus, or derived for others
+                document.getElementById('bus-angle').value = 0; // Default or derived
+                document.getElementById('bus-angle-value').textContent = `0°`;
+
+                // Shunt compensation is specific to Shunt buses or can be applied at PQ/PV
+                document.getElementById('shunt-control').value = selectedBus['Despacho Atual Mvar'] || 0;
+                document.getElementById('shunt-value').textContent = `${selectedBus['Despacho Atual Mvar'] || 0} MVAR`;
+
+                // Disable/enable controls based on bus type for realism
+                document.getElementById('bus-voltage').disabled = (selectedBus.barType === 'Swing' || selectedBus.barType === 'PV');
+                document.getElementById('bus-angle').disabled = (selectedBus.barType !== 'Swing');
+                document.getElementById('shunt-control').disabled = (selectedBus.barType !== 'Shunt');
+            }
+        }
+
+        function applyBusSettings() {
+            const busSelect = document.getElementById('bus-select');
+            const selectedIndex = busSelect.value;
+            const selectedBus = powerPlants[selectedIndex];
+
+            if (selectedBus) {
+                if (selectedBus.barType === 'Swing' || selectedBus.barType === 'PV') {
+                    selectedBus.Vterm = parseFloat(document.getElementById('bus-voltage').value);
+                }
+                if (selectedBus.barType === 'Swing') {
+                    // In a real system, angle is set by Swing, not directly controlled like this
+                    // For simulation, we can update a conceptual angle
+                    // selectedBus.angle = parseFloat(document.getElementById('bus-angle').value);
+                }
+                if (selectedBus.barType === 'Shunt') {
+                    selectedBus['Despacho Atual Mvar'] = parseFloat(document.getElementById('shunt-control').value);
+                }
+
+                alert(`Configurações aplicadas para a Barra ${selectedBus['Número da Barra']} (${selectedBus.barType}).`);
+                fillPowerPlantsTable();
+                initMap();
+                createCharts();
             }
         }
         
-        // Funções de controle de abas
-        function openTab(tabId) {
-            // Esconder todas as abas
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Remover classe active de todas as tabs
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Mostrar a aba selecionada
-            document.getElementById(tabId).classList.add('active');
-            
-            // Adicionar classe active à aba clicada
-            event.currentTarget.classList.add('active');
-            
-            // Redimensionar mapa quando a aba for mostrada
-            if (tabId === 'map-tab' && window.map) {
-                setTimeout(() => {
-                    window.map.invalidateSize();
-                }, 100);
-            }
-        }
-        
-        // Função para exportar dados para Excel
+        // --- Funções de Importação/Exportação ---
+        let importedDataBuffer = null; // To hold the raw file data for confirmation
+
         function exportToExcel() {
-            // Criar uma planilha
             const ws = XLSX.utils.json_to_sheet(powerPlants.map(plant => ({
-                "Nome da Usina": plant.name,
-                "Número da Barra": plant.barNumber,
-                "Potência Nominal (MW)": plant.capacity,
-                "Pmín Unidade (MW)": plant.pmin,
-                "Pmáx Unidade (MW)": plant.pmax,
-                "Qmin por Unidade (Mvar)": plant.qmin,
-                "Qmáx por Unidade (Mvar)": plant.qmax,
-                "Estado": plant.state,
-                "Subsistema": plant.subsystem,
-                "Tipo de Usina": plant.type
+                "Nome da Usina": plant['Nome da Usina'],
+                "Número da Barra": plant['Número da Barra'],
+                "Potência Nominal (MW)": plant['Potência Nominal (MW)'],
+                "Pmín Unidade (MW)": plant['Pmín Unidade (MW)'],
+                "Pmáx Unidade (MW)": plant['Pmáx Unidade (MW)'],
+                "Qmin por Unidade (Mvar)": plant['Qmin por Unidade (Mvar)'],
+                "Qmáx por Unidade (Mvar)": plant['Qmáx por Unidade (Mvar)'],
+                "Despacho Atual MW": plant['Despacho Atual MW'],
+                "Despacho Atual Mvar": plant['Despacho Atual Mvar'],
+                "Vterm": plant.Vterm,
+                "Estado": plant.Estado,
+                "Subsistema": plant.Subsistema,
+                "Tipo de Usina": plant['Tipo de Usina'],
+                "latitude": plant.latitude,
+                "longitude": plant.longitude,
+                "barType": plant.barType
             })));
             
-            // Criar um workbook
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Usinas");
             
-            // Exportar o arquivo
             XLSX.writeFile(wb, "usinas_eletricas_caso_04.xlsx");
             
-            // Mostrar mensagem
             alert("Dados exportados com sucesso para 'usinas_eletricas_caso_04.xlsx'");
         }
         
-        // Configurar evento de importação
-        document.getElementById('file-input').addEventListener('change', handleFileImport);
-        document.getElementById('file-input-import').addEventListener('change', handleFileImport);
-        
-        // Função para lidar com a importação de arquivos
-        function handleFileImport(e) {
+        document.getElementById('file-input').addEventListener('change', handleFileSelect);
+        document.getElementById('file-input-import').addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(e) {
             const file = e.target.files[0];
             if (!file) return;
-            
+
             const reader = new FileReader();
             reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                
-                // Validar se a planilha "Usinas" existe
-                if (!workbook.SheetNames.includes("Usinas")) {
-                    alert("Erro: O arquivo deve conter uma planilha chamada 'Usinas'");
-                    return;
-                }
-                
-                // Ler a planilha "Usinas"
-                const worksheet = workbook.Sheets["Usinas"];
-                
-                // Converter para JSON
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                
-                // Validar as colunas
-                const requiredColumns = [
-                    "Nome da Usina", "Número da Barra", "Potência Nominal (MW)", 
-                    "Pmín Unidade (MW)", "Pmáx Unidade (MW)", "Qmin por Unidade (Mvar)", 
-                    "Qmáx por Unidade (Mvar)", "Estado", "Subsistema", "Tipo de Usina"
-                ];
-                
-                const firstRow = jsonData[0];
-                const missingColumns = requiredColumns.filter(col => !Object.keys(firstRow).includes(col));
-                
-                if (missingColumns.length > 0) {
-                    alert(`Erro: O arquivo está faltando as seguintes colunas: ${missingColumns.join(", ")}`);
-                    return;
-                }
-                
-                // Processar os dados (em um sistema real, você atualizaria o estado da aplicação)
+                importedDataBuffer = e.target.result; // Store data temporarily
+                document.getElementById('import-confirm-btn').disabled = false;
                 document.getElementById('import-status').style.display = 'block';
-                document.getElementById('status-text').textContent = "Validando dados...";
-                
-                setTimeout(() => {
-                    document.getElementById('status-text').textContent = "Importando dados...";
-                    
-                    setTimeout(() => {
-                        document.getElementById('status-text').innerHTML = `
-                            <span style="color:#64ffda;">Importação concluída com sucesso!</span><br>
-                            ${jsonData.length} usinas carregadas.
-                        `;
-                        
-                        // Em um sistema real, você atualizaria os dados aqui
-                        setTimeout(() => {
-                            document.getElementById('import-status').style.display = 'none';
-                            alert("Dados importados com sucesso! O sistema foi atualizado.");
-                        }, 2000);
-                    }, 1500);
-                }, 1000);
+                document.getElementById('status-text').innerHTML = `<i class="fas fa-check-circle" style="color:#64ffda;"></i> Arquivo "${file.name}" pronto para importação. Clique em "Confirmar Importação".`;
             };
             reader.readAsArrayBuffer(file);
         }
-        
-        // Função para resetar a visualização do mapa
-        function resetMapView() {
-            if (window.map) {
-                window.map.setView([-27.0, -50.5], 7);
+
+        function confirmImport() {
+            if (!importedDataBuffer) {
+                alert("Nenhum arquivo selecionado ou pronto para importação.");
+                return;
             }
+
+            document.getElementById('import-confirm-btn').disabled = true;
+            document.getElementById('status-text').innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processando importação...`;
+
+            const workbook = XLSX.read(importedDataBuffer, {type: 'array'});
+            
+            if (!workbook.SheetNames.includes("Usinas")) {
+                document.getElementById('status-text').innerHTML = `<i class="fas fa-exclamation-triangle" style="color:var(--accent-color);"></i> Erro: O arquivo deve conter uma planilha chamada 'Usinas'.`;
+                importedDataBuffer = null;
+                return;
+            }
+            
+            const worksheet = workbook.Sheets["Usinas"];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            
+            const requiredColumns = [
+                "Nome da Usina", "Número da Barra", "Potência Nominal (MW)",
+                "Pmín Unidade (MW)", "Pmáx Unidade (MW)", "Qmin por Unidade (Mvar)",
+                "Qmáx por Unidade (Mvar)", "Estado", "Subsistema", "Tipo de Usina"
+            ];
+            
+            if (jsonData.length === 0) {
+                document.getElementById('status-text').innerHTML = `<i class="fas fa-exclamation-triangle" style="color:var(--accent-color);"></i> Erro: A planilha 'Usinas' está vazia.`;
+                importedDataBuffer = null;
+                return;
+            }
+
+            const firstRow = jsonData[0];
+            const missingColumns = requiredColumns.filter(col => !Object.keys(firstRow).includes(col));
+            
+            if (missingColumns.length > 0) {
+                document.getElementById('status-text').innerHTML = `<i class="fas fa-exclamation-triangle" style="color:var(--accent-color);"></i> Erro: O arquivo está faltando as seguintes colunas obrigatórias: ${missingColumns.join(", ")}.`;
+                importedDataBuffer = null;
+                return;
+            }
+            
+            // Map imported data to our internal structure, adding defaults if missing
+            const newPowerPlantsData = jsonData.map(row => ({
+                "Nome da Usina": row["Nome da Usina"],
+                "Número da Barra": row["Número da Barra"],
+                "Potência Nominal (MW)": parseFloat(row["Potência Nominal (MW)"]),
+                "Pmín Unidade (MW)": parseFloat(row["Pmín Unidade (MW)"]),
+                "Pmáx Unidade (MW)": parseFloat(row["Pmáx Unidade (MW)"]),
+                "Qmin por Unidade (Mvar)": parseFloat(row["Qmin por Unidade (Mvar)"]),
+                "Qmáx por Unidade (Mvar)": parseFloat(row["Qmáx por Unidade (Mvar)"]),
+                "Despacho Atual MW": parseFloat(row["Despacho Atual MW"] || row["Potência Nominal (MW)"] * 0.8), // Default to 80% nominal if not provided
+                "Despacho Atual Mvar": parseFloat(row["Despacho Atual Mvar"] || 0),
+                "Vterm": parseFloat(row["Vterm"] || 1.0),
+                "Estado": row.Estado,
+                "Subsistema": row.Subsistema,
+                "Tipo de Usina": row["Tipo de Usina"],
+                "latitude": parseFloat(row.latitude || (-20 + Math.random() * 10)), // Placeholder if not provided
+                "longitude": parseFloat(row.longitude || (-50 + Math.random() * 10)), // Placeholder if not provided
+                "barType": row.barType || (row["Potência Nominal (MW)"] > 0 ? 'PV' : 'PQ') // Simple heuristic for barType
+            }));
+
+            document.getElementById('status-text').textContent = "Importando dados...";
+            
+            setTimeout(() => {
+                initializeApp(newPowerPlantsData); // Update the app with new data
+                document.getElementById('status-text').innerHTML = `
+                    <span style="color:var(--success-color);"><i class="fas fa-check-circle"></i> Importação concluída com sucesso!</span><br>
+                    ${newPowerPlantsData.length} usinas carregadas.
+                `;
+                importedDataBuffer = null; // Clear buffer
+                setTimeout(() => {
+                    document.getElementById('import-status').style.display = 'none';
+                    alert("Dados importados com sucesso! O sistema foi atualizado.");
+                }, 1500);
+            }, 1000);
         }
-        
-        // Simular operação
+
         function simulateOperation() {
-            alert("Simulação de operação iniciada. Os controles estão sendo ajustados automaticamente.");
+            alert("Simulação de operação iniciada. Em um sistema real, isso ativaria um algoritmo de despacho ou fluxo de potência.");
+            // Example: Randomly adjust dispatch for a few plants
+            powerPlants.forEach(plant => {
+                if (plant.barType === 'PV' || plant.barType === 'Swing') {
+                    const newMW = parseFloat((Math.random() * (plant['Pmáx Unidade (MW)'] - plant['Pmín Unidade (MW)']) + plant['Pmín Unidade (MW)']).toFixed(2));
+                    const newMvar = parseFloat((Math.random() * (plant['Qmáx por Unidade (Mvar)'] - plant['Qmin por Unidade (Mvar)']) + plant['Qmin por Unidade (Mvar)']).toFixed(2));
+                    plant['Despacho Atual MW'] = newMW;
+                    plant['Despacho Atual Mvar'] = newMvar;
+                    plant.Vterm = parseFloat((0.95 + Math.random() * 0.1).toFixed(2)); // Random Vterm between 0.95 and 1.05
+                }
+            });
+            fillPowerPlantsTable();
+            initMap();
+            createCharts();
         }
         
-        // Inicializar o sistema quando o documento carregar
+        // --- Inicialização ao carregar o documento ---
         document.addEventListener('DOMContentLoaded', function() {
-            initMap();
-            fillPowerPlantsTable();
-            createCharts();
-            initControls();
-            
-            // Configurar botão de importação
-            document.getElementById('import-btn').addEventListener('click', function() {
-                document.getElementById('file-input').click();
-            });
-            
-            // Configurar botão de importação na aba dedicada
-            document.querySelector('#import-tab .btn-success').addEventListener('click', function() {
-                document.getElementById('file-input-import').click();
-            });
+            // Initial render of the first tab
+            openTab('data-tab', document.querySelector('.tab.active')); 
         });
     </script>
 </body>
