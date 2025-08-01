@@ -1,0 +1,2 @@
+2025-07-31 23:46:01,893 - INFO - These dtypes could not be corrected: {'trafo': ['tap_neutral', 'tap_min', 'tap_max', 'tap_pos']}
+2025-07-31 23:46:02,268 - DEBUG - Using selector: EpollSelector

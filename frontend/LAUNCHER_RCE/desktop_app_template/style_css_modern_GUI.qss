@@ -1,0 +1,60 @@
+/* Estilo geral da aplicação */
+QWidget {
+    background-color: #282c34; /* Cinza escuro */
+    color: #abb2bf; /* Cinza claro para texto */
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+}
+
+/* Estilo para a janela principal */
+QMainWindow {
+    border: 1px solid #181a1f;
+}
+
+/* Estilo para divisores (Splitter) */
+QSplitter::handle {
+    background-color: #3e4451;
+}
+QSplitter::handle:hover {
+    background-color: #5c6370;
+}
+
+/* Estilo para botões */
+QPushButton {
+    background-color: #61afef; /* Azul */
+    color: #282c34;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background-color: #c678dd; /* Roxo */
+}
+QPushButton:disabled {
+    background-color: #4b5263;
+    color: #abb2bf;
+}
+
+/* Estilo para campos de texto e listas */
+QTextEdit, QListWidget, QLineEdit {
+    background-color: #21252b;
+    border: 1px solid #3e4451;
+    border-radius: 4px;
+    padding: 8px;
+    color: #e6e6e6;
+}
+QListWidget::item:selected {
+    background-color: #61afef;
+    color: #282c34;
+}
+
+/* Estilo para Labels de Título */
+QLabel#title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #98c379; /* Verde */
+    padding: 5px;
+    border-bottom: 2px solid #3e4451;
+    margin-bottom: 10px;
+}

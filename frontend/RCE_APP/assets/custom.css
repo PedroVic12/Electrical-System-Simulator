@@ -1,0 +1,118 @@
+/* Custom CSS for RCE WebApp */
+
+/* Drawer nativo do Reflex */
+.drawer-content {
+    transition: all 0.3s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Card hover effects */
+.card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Button animations */
+.btn-animate {
+    transition: all 0.2s ease;
+}
+
+.btn-animate:hover {
+    transform: scale(1.05);
+}
+
+/* Progress bar animation */
+@keyframes progress-pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.progress-animate {
+    animation: progress-pulse 2s infinite;
+}
+
+/* Theme transitions */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Switch component styling */
+.switch-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Color scheme buttons */
+.color-scheme-btn {
+    transition: all 0.2s ease;
+}
+
+.color-scheme-btn:hover {
+    transform: scale(1.02);
+    opacity: 0.8;
+}
+
+/* Responsive improvements */
+@media (max-width: 640px) {
+    .mobile-hidden {
+        display: none;
+    }
+}
+
+/* Focus styles for accessibility */
+button:focus,
+input:focus,
+select:focus {
+    outline: 2px solid #3182ce;
+    outline-offset: 2px;
+}
+
+/* Drawer overlay improvements */
+.drawer-overlay {
+    backdrop-filter: blur(4px);
+}
+
+/* Drawer content animations */
+.drawer-content {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .drawer-content {
+        width: 100% !important;
+        max-width: 320px;
+    }
+} 
