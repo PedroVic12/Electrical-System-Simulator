@@ -4,3 +4,4 @@ matplotlib
 pandapower
 PySide6-WebEngine
 xlsxwriter
+plotly
