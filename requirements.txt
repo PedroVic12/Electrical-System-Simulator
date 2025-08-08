@@ -3,3 +3,4 @@ pandas
 matplotlib
 pandapower
 PySide6-WebEngine
+plotly
