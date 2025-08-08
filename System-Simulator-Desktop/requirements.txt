@@ -1,0 +1,6 @@
+PySide6
+pandas
+matplotlib
+pandapower
+PySide6-WebEngine
+xlsxwriter
