@@ -616,8 +616,8 @@ class MainWindow(QMainWindow):
         self.power_flow_table = QTableWidget()
 
         self.tabs.addTab(self.create_tab(self.voltage_plot, self.voltage_table), "📊 Tensões nas Barras")
-        self.tabs.addTab(self.create_tab(self.line_loading_plot, self.line_loading_table), "📈 Carreg. Linhas")
-        self.tabs.addTab(self.create_tab(self.trafo_loading_plot, self.trafo_loading_table), "📈 Carreg. Trafos")
+        self.tabs.addTab(self.create_tab(self.line_loading_plot, self.line_loading_table), "📈 Carregamento nas Linhas")
+        self.tabs.addTab(self.create_tab(self.trafo_loading_plot, self.trafo_loading_table), "📈 Carregamento dos Transformadores")
         
         power_flow_tab = QWidget()
         pf_layout = QVBoxLayout(power_flow_tab)
@@ -866,7 +866,7 @@ class PowerSystemController:
         if not line_df.empty:
             fig_l = go.Figure(data=[go.Bar(x=line_df['Linha'], y=line_df['Carregamento (%)'], marker_color='#ff7f0e')])
             fig_l.add_hline(y=100, line_dash="dash", line_color="red")
-            fig_l.update_layout(title_text='Carregamento das Linhas', yaxis_range=[0, max(110, line_df['Carregamento (%)'].max() * 1.1 if not line_df.empty else 110)])
+            fig_l.update_layout(title_text='Carregamento das Linhas', yaxis_range=[0, max(8, line_df['Carregamento (%)'].max() * 1.1 if not line_df.empty else 110)])
             self.view.line_loading_plot.plot_chart(fig_l)
         else:
             self.view.line_loading_plot.clear()
@@ -874,7 +874,7 @@ class PowerSystemController:
         if not trafo_df.empty:
             fig_t = go.Figure(data=[go.Bar(x=trafo_df['Transformador'], y=trafo_df['Carregamento (%)'], marker_color='#2ca02c')])
             fig_t.add_hline(y=100, line_dash="dash", line_color="red")
-            fig_t.update_layout(title_text='Carregamento dos Transformadores', yaxis_range=[0, max(110, trafo_df['Carregamento (%)'].max() * 1.1 if not trafo_df.empty else 110)])
+            fig_t.update_layout(title_text='Carregamento dos Transformadores', yaxis_range=[0, max(8, trafo_df['Carregamento (%)'].max() * 1.1 if not trafo_df.empty else 110)])
             self.view.trafo_loading_plot.plot_chart(fig_t)
         else:
             self.view.trafo_loading_plot.clear()
