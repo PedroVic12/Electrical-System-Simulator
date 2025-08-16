@@ -83,12 +83,40 @@ class PowerSystemModel:
     def run_power_flow(self):
         """Executes the power flow calculation."""
         try:
-            pp.runpp(self.net, algorithm="nr", numba=True)
+            # Ensure network is valid before running
+            if self.net is None:
+                return False, "Rede não carregada."
+                
+            # Reset results if they exist
+            if hasattr(self.net, 'res_bus'):
+                delattr(self.net, 'res_bus')
+                
+            # Run power flow with detailed error handling
+            pp.runpp(
+                self.net, 
+                algorithm='nr',
+                numba=True,
+                numba_tolerance=1e-6,
+                max_iteration=100,
+                init='dc',
+                enforce_q_lims=True,
+                tolerance_mva=1e-8,
+                trafo_model='t',
+                trafo_loading='current',
+                calculate_voltage_angles=True
+            )
+            
+            # Check if results exist
+            if not hasattr(self.net, 'res_bus') or self.net.res_bus.empty:
+                return False, "Cálculo concluído, mas sem resultados."
+                
             return True, "Fluxo de potência convergiu com sucesso."
-        except pp.LoadflowNotConverged:
-            return False, "Fluxo de Potência Não Convergiu."
+            
+        except pp.LoadflowNotConverged as e:
+            return False, f"Fluxo de Potência Não Convergiu: {str(e)}"
         except Exception as e:
-            return False, f"Ocorreu um erro inesperado: {e}"
+            traceback.print_exc()
+            return False, f"Erro no fluxo de potência: {str(e)}"
 
     def apply_contingencies(self, contingencies):
         """Applies a list of contingencies to the network."""
@@ -713,25 +741,20 @@ class SidebarWidget(QWidget):
             self.run_button.setText("Executar Fluxo de Potência")
             self.run_button.setEnabled(True)
 
-class LoadingWidget(QFrame):
+class LoadingWidget(QWidget):
     """A semi-transparent overlay widget to indicate loading."""
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setStyleSheet("background-color: rgba(0, 0, 0, 0.6); border-radius: 10px;")
-        layout = QVBoxLayout(self)
-        layout.setAlignment(Qt.AlignCenter)
-        self.label = QLabel("Calculando Fluxo de Potência...", self)
-        self.label.setStyleSheet("color: white; font-size: 20px; font-weight: bold; background: transparent;")
-        layout.addWidget(self.label)
-
-    """Widget for creating and editing a new network."""
     build_network_requested = Signal()
     import_requested = Signal()
     export_requested = Signal()
-    file_imported = Signal(str)  # Signal emitted when a file is imported
-
-    def __init__(self):
-        super().__init__()
+    file_imported = Signal(str)
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        # Set transparent background for overlay
+        self.setStyleSheet("""
+            background-color: rgba(0, 0, 0, 180);
+            border-radius: 10px;
+        """)
         self.setup_ui()
 
     def setup_ui(self):
@@ -781,6 +804,29 @@ class LoadingWidget(QFrame):
 
     def setup_tables(self):
         """Initialize tables with default headers and add row buttons."""
+        # Create main layout if it doesn't exist
+        if not hasattr(self, 'main_layout'):
+            self.main_layout = QVBoxLayout(self)
+            
+        # Create editor tabs if they don't exist
+        if not hasattr(self, 'editor_tabs'):
+            self.editor_tabs = QTabWidget()
+            self.main_layout.addWidget(self.editor_tabs)
+            
+            # Add import/export buttons
+            button_layout = QHBoxLayout()
+            self.import_button = QPushButton("Importar")
+            self.export_button = QPushButton("Exportar")
+            self.build_button = QPushButton("Construir Rede")
+            button_layout.addWidget(self.import_button)
+            button_layout.addWidget(self.export_button)
+            button_layout.addWidget(self.build_button)
+            self.main_layout.addLayout(button_layout)
+        
+        # Clear existing tabs
+        while self.editor_tabs.count() > 0:
+            self.editor_tabs.removeTab(0)
+            
         table_configs = {
             'buses': ['name', 'vn_kv', 'type', 'zone', 'in_service'],
             'lines': ['name', 'from_bus', 'to_bus', 'length_km', 'r_ohm_per_km', 
@@ -791,7 +837,9 @@ class LoadingWidget(QFrame):
             'generators': ['name', 'bus', 'p_mw', 'vm_pu', 'vn_kv', 'min_p_mw', 'max_p_mw', 
                          'min_q_mvar', 'max_q_mvar', 'in_service']
         }
-
+        
+        self.tables = {}
+        
         for name, headers in table_configs.items():
             # Create container widget for table + buttons
             container = QWidget()
@@ -818,9 +866,8 @@ class LoadingWidget(QFrame):
             # Store table reference
             self.tables[name] = table
             self.editor_tabs.addTab(container, name.capitalize())
-
-        main_layout.addWidget(self.editor_tabs)
-
+            
+        # Connect signals
         self.import_button.clicked.connect(self.import_requested.emit)
         self.export_button.clicked.connect(self.export_requested.emit)
         self.build_button.clicked.connect(self.build_network_requested.emit)
@@ -1073,8 +1120,52 @@ class LoadingWidget(QFrame):
         finally:
             QApplication.restoreOverrideCursor()
 
+class NewNetworkEditor(QWidget):
+    """Editor for creating new power network configurations."""
+    import_requested = Signal()
+    export_requested = Signal()
+    build_network_requested = Signal()
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setup_ui()
+        
+    def setup_ui(self):
+        # Clear any existing layout
+        if self.layout():
+            QWidget().setLayout(self.layout())
+            
+        layout = QVBoxLayout(self)
+        
+        # Add buttons
+        btn_layout = QHBoxLayout()
+        self.import_btn = QPushButton("Importar")
+        self.export_btn = QPushButton("Exportar")
+        self.build_btn = QPushButton("Construir Rede")
+        
+        # Connect buttons to signals
+        self.import_btn.clicked.connect(self.import_requested.emit)
+        self.export_btn.clicked.connect(self.export_requested.emit)
+        self.build_btn.clicked.connect(self.build_network_requested.emit)
+        
+        btn_layout.addWidget(self.import_btn)
+        btn_layout.addWidget(self.export_btn)
+        btn_layout.addWidget(self.build_btn)
+        
+        # Add main content
+        layout.addLayout(btn_layout)
+        
+        # Add a placeholder label
+        label = QLabel("Editor de Rede - Em desenvolvimento")
+        label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(label)
+
+
 class MainWindow(QMainWindow):
     """The main application window."""
+    
+    # Define signals
+    theme_toggled = Signal(str)  # Signal emitted when theme is toggled
     
     def __init__(self):
         super().__init__()
@@ -1104,6 +1195,8 @@ class MainWindow(QMainWindow):
         """Toggle between light and dark theme."""
         self.current_theme = 'light' if self.current_theme == 'dark' else 'dark'
         self.apply_theme()
+        # Emit signal with new theme
+        self.theme_toggled.emit(self.current_theme)
 
     def create_tab(self, plot_widget, table_widget):
         tab = QWidget()
@@ -1285,13 +1378,78 @@ class PowerSystemController:
         self.load_network(self.view.sidebar.network_combo.currentText())
 
     def setup_connections(self):
-        self.view.sidebar.network_changed.connect(self.load_network)
-        self.view.sidebar.contingencies_changed.connect(self.prepare_contingencies)
-        self.view.sidebar.run_simulation_requested.connect(self.run_simulation_with_delay)
-        self.view.sidebar.theme_toggle_requested.connect(self.handle_theme_toggle)
-        self.view.new_network_editor.import_requested.connect(self.import_network_from_excel)
-        self.view.new_network_editor.export_requested.connect(self.export_network_to_excel)
-        self.view.new_network_editor.build_network_requested.connect(self.build_network_from_editor)
+        """Connect all UI signals to their respective slots."""
+        try:
+            # Network selection
+            self.view.sidebar.network_combo.currentTextChanged.connect(self.load_network)
+            
+            # Contingency selection
+            self.view.sidebar.contingency_list.itemChanged.connect(
+                lambda: self.prepare_contingencies(
+                    [self.view.sidebar.contingency_list.item(i).text() 
+                     for i in range(self.view.sidebar.contingency_list.count()) 
+                     if self.view.sidebar.contingency_list.item(i).checkState() == Qt.Checked]
+                )
+            )
+            
+            # Simulation control - connect both direct and signal-based connections
+            self.view.sidebar.run_button.clicked.connect(self.run_simulation_with_delay)
+            self.view.sidebar.run_simulation_requested.connect(self.run_simulation_with_delay)
+            
+            # Theme toggle - connect both button and signal
+            self.view.sidebar.theme_toggle_button.clicked.connect(self.view.toggle_theme)
+            self.view.sidebar.theme_toggle_requested.connect(self.view.toggle_theme)
+            
+            # Network editor signals
+            if hasattr(self.view, 'new_network_editor'):
+                # Connect editor buttons
+                if hasattr(self.view.new_network_editor, 'import_button'):
+                    self.view.new_network_editor.import_button.clicked.connect(self.import_network_from_excel)
+                if hasattr(self.view.new_network_editor, 'export_button'):
+                    self.view.new_network_editor.export_button.clicked.connect(self.export_network_to_excel)
+                if hasattr(self.view.new_network_editor, 'build_button'):
+                    self.view.new_network_editor.build_button.clicked.connect(self.build_network_from_editor)
+                
+                # Connect signals
+                if hasattr(self.view.new_network_editor, 'import_requested'):
+                    self.view.new_network_editor.import_requested.connect(self.import_network_from_excel)
+                if hasattr(self.view.new_network_editor, 'export_requested'):
+                    self.view.new_network_editor.export_requested.connect(self.export_network_to_excel)
+                if hasattr(self.view.new_network_editor, 'build_network_requested'):
+                    self.view.new_network_editor.build_network_requested.connect(self.build_network_from_editor)
+            
+            # View switching
+            if hasattr(self.view.sidebar, 'view_selector'):
+                self.view.sidebar.view_selector.currentIndexChanged.connect(
+                    lambda i: self.view.show_view("new_network" if i == 1 else "results")
+                )
+            
+            # Connect loading widget buttons if they exist
+            if hasattr(self.view, 'loading_widget'):
+                if hasattr(self.view.loading_widget, 'import_button'):
+                    self.view.loading_widget.import_button.clicked.connect(self.import_network_from_excel)
+                if hasattr(self.view.loading_widget, 'export_button'):
+                    self.view.loading_widget.export_button.clicked.connect(self.export_network_to_excel)
+                if hasattr(self.view.loading_widget, 'build_button'):
+                    self.view.loading_widget.build_button.clicked.connect(self.build_network_from_editor)
+                
+                # Connect signals from loading widget
+                if hasattr(self.view.loading_widget, 'import_requested'):
+                    self.view.loading_widget.import_requested.connect(self.import_network_from_excel)
+                if hasattr(self.view.loading_widget, 'export_requested'):
+                    self.view.loading_widget.export_requested.connect(self.export_network_to_excel)
+                if hasattr(self.view.loading_widget, 'build_network_requested'):
+                    self.view.loading_widget.build_network_requested.connect(self.build_network_from_editor)
+            
+            # Initialize with default view
+            self.view.show_view("results")
+            
+            # Connect theme toggle from view to controller
+            self.view.theme_toggled.connect(self.handle_theme_toggle)
+            
+        except Exception as e:
+            print(f"Error setting up connections: {e}")
+            traceback.print_exc()
 
     def handle_theme_toggle(self):
         theme = 'light' if self.view.current_theme == 'dark' else 'dark'
@@ -1341,19 +1499,49 @@ class PowerSystemController:
 
     def run_simulation(self):
         try:
-            if not self.model.net or self.model.net.bus.empty:
+            if not hasattr(self.model, 'net') or self.model.net is None or self.model.net.bus.empty:
                 self.view.update_status("Rede vazia. Carregue uma rede ou construa uma nova.", 'error')
                 return
 
-            self.model.apply_contingencies(self.current_contingencies)
-            success, msg = self.model.run_power_flow()
-            if success:
-                self.view.update_status(msg, 'success')
-                self.update_results_display()
-            else:
-                self.view.update_status(msg, 'error')
-                self.clear_results()
-                self.view.network_canvas.plot_network(self.model.net)
+            # Show loading state
+            self.view.sidebar.set_run_button_loading(True)
+            self.view.show_loading_overlay(True)
+            QApplication.processEvents()  # Update UI
+
+            try:
+                # Apply contingencies
+                self.model.apply_contingencies(self.current_contingencies)
+                
+                # Run power flow
+                success, msg = self.model.run_power_flow()
+                
+                if success:
+                    # Update UI with results
+                    self.view.update_status(msg, 'success')
+                    self.update_results_display()
+                    
+                    # Update network visualization
+                    self.view.network_canvas.plot_network(self.model.net)
+                    
+                    # Update metrics and charts
+                    if hasattr(self.model.net, 'res_bus') and not self.model.net.res_bus.empty:
+                        repo = ResultsRepository(self.model.net)
+                        self.view.metrics_widget.update_metrics(repo.get_kpis())
+                        self.charts.update_all_charts(self.model.net)
+                else:
+                    self.view.update_status(msg, 'error')
+                    self.clear_results()
+                    
+            except Exception as e:
+                error_msg = f"Erro na simulação: {str(e)}"
+                print(error_msg)
+                traceback.print_exc()
+                self.view.update_status(error_msg, 'error')
+                
+            finally:
+                # Always ensure loading states are cleared
+                self.view.sidebar.set_run_button_loading(False)
+                self.view.show_loading_overlay(False)
         except Exception as e:
             self.view.update_status(f"Erro crítico na simulação: {e}", 'error')
             traceback.print_exc()
