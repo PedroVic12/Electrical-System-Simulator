@@ -91,13 +91,20 @@ class PowerSystemModel:
             if hasattr(self.net, 'res_bus'):
                 delattr(self.net, 'res_bus')
                 
+
+
+            print("Calculos de avalia cenarios")
+
+            print("Calculo violações de contigencias")
+
+            print("")    
             # Run power flow with detailed error handling
             pp.runpp(
                 self.net, 
                 algorithm='nr',
-                numba=True,
+                numba=False,
                 numba_tolerance=1e-6,
-                max_iteration=100,
+                max_iteration=250,
                 init='dc',
                 enforce_q_lims=True,
                 tolerance_mva=1e-8,
@@ -105,15 +112,15 @@ class PowerSystemModel:
                 trafo_loading='current',
                 calculate_voltage_angles=True
             )
-            
+            print("Executando FLUXO DE POTENCIA!")
             # Check if results exist
             if not hasattr(self.net, 'res_bus') or self.net.res_bus.empty:
                 return False, "Cálculo concluído, mas sem resultados."
                 
-            return True, "Fluxo de potência convergiu com sucesso."
+            return True, "Fluxo de potência CONVERGENTE com sucesso."
             
         except pp.LoadflowNotConverged as e:
-            return False, f"Fluxo de Potência Não Convergiu: {str(e)}"
+            return False, f"Fluxo de Potência NÃO CONVERGENTE: {str(e)}"
         except Exception as e:
             traceback.print_exc()
             return False, f"Erro no fluxo de potência: {str(e)}"
@@ -137,18 +144,32 @@ class ResultsRepository:
 
     def get_kpis(self):
         """Calculates and returns key performance indicators (KPIs)."""
-        voltage_violations = ((self.net.res_bus.vm_pu > self.net.bus.max_vm_pu) | 
-                              (self.net.res_bus.vm_pu < self.net.bus.min_vm_pu)).sum()
+        over_mask = (self.net.res_bus.vm_pu > self.net.bus.max_vm_pu)
+        under_mask = (self.net.res_bus.vm_pu < self.net.bus.min_vm_pu)
+        voltage_violations = (over_mask | under_mask).sum()
         line_overloads = (self.net.res_line.loading_percent > 100).sum()
         trafo_overloads = 0
         if hasattr(self.net, 'res_trafo') and not self.net.res_trafo.empty:
             trafo_overloads = (self.net.res_trafo.loading_percent > 100).sum()
 
+        # Build overvoltage bus list with names and values
+        over_buses = []
+        try:
+            bus_names = self.net.bus.name if 'name' in self.net.bus.columns else self.net.bus.index.astype(str)
+        except Exception:
+            bus_names = self.net.bus.index.astype(str)
+        for idx in self.net.bus.index[over_mask]:
+            name = str(bus_names.loc[idx]) if idx in bus_names.index else str(idx)
+            vm = float(self.net.res_bus.vm_pu.loc[idx])
+            over_buses.append(f"{name} ({vm:.3f} pu)")
+
         return {
             "total_load_mw": self.net.res_load.p_mw.sum(),
             "total_gen_mw": self.net.res_gen.p_mw.sum() + abs(self.net.res_bus.p_mw[self.net.ext_grid.bus[0]]),
             "voltage_violations": int(voltage_violations),
-            "overloads": int(line_overloads + trafo_overloads)
+            "overloads": int(line_overloads + trafo_overloads),
+            "overvoltage_count": int(over_mask.sum()),
+            "overvoltage_buses": over_buses,
         }
 
     def get_bus_voltage_data(self):
@@ -315,7 +336,13 @@ class MetricsWidget(QWidget):
         layout.setSpacing(15)
         layout.setContentsMargins(0,0,0,0)
         self.metric_cards = {}
-        titles = {"load": "Carga Total (MW)", "gen": "Geração Total (MW)", "voltage": "Violações de Tensão", "overload": "Sobrecargas"}
+        titles = {
+            "load": "Carga Total (MW)",
+            "gen": "Geração Total (MW)",
+            "voltage": "Violações de Tensão",
+            "overload": "Sobrecargas",
+            "overvoltage": "Sobretensões (Barras)",
+        }
         for key, title in titles.items():
             card = self._create_metric_card(title, "0.00")
             layout.addWidget(card)
@@ -331,10 +358,22 @@ class MetricsWidget(QWidget):
         return card
 
     def update_metrics(self, kpis):
-        values = {"load": f"{kpis['total_load_mw']:.2f}", "gen": f"{kpis['total_gen_mw']:.2f}", "voltage": f"{kpis['voltage_violations']}", "overload": f"{kpis['overloads']}"}
+        values = {
+            "load": f"{kpis['total_load_mw']:.2f}",
+            "gen": f"{kpis['total_gen_mw']:.2f}",
+            "voltage": f"{kpis['voltage_violations']}",
+            "overload": f"{kpis['overloads']}",
+            "overvoltage": str(kpis.get('overvoltage_count', 0)),
+        }
         for key, value in values.items():
             value_label = self.metric_cards[key].findChild(QLabel, "value_label")
             if value_label: value_label.setText(str(value))
+        # Set tooltip listing overvoltage buses
+        ov_card = self.metric_cards.get('overvoltage')
+        if ov_card is not None:
+            buses = kpis.get('overvoltage_buses', [])
+            tooltip = "\n".join(buses) if buses else "Sem sobretensões"
+            ov_card.setToolTip(tooltip)
 
     def update_theme_colors(self, theme):
         for key, card in self.metric_cards.items():
@@ -758,9 +797,10 @@ class LoadingWidget(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(10, 10, 10, 10)
-        main_layout.setSpacing(10)
+        # Use a single, persistent main layout to avoid duplicate layout warnings
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(10, 10, 10, 10)
+        self.main_layout.setSpacing(10)
 
         # --- Action Buttons ---
         button_layout = QHBoxLayout()
@@ -787,11 +827,11 @@ class LoadingWidget(QWidget):
         button_layout.addWidget(self.export_button)
         button_layout.addStretch()
         button_layout.addWidget(self.build_button)
-        main_layout.addLayout(button_layout)
+        self.main_layout.addLayout(button_layout)
 
         # --- Tabs for different tables ---
         self.editor_tabs = QTabWidget()
-        main_layout.addWidget(self.editor_tabs)
+        self.main_layout.addWidget(self.editor_tabs)
 
         # Initialize tables with default headers
         self.tables = {}
@@ -804,38 +844,22 @@ class LoadingWidget(QWidget):
 
     def setup_tables(self):
         """Initialize tables with default headers and add row buttons."""
-        # Create main layout if it doesn't exist
-        if not hasattr(self, 'main_layout'):
-            self.main_layout = QVBoxLayout(self)
-            
-        # Create editor tabs if they don't exist
-        if not hasattr(self, 'editor_tabs'):
-            self.editor_tabs = QTabWidget()
-            self.main_layout.addWidget(self.editor_tabs)
-            
-            # Add import/export buttons
-            button_layout = QHBoxLayout()
-            self.import_button = QPushButton("Importar")
-            self.export_button = QPushButton("Exportar")
-            self.build_button = QPushButton("Construir Rede")
-            button_layout.addWidget(self.import_button)
-            button_layout.addWidget(self.export_button)
-            button_layout.addWidget(self.build_button)
-            self.main_layout.addLayout(button_layout)
+        # main_layout and editor_tabs are created in setup_ui; avoid creating duplicates
         
         # Clear existing tabs
         while self.editor_tabs.count() > 0:
             self.editor_tabs.removeTab(0)
             
+        # Use singular keys to align with builder: bus, line, trafo, load, gen
         table_configs = {
-            'buses': ['name', 'vn_kv', 'type', 'zone', 'in_service'],
-            'lines': ['name', 'from_bus', 'to_bus', 'length_km', 'r_ohm_per_km', 
-                     'x_ohm_per_km', 'c_nf_per_km', 'max_i_ka', 'from_vn_kv', 'to_vn_kv', 'in_service'],
-            'transformers': ['name', 'hv_bus', 'lv_bus', 'sn_mva', 'vn_hv_kv', 'vn_lv_kv', 
-                           'vkr_percent', 'vk_percent', 'pfe_kw', 'i0_percent', 'in_service'],
-            'loads': ['name', 'bus', 'p_mw', 'q_mvar', 'vn_kv', 'in_service'],
-            'generators': ['name', 'bus', 'p_mw', 'vm_pu', 'vn_kv', 'min_p_mw', 'max_p_mw', 
-                         'min_q_mvar', 'max_q_mvar', 'in_service']
+            'bus': ['name', 'vn_kv', 'type', 'zone', 'in_service'],
+            'line': ['name', 'from_bus', 'to_bus', 'length_km', 'r_ohm_per_km', 
+                     'x_ohm_per_km', 'c_nf_per_km', 'max_i_ka', 'in_service'],
+            'trafo': ['name', 'hv_bus', 'lv_bus', 'sn_mva', 'vn_hv_kv', 'vn_lv_kv', 
+                      'vkr_percent', 'vk_percent', 'pfe_kw', 'i0_percent', 'in_service'],
+            'load': ['name', 'bus', 'p_mw', 'q_mvar', 'vn_kv', 'in_service'],
+            'gen': ['name', 'bus', 'p_mw', 'vm_pu', 'vn_kv', 'min_p_mw', 'max_p_mw', 
+                    'min_q_mvar', 'max_q_mvar', 'in_service']
         }
         
         self.tables = {}
@@ -1129,6 +1153,9 @@ class NewNetworkEditor(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setup_ui()
+        self.expected_keys = ['bus', 'line', 'trafo', 'load', 'gen']
+        self.tables = {k: self._create_table() for k in self.expected_keys}
+        self._setup_tabs()
         
     def setup_ui(self):
         # Clear any existing layout
@@ -1155,10 +1182,98 @@ class NewNetworkEditor(QWidget):
         # Add main content
         layout.addLayout(btn_layout)
         
-        # Add a placeholder label
-        label = QLabel("Editor de Rede - Em desenvolvimento")
-        label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(label)
+        # Tabs for data tables
+        self.tabs = QTabWidget()
+        layout.addWidget(self.tabs)
+
+    def _setup_tabs(self):
+        # Create tabs for each element type
+        titles = {
+            'bus': 'Barras (bus)',
+            'line': 'Linhas (line)',
+            'trafo': 'Transformadores (trafo)',
+            'load': 'Cargas (load)',
+            'gen': 'Geradores (gen)'
+        }
+        for key in self.expected_keys:
+            tab = QWidget()
+            v = QVBoxLayout(tab)
+            v.addWidget(self.tables[key])
+            self.tabs.addTab(tab, titles.get(key, key))
+
+    def _create_table(self):
+        t = QTableWidget()
+        t.setColumnCount(0)
+        t.setRowCount(0)
+        t.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        return t
+
+    def _set_table_from_df(self, table: QTableWidget, df: pd.DataFrame):
+        # Ensure strings for display
+        df = df.copy()
+        table.clear()
+        table.setRowCount(0)
+        if df is None or df.empty:
+            table.setColumnCount(0)
+            return
+        table.setRowCount(len(df))
+        table.setColumnCount(len(df.columns))
+        table.setHorizontalHeaderLabels([str(c) for c in df.columns])
+        for i, row in enumerate(df.itertuples(index=False)):
+            for j, value in enumerate(row):
+                table.setItem(i, j, QTableWidgetItem(str(value)))
+
+    def _df_from_table(self, table: QTableWidget) -> pd.DataFrame:
+        rows = table.rowCount()
+        cols = table.columnCount()
+        headers = [table.horizontalHeaderItem(j).text() if table.horizontalHeaderItem(j) else f"col{j}" for j in range(cols)]
+        data = []
+        for i in range(rows):
+            row = []
+            empty = True
+            for j in range(cols):
+                item = table.item(i, j)
+                val = item.text().strip() if item else ''
+                if val != '':
+                    empty = False
+                row.append(val)
+            if not empty:
+                data.append(row)
+        return pd.DataFrame(data, columns=headers)
+
+    def load_dataframes(self, dfs: dict):
+        """Load provided dataframes into the editor tables.
+        Expected keys: 'bus','line','trafo','load','gen'. Other keys are ignored.
+        """
+        # Basic column normalizations for likely template columns
+        col_maps = {
+            'bus': {'Bus': 'name', 'Name': 'name', 'vn_kv': 'vn_kv', 'VN_kV': 'vn_kv', 'in_service': 'in_service', 'type': 'type'},
+            'line': {'From': 'from_bus', 'To': 'to_bus', 'from': 'from_bus', 'to': 'to_bus', 'Comprimento_km': 'length_km', 'length': 'length_km', 'length_km': 'length_km', 'r_ohm_per_km': 'r_ohm_per_km', 'x_ohm_per_km': 'x_ohm_per_km', 'c_nf_per_km': 'c_nf_per_km', 'max_i_ka': 'max_i_ka', 'in_service': 'in_service', 'name':'name'},
+            'trafo': {'HV': 'hv_bus', 'LV': 'lv_bus', 'sn_mva': 'sn_mva', 'vn_hv_kv': 'vn_hv_kv', 'vn_lv_kv': 'vn_lv_kv', 'vkr_percent': 'vkr_percent', 'vk_percent': 'vk_percent', 'pfe_kw': 'pfe_kw', 'i0_percent': 'i0_percent', 'in_service': 'in_service', 'name':'name'},
+            'load': {'Bus': 'bus', 'P_MW': 'p_mw', 'Q_MVAr': 'q_mvar', 'p_mw': 'p_mw', 'q_mvar': 'q_mvar', 'in_service': 'in_service', 'name':'name'},
+            'gen': {'Bus': 'bus', 'P_MW': 'p_mw', 'VM_pu': 'vm_pu', 'p_mw': 'p_mw', 'vm_pu': 'vm_pu', 'in_service': 'in_service', 'name':'name'},
+        }
+        for key in self.expected_keys:
+            df = dfs.get(key)
+            if df is None:
+                # Clear table if no df
+                self._set_table_from_df(self.tables[key], pd.DataFrame())
+                continue
+            # Normalize columns
+            cmap = col_maps.get(key, {})
+            new_cols = {}
+            for c in df.columns:
+                c_clean = str(c).strip()
+                new_cols[c] = cmap.get(c_clean, c_clean)
+            df_norm = df.rename(columns=new_cols)
+            self._set_table_from_df(self.tables[key], df_norm)
+
+    def get_dataframes(self) -> dict:
+        """Return a dict of dataframes from current tables using the current headers."""
+        out = {}
+        for key in self.expected_keys:
+            out[key] = self._df_from_table(self.tables[key])
+        return out
 
 
 class MainWindow(QMainWindow):
@@ -1383,14 +1498,8 @@ class PowerSystemController:
             # Network selection
             self.view.sidebar.network_combo.currentTextChanged.connect(self.load_network)
             
-            # Contingency selection
-            self.view.sidebar.contingency_list.itemChanged.connect(
-                lambda: self.prepare_contingencies(
-                    [self.view.sidebar.contingency_list.item(i).text() 
-                     for i in range(self.view.sidebar.contingency_list.count()) 
-                     if self.view.sidebar.contingency_list.item(i).checkState() == Qt.Checked]
-                )
-            )
+            # Contingency selection - use SidebarWidget signal
+            self.view.sidebar.contingencies_changed.connect(self.prepare_contingencies)
             
             # Simulation control - connect both direct and signal-based connections
             self.view.sidebar.run_button.clicked.connect(self.run_simulation_with_delay)
@@ -1568,12 +1677,30 @@ class PowerSystemController:
             self.view.update_status(f"Erro ao processar resultados: {e}", 'error')
             traceback.print_exc()
 
-    def import_network_from_excel(self):
-        path, _ = QFileDialog.getOpenFileName(self.view, "Importar Rede de Arquivo Excel", "", "Excel Files (*.xlsx)")
-        if not path: return
+    def import_network_from_excel(self, path=None):
+        # Allow direct path (e.g., from template) or prompt user
+        if not path:
+            path, _ = QFileDialog.getOpenFileName(self.view, "Importar Rede de Arquivo Excel", "", "Excel Files (*.xlsx)")
+        if not path:
+            return
         try:
             xls = pd.ExcelFile(path)
-            dfs = {sheet_name: xls.parse(sheet_name, dtype=str) for sheet_name in xls.sheet_names}
+            raw_dfs = {sheet: xls.parse(sheet, dtype=str) for sheet in xls.sheet_names}
+            # Normalize sheet names to expected keys: 'bus','line','trafo','load','gen'
+            name_map = {
+                'bus': 'bus', 'buses': 'bus', 'barras': 'bus',
+                'line': 'line', 'lines': 'line', 'linhas': 'line',
+                'trafo': 'trafo', 'trafos': 'trafo', 'transformer': 'trafo', 'transformers': 'trafo',
+                'load': 'load', 'loads': 'load', 'cargas': 'load',
+                'gen': 'gen', 'gens': 'gen', 'generator': 'gen', 'generators': 'gen', 'geradores': 'gen'
+            }
+            dfs = {}
+            for sheet_name, df in raw_dfs.items():
+                key = name_map.get(str(sheet_name).strip().lower())
+                if key:
+                    dfs[key] = df
+            if not dfs:
+                raise ValueError("Nenhuma planilha reconhecida. Use abas: bus, line, trafo, load, gen.")
             self.view.new_network_editor.load_dataframes(dfs)
             self.view.update_status(f"Dados importados de {path}", 'success')
         except Exception as e:
@@ -1608,23 +1735,61 @@ class PowerSystemController:
             if bus_df is None or bus_df.empty:
                 raise ValueError("A tabela 'bus' está vazia. Pelo menos uma barra é necessária.")
 
-            bus_map = {name: i for i, name in enumerate(bus_df['name'])}
+            def to_bool(val):
+                return str(val).strip().lower() in ['true', '1', 'yes', 'y', 't']
+
+            bus_map = {str(name): i for i, name in enumerate(bus_df['name'])}
+            bus_map_norm = {str(k).strip().lower(): v for k, v in bus_map.items()}
+            bus_index_set = set(range(len(bus_df)))
+            def resolve_bus(x):
+                s = str(x).strip()
+                # If numeric and corresponds to an index, prefer index
+                try:
+                    idx = int(float(s))
+                    if idx in bus_index_set:
+                        return idx
+                except Exception:
+                    pass
+                if s in bus_map:
+                    return bus_map[s]
+                s2 = s.lower()
+                if s2 in bus_map_norm:
+                    return bus_map_norm[s2]
+                raise KeyError(f"Barra não encontrada: {x}")
             for i, row in bus_df.iterrows():
-                pp.create_bus(net, name=row['name'], vn_kv=float(row['vn_kv']), index=bus_map[row['name']], type=row.get('type', 'b'))
+                pp.create_bus(
+                    net,
+                    name=row['name'],
+                    vn_kv=float(row['vn_kv']),
+                    index=bus_map[row['name']],
+                    type=row.get('type', 'b'),
+                    in_service=to_bool(row.get('in_service', 'true'))
+                )
 
             def safe_cast(val, cast_fn, default=0):
                 return cast_fn(val) if val and str(val).strip() else default
 
-            for df_name, create_func, param_map in self._get_element_mappers(bus_map):
+            for df_name, create_func, param_map in self._get_element_mappers(resolve_bus):
                 df = dfs.get(df_name)
                 if df is not None and not df.empty:
                     for _, row in df.iterrows():
-                        params = {pp_key: safe_cast(row[df_key], type_fn) for pp_key, df_key, type_fn in param_map if df_key in row and pd.notna(row[df_key])}
+                        params = {}
+                        for pp_key, df_key, type_fn in param_map:
+                            if df_key in row and pd.notna(row[df_key]):
+                                val = row[df_key]
+                                try:
+                                    params[pp_key] = type_fn(val)
+                                except Exception:
+                                    params[pp_key] = safe_cast(val, str, str(val))
                         params['name'] = row['name']
                         create_func(net, **params)
 
             self.model.net = net
-            plot.create_generic_coordinates(self.model.net)
+            try:
+                plot.create_generic_coordinates(self.model.net)
+            except Exception as e:
+                # Optional dependency (igraph) may be missing; proceed without generic coords
+                self.view.update_status(f"Coordenadas genéricas não geradas (dependência opcional ausente): {e}", 'info')
             self.view.sidebar.update_element_list(self.model.net)
             self.view.network_canvas.plot_network(self.model.net)
             self.view.update_network_description(self.model.net)
@@ -1636,25 +1801,43 @@ class PowerSystemController:
         finally:
             self.view.show_loading_overlay(False)
 
-    def _get_element_mappers(self, bus_map):
+    def _get_element_mappers(self, resolve_bus):
+        def to_bool(val):
+            return str(val).strip().lower() in ['true', '1', 'yes', 'y', 't']
         return [
             ('line', pp.create_line_from_parameters, [
-                ('from_bus', 'from_bus', lambda x: bus_map[x]), ('to_bus', 'to_bus', lambda x: bus_map[x]),
-                ('length_km', 'length_km', float), ('r_ohm_per_km', 'r_ohm_per_km', float),
-                ('x_ohm_per_km', 'x_ohm_per_km', float), ('c_nf_per_km', 'c_nf_per_km', float),
-                ('max_i_ka', 'max_i_ka', float), ('std_type', 'std_type', str)
+                ('from_bus', 'from_bus', resolve_bus),
+                ('to_bus', 'to_bus', resolve_bus),
+                ('length_km', 'length_km', float),
+                ('r_ohm_per_km', 'r_ohm_per_km', float),
+                ('x_ohm_per_km', 'x_ohm_per_km', float),
+                ('c_nf_per_km', 'c_nf_per_km', float),
+                ('max_i_ka', 'max_i_ka', float),
+                ('in_service', 'in_service', to_bool),
             ]),
             ('gen', pp.create_gen, [
-                ('bus', 'bus', lambda x: bus_map[x]), ('p_mw', 'p_mw', float), ('vm_pu', 'vm_pu', float)
+                ('bus', 'bus', resolve_bus),
+                ('p_mw', 'p_mw', float),
+                ('vm_pu', 'vm_pu', float),
+                ('in_service', 'in_service', to_bool),
             ]),
             ('load', pp.create_load, [
-                ('bus', 'bus', lambda x: bus_map[x]), ('p_mw', 'p_mw', float), ('q_mvar', 'q_mvar', float)
+                ('bus', 'bus', resolve_bus),
+                ('p_mw', 'p_mw', float),
+                ('q_mvar', 'q_mvar', float),
+                ('in_service', 'in_service', to_bool),
             ]),
             ('trafo', pp.create_transformer_from_parameters, [
-                ('hv_bus', 'hv_bus', lambda x: bus_map[x]), ('lv_bus', 'lv_bus', lambda x: bus_map[x]),
-                ('sn_mva', 'sn_mva', float), ('vn_hv_kv', 'vn_hv_kv', float), ('vn_lv_kv', 'vn_lv_kv', float),
-                ('vkr_percent', 'vkr_percent', float), ('vk_percent', 'vk_percent', float),
-                ('pfe_kw', 'pfe_kw', float), ('i0_percent', 'i0_percent', float)
+                ('hv_bus', 'hv_bus', resolve_bus),
+                ('lv_bus', 'lv_bus', resolve_bus),
+                ('sn_mva', 'sn_mva', float),
+                ('vn_hv_kv', 'vn_hv_kv', float),
+                ('vn_lv_kv', 'vn_lv_kv', float),
+                ('vkr_percent', 'vkr_percent', float),
+                ('vk_percent', 'vk_percent', float),
+                ('pfe_kw', 'pfe_kw', float),
+                ('i0_percent', 'i0_percent', float),
+                ('in_service', 'in_service', to_bool),
             ])
         ]
 

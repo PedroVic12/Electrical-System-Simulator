@@ -28,7 +28,9 @@ class AppStyles:
             subcontrol-position: top left; 
             padding: 0 8px; 
             left: 10px; 
-            color: #333; 
+            color: #ff0303; 
+            font-weight: bold;
+            font-size:24px
         }
         QComboBox, QListWidget, QTextEdit, QTableWidget { 
             font-family: 'Segoe UI', Arial, sans-serif; 
