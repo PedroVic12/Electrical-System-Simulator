@@ -706,8 +706,22 @@ class SidebarWidget(QWidget):
         layout.addWidget(self.run_button)
 
         self.theme_toggle_button = QPushButton("Alternar Tema")
+
+        
+
         self.theme_toggle_button.setObjectName("ThemeToggle")
         layout.addWidget(self.theme_toggle_button)
+
+        # componente de texto (logs longos)
+        self.text_output = QTextEdit()
+        self.text_output.setObjectName("LogOutput")
+        self.text_output.setReadOnly(True)
+        self.text_output.setPlaceholderText("Melhorias para o projeto: 1) uso de nomes de linhas no diagrama de rede \n2) Uso de numero ID de cada barra no diagrama 3) limite no loading percent de linhas e trafos crretos em 100% = 1")
+        # Quebra de linha automática pela largura do widget
+        self.text_output.setLineWrapMode(QTextEdit.WidgetWidth)
+        # Altura mínima para comportar múltiplas linhas
+        self.text_output.setMinimumHeight(140)
+        layout.addWidget(self.text_output)
         
         layout.addStretch()
         
