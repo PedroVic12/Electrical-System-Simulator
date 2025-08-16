@@ -4,7 +4,7 @@
 1) instale as depedencias
 
 ```py
-pip install -t requeriments.txt
+pip install -r requirements.txt
 ```
 
 
