@@ -319,11 +319,263 @@ class MetricsWidget(QWidget):
                 value_label = card.findChild(QLabel, "value_label")
                 if value_label: value_label.setStyleSheet("font-size: 22px; color: #f8f9fa; font-weight: bold; padding-top: 5px;")
 
+class ChartsManager:
+    """Manages all chart-related functionality for the application."""
+    
+    def __init__(self, view):
+        """Initialize the ChartsManager with references to view components."""
+        self.view = view
+        self.theme = 'dark'
+        
+    def set_theme(self, theme):
+        """Set the current theme for all charts."""
+        self.theme = theme
+        if hasattr(self.view, 'voltage_plot'):
+            self.view.voltage_plot.update_theme(theme)
+        if hasattr(self.view, 'line_loading_plot'):
+            self.view.line_loading_plot.update_theme(theme)
+        if hasattr(self.view, 'trafo_loading_plot'):
+            self.view.trafo_loading_plot.update_theme(theme)
+        if hasattr(self.view, 'line_p_flow_plot'):
+            self.view.line_p_flow_plot.update_theme(theme)
+        if hasattr(self.view, 'line_q_flow_plot'):
+            self.view.line_q_flow_plot.update_theme(theme)
+    
+    def update_all_charts(self, net):
+        """Update all charts based on the current network state."""
+        if not hasattr(net, 'res_bus') or net.res_bus.empty:
+            return
+            
+        repo = ResultsRepository(net)
+        
+        # Update voltage chart
+        self.update_voltage_chart(repo.get_bus_voltage_data())
+        
+        # Update line loading chart
+        self.update_line_loading_chart(repo.get_line_loading_data())
+        
+        # Update transformer loading chart
+        self.update_trafo_loading_chart(repo.get_trafo_loading_data())
+        
+        # Update power flow charts
+        power_flow_df = repo.get_line_power_flow_data()
+        self.update_power_flow_charts(power_flow_df)
+    
+    def update_voltage_chart(self, voltage_df):
+        """Update the voltage profile chart."""
+        if not PLOTLY_AVAILABLE or voltage_df.empty:
+            return
+            
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=voltage_df['Barra'],
+            y=voltage_df['Tensão (p.u.)'],
+            name='Tensão',
+            marker_color='#1f77b4'
+        ))
+        
+        # Add voltage limits
+        fig.add_hline(y=1.05, line_dash="dash", line_color="red")
+        fig.add_hline(y=0.95, line_dash="dash", line_color="red")
+        
+        # Apply theme and layout
+        self._apply_chart_theme(fig, 'Perfil de Tensão nas Barras', 'Barra', 'Tensão (p.u.)')
+        fig.update_yaxes(range=[0.9, 1.1])
+        
+        # Update the view
+        self.view.voltage_plot.plot_chart(fig)
+    
+    def update_line_loading_chart(self, line_df):
+        """Update the line loading chart."""
+        if not PLOTLY_AVAILABLE or line_df.empty:
+            if hasattr(self.view, 'line_loading_plot'):
+                self.view.line_loading_plot.clear()
+            return
+            
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=line_df['Linha'],
+            y=line_df['Carregamento (%)'],
+            name='Carregamento',
+            marker_color='#ff7f0e'
+        ))
+        
+        # Add 100% limit line
+        fig.add_hline(y=100, line_dash="dash", line_color="red")
+        
+        # Apply theme and layout
+        self._apply_chart_theme(fig, 'Carregamento das Linhas', 'Linha', 'Carregamento (%)')
+        
+        # Set y-axis range with some padding
+        y_max = max(110, line_df['Carregamento (%)'].max() * 1.1)
+        fig.update_yaxes(range=[0, y_max])
+        
+        # Update the view
+        self.view.line_loading_plot.plot_chart(fig)
+    
+    def update_trafo_loading_chart(self, trafo_df):
+        """Update the transformer loading chart."""
+        if not PLOTLY_AVAILABLE or trafo_df.empty:
+            if hasattr(self.view, 'trafo_loading_plot'):
+                self.view.trafo_loading_plot.clear()
+            return
+            
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=trafo_df['Transformador'],
+            y=trafo_df['Carregamento (%)'],
+            name='Carregamento',
+            marker_color='#2ca02c'
+        ))
+        
+        # Add 100% limit line
+        fig.add_hline(y=100, line_dash="dash", line_color="red")
+        
+        # Apply theme and layout
+        self._apply_chart_theme(fig, 'Carregamento dos Transformadores', 'Transformador', 'Carregamento (%)')
+        
+        # Set y-axis range with some padding
+        y_max = max(110, trafo_df['Carregamento (%)'].max() * 1.1) if not trafo_df.empty else 110
+        fig.update_yaxes(range=[0, y_max])
+        
+        # Update the view
+        self.view.trafo_loading_plot.plot_chart(fig)
+    
+    def update_power_flow_charts(self, power_flow_df):
+        """Update both active and reactive power flow charts."""
+        if not PLOTLY_AVAILABLE or power_flow_df.empty:
+            if hasattr(self.view, 'line_p_flow_plot'):
+                self.view.line_p_flow_plot.clear()
+            if hasattr(self.view, 'line_q_flow_plot'):
+                self.view.line_q_flow_plot.clear()
+            return
+        
+        # Active power flow
+        fig_p = go.Figure()
+        fig_p.add_trace(go.Bar(
+            x=power_flow_df['Linha'],
+            y=power_flow_df['Potência Ativa (MW)'],
+            name='P (MW)',
+            marker_color='#d62728'
+        ))
+        self._apply_chart_theme(fig_p, 'Fluxo de Potência Ativa', 'Linha', 'Potência Ativa (MW)')
+        
+        # Reactive power flow
+        fig_q = go.Figure()
+        fig_q.add_trace(go.Bar(
+            x=power_flow_df['Linha'],
+            y=power_flow_df['Potência Reativa (MVAr)'],
+            name='Q (MVAr)',
+            marker_color='#9467bd'
+        ))
+        self._apply_chart_theme(fig_q, 'Fluxo de Potência Reativa', 'Linha', 'Potência Reativa (MVAr)')
+        
+        # Update the views
+        self.view.line_p_flow_plot.plot_chart(fig_p)
+        self.view.line_q_flow_plot.plot_chart(fig_q)
+    
+    def _apply_chart_theme(self, fig, title, xaxis_title, yaxis_title):
+        """Apply consistent theme and layout to a chart."""
+        if self.theme == 'dark':
+            fig.update_layout(
+                title=title,
+                xaxis_title=xaxis_title,
+                yaxis_title=yaxis_title,
+                paper_bgcolor='#343a40',
+                plot_bgcolor='#343a40',
+                font=dict(color='#f8f9fa'),
+                title_font_color='#f8f9fa',
+                xaxis=dict(
+                    gridcolor='#495057',
+                    zerolinecolor='#495057',
+                    linecolor='#6c757d',
+                    showgrid=False
+                ),
+                yaxis=dict(
+                    gridcolor='#495057',
+                    zerolinecolor='#495057',
+                    linecolor='#6c757d',
+                    showgrid=True
+                )
+            )
+        else:
+            fig.update_layout(
+                title=title,
+                xaxis_title=xaxis_title,
+                yaxis_title=yaxis_title,
+                paper_bgcolor='#f0f2f6',
+                plot_bgcolor='#f0f2f6',
+                font=dict(color='#333'),
+                title_font_color='#333',
+                xaxis=dict(
+                    gridcolor='#d0d0d0',
+                    zerolinecolor='#d0d0d0',
+                    linecolor='#adb5bd',
+                    showgrid=False
+                ),
+                yaxis=dict(
+                    gridcolor='#d0d0d0',
+                    zerolinecolor='#d0d0d0',
+                    linecolor='#adb5bd',
+                    showgrid=True
+                )
+            )
+
+    def _create_loading_figure(self, df, title, y_title, color):
+        """Create a loading figure with consistent styling and threshold indicators."""
+        fig = go.Figure()
+        
+        # Add bars below threshold
+        below_threshold = df[df <= 100]
+        if not below_threshold.empty:
+            fig.add_trace(go.Bar(
+                x=below_threshold.index,
+                y=below_threshold.values,
+                marker_color=color,
+                name='Normal',
+                hovertemplate='%{x}<br>%{y:.2f}%<extra></extra>'
+            ))
+            
+        # Add bars above threshold in red
+        above_threshold = df[df > 100]
+        if not above_threshold.empty:
+            fig.add_trace(go.Bar(
+                x=above_threshold.index,
+                y=above_threshold.values,
+                marker_color='red',
+                name='Sobrecarregado',
+                hovertemplate='%{x}<br>%{y:.2f}% (acima do limite)<extra></extra>'
+            ))
+        
+        # Add threshold line at 100%
+        fig.add_hline(
+            y=100,
+            line=dict(color='red', width=2, dash='dash'),
+            annotation_text='Limite',
+            annotation_position='top right',
+            annotation_font_color='red'
+        )
+        
+        fig.update_layout(
+            title=title,
+            yaxis_title=y_title + ' (%)',
+            xaxis_title='Elemento',
+            showlegend=False,
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='#333' if self.theme == 'light' else '#fff'),
+            margin=dict(l=50, r=50, t=50, b=50),
+            xaxis=dict(showgrid=False),
+            yaxis=dict(showgrid=True, gridcolor='#e0e0e0' if self.theme == 'light' else '#444')
+        )
+        
+        return fig
+
 class PlotlyWidget(QWebEngineView if PLOTLY_AVAILABLE else QTextEdit):
     """Widget to display Plotly charts."""
     def __init__(self):
         super().__init__()
-        self.current_theme = 'dark' # Default theme
+        self.current_theme = 'dark'  # Default theme
         if not PLOTLY_AVAILABLE:
             self.setReadOnly(True)
             self.setText("Plotly não disponível. Instale 'PySide6-WebEngine'.")
@@ -336,18 +588,16 @@ class PlotlyWidget(QWebEngineView if PLOTLY_AVAILABLE else QTextEdit):
 
     def plot_chart(self, fig):
         if PLOTLY_AVAILABLE:
-            if self.current_theme == 'dark':
-                fig.update_layout(paper_bgcolor='#343a40', plot_bgcolor='#343a40', font=dict(color='#f8f9fa'), title_font_color='#f8f9fa', xaxis=dict(gridcolor='#495057', zerolinecolor='#495057'), yaxis=dict(gridcolor='#495057', zerolinecolor='#495057'))
-            else:
-                fig.update_layout(paper_bgcolor='#f0f2f6', plot_bgcolor='#f0f2f6', font=dict(color='#333'), title_font_color='#333', xaxis=dict(gridcolor='#d0d0d0', zerolinecolor='#d0d0d0'), yaxis=dict(gridcolor='#d0d0d0', zerolinecolor='#d0d0d0'))
             self.setHtml(pio.to_html(fig, full_html=False, include_plotlyjs='cdn'))
 
     def clear(self):
-        if PLOTLY_AVAILABLE: self.setHtml(self._get_html_template())
+        if PLOTLY_AVAILABLE: 
+            self.setHtml(self._get_html_template())
 
-    def update_theme_colors(self, theme):
+    def update_theme(self, theme):
+        """Update the widget's theme."""
         self.current_theme = theme
-        if PLOTLY_AVAILABLE: self.setHtml(self._get_html_template())
+        self.setHtml(self._get_html_template())
 
 class SidebarWidget(QWidget):
     """Sidebar widget with all simulation controls."""
@@ -474,11 +724,11 @@ class LoadingWidget(QFrame):
         self.label.setStyleSheet("color: white; font-size: 20px; font-weight: bold; background: transparent;")
         layout.addWidget(self.label)
 
-class NewNetworkEditor(QWidget):
     """Widget for creating and editing a new network."""
     build_network_requested = Signal()
     import_requested = Signal()
     export_requested = Signal()
+    file_imported = Signal(str)  # Signal emitted when a file is imported
 
     def __init__(self):
         super().__init__()
@@ -491,36 +741,83 @@ class NewNetworkEditor(QWidget):
 
         # --- Action Buttons ---
         button_layout = QHBoxLayout()
-        self.import_button = QPushButton("📥 Importar de Excel")
-        self.export_button = QPushButton("📤 Exportar para Excel")
-        self.build_button = QPushButton("🛠️ Construir Rede a partir das Tabelas")
-        self.build_button.setStyleSheet("background-color: #007bff; color: white; font-weight: bold; padding: 8px; border-radius: 5px;")
+        self.import_button = QPushButton("📥 Importar")
+        self.import_button.setToolTip("Importar de Excel, TXT ou SQL")
+        self.export_button = QPushButton("📤 Exportar")
+        self.export_button.setToolTip("Exportar para Excel")
+        self.build_button = QPushButton("🛠️ Construir Rede")
+        self.build_button.setToolTip("Construir Rede a partir das Tabelas")
+        self.build_button.setStyleSheet("""
+            QPushButton {
+                background-color: #007bff; 
+                color: white; 
+                font-weight: bold; 
+                padding: 8px; 
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #0056b3;
+            }
+        """)
+        
         button_layout.addWidget(self.import_button)
         button_layout.addWidget(self.export_button)
         button_layout.addStretch()
         button_layout.addWidget(self.build_button)
         main_layout.addLayout(button_layout)
 
-        # --- Tables in Tabs ---
+        # --- Tabs for different tables ---
         self.editor_tabs = QTabWidget()
-        self.tables = {}
+        main_layout.addWidget(self.editor_tabs)
 
-        headers = {
-            "bus": ["name", "vn_kv", "type", "zone", "in_service"],
-            "line": ["name", "from_bus", "to_bus", "length_km", "std_type", "in_service"],
-            "trafo": ["name", "hv_bus", "lv_bus", "std_type", "in_service"],
-            "gen": ["name", "bus", "p_mw", "vm_pu", "in_service"],
-            "load": ["name", "bus", "p_mw", "q_mvar", "in_service"],
+        # Initialize tables with default headers
+        self.tables = {}
+        self.setup_tables()
+
+        # Connect signals
+        self.import_button.clicked.connect(self.import_requested.emit)
+        self.export_button.clicked.connect(self.export_requested.emit)
+        self.build_button.clicked.connect(self.build_network_requested.emit)
+
+    def setup_tables(self):
+        """Initialize tables with default headers and add row buttons."""
+        table_configs = {
+            'buses': ['name', 'vn_kv', 'type', 'zone', 'in_service'],
+            'lines': ['name', 'from_bus', 'to_bus', 'length_km', 'r_ohm_per_km', 
+                     'x_ohm_per_km', 'c_nf_per_km', 'max_i_ka', 'from_vn_kv', 'to_vn_kv', 'in_service'],
+            'transformers': ['name', 'hv_bus', 'lv_bus', 'sn_mva', 'vn_hv_kv', 'vn_lv_kv', 
+                           'vkr_percent', 'vk_percent', 'pfe_kw', 'i0_percent', 'in_service'],
+            'loads': ['name', 'bus', 'p_mw', 'q_mvar', 'vn_kv', 'in_service'],
+            'generators': ['name', 'bus', 'p_mw', 'vm_pu', 'vn_kv', 'min_p_mw', 'max_p_mw', 
+                         'min_q_mvar', 'max_q_mvar', 'in_service']
         }
 
-        for name, header_list in headers.items():
+        for name, headers in table_configs.items():
+            # Create container widget for table + buttons
+            container = QWidget()
+            container_layout = QVBoxLayout(container)
+            container_layout.setContentsMargins(0, 0, 0, 0)
+            container_layout.setSpacing(5)
+            
+            # Create table
             table = QTableWidget()
-            table.setColumnCount(len(header_list))
-            table.setHorizontalHeaderLabels(header_list)
-            table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-            table.setRowCount(5) # Start with 5 empty rows
+            table.setColumnCount(len(headers))
+            table.setHorizontalHeaderLabels(headers)
+            table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+            table.setRowCount(5)  # Start with 5 empty rows
+            table.horizontalHeader().setStretchLastSection(True)
+            
+            # Add row button
+            add_row_btn = QPushButton("➕ Adicionar Linha")
+            add_row_btn.clicked.connect(lambda _, t=table: t.insertRow(t.rowCount()))
+            
+            # Add widgets to container
+            container_layout.addWidget(table)
+            container_layout.addWidget(add_row_btn)
+            
+            # Store table reference
             self.tables[name] = table
-            self.editor_tabs.addTab(table, name.capitalize())
+            self.editor_tabs.addTab(container, name.capitalize())
 
         main_layout.addWidget(self.editor_tabs)
 
@@ -529,60 +826,282 @@ class NewNetworkEditor(QWidget):
         self.build_button.clicked.connect(self.build_network_requested.emit)
 
     def get_dataframes(self):
+        """Extract data from the editor tables into a dictionary of DataFrames."""
         dfs = {}
         for name, table in self.tables.items():
-            df = pd.DataFrame(columns=self.get_table_headers(table))
+            headers = self.get_table_headers(table)
+            df = pd.DataFrame(columns=headers)
+            
             for row in range(table.rowCount()):
-                if all(table.item(row, col) is None or table.item(row, col).text().strip() == '' for col in range(table.columnCount())):
+                # Skip empty rows
+                if all(table.item(row, col) is None or 
+                       table.item(row, col).text().strip() == '' 
+                       for col in range(table.columnCount())):
                     continue
-                row_data = [table.item(row, col).text() if table.item(row, col) else '' for col in range(table.columnCount())]
-                df.loc[len(df)] = row_data
+                    
+                row_data = []
+                for col in range(table.columnCount()):
+                    item = table.item(row, col)
+                    if item is not None and item.text().strip() != '':
+                        # Try to convert numeric values
+                        try:
+                            # Check if the column should be numeric
+                            col_name = headers[col] if col < len(headers) else f'col_{col}'
+                            if any(x in col_name.lower() for x in ['_mw', '_mvar', '_kv', '_ka', '_km', '_ohm', 'pfe_', 'vk_', 'vkr_', 'i0_', 'sn_']):
+                                row_data.append(float(item.text()))
+                            elif col_name in ['in_service']:
+                                row_data.append(bool(item.text().lower() in ['true', '1', 'yes', 'y', 't']))
+                            else:
+                                row_data.append(item.text())
+                        except (ValueError, AttributeError):
+                            row_data.append(item.text())
+                    else:
+                        row_data.append('')
+                
+                if any(x != '' for x in row_data):  # Only add non-empty rows
+                    df.loc[len(df)] = row_data[:len(headers)]  # Ensure we don't exceed column count
+            
             dfs[name] = df
         return dfs
 
     def load_dataframes(self, dfs):
+        """Load data into the editor tables from a dictionary of DataFrames."""
         for name, df in dfs.items():
             if name in self.tables:
                 table = self.tables[name]
                 table.clearContents()
                 table.setRowCount(0)
+                
+                # Ensure we have enough columns
+                current_cols = table.columnCount()
+                needed_cols = len(df.columns)
+                
+                if needed_cols > current_cols:
+                    table.setColumnCount(needed_cols)
+                    # Update headers if needed
+                    headers = self.get_table_headers(table)
+                    for i in range(current_cols, needed_cols):
+                        if i < len(df.columns):
+                            headers.append(df.columns[i])
+                    table.setHorizontalHeaderLabels(headers)
+                
+                # Set data
                 table.setRowCount(len(df))
-                table.setColumnCount(len(df.columns))
-                table.setHorizontalHeaderLabels(df.columns.tolist())
                 for i, row in enumerate(df.itertuples(index=False)):
                     for j, value in enumerate(row):
-                        table.setItem(i, j, QTableWidgetItem(str(value)))
-                table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+                        if j < table.columnCount():  # Ensure we don't go out of bounds
+                            table.setItem(i, j, QTableWidgetItem(str(value)))
+                
+                # Auto-resize columns to content
+                table.resizeColumnsToContents()
+                table.horizontalHeader().setStretchLastSection(True)
 
     def get_table_headers(self, table):
         return [table.horizontalHeaderItem(i).text() for i in range(table.columnCount())]
+        
+    def import_file(self):
+        """Handle file import from various formats."""
+        try:
+            # Get file path from file dialog
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "Importar Dados",
+                "",
+                "Arquivos Suportados (*.xlsx *.xls *.txt *.csv *.db *.sqlite);;Todos os Arquivos (*)"
+            )
+            
+            if not file_path:
+                return
+                
+            # Show loading indicator
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            
+            # Import the data
+            from backend.dataframe_controller import DataFrameController
+            controller = DataFrameController()
+            
+            # Get file extension
+            file_ext = Path(file_path).suffix.lower()
+            
+            if file_ext in ['.xlsx', '.xls']:
+                # For Excel, let user select which sheets to import
+                xls = pd.ExcelFile(file_path)
+                sheet_names = xls.sheet_names
+                
+                # Create dialog to select sheets
+                dialog = QDialog(self)
+                dialog.setWindowTitle("Selecionar Planilhas")
+                layout = QVBoxLayout(dialog)
+                
+                # Add checkboxes for each sheet
+                checkboxes = {}
+                for sheet in sheet_names:
+                    cb = QCheckBox(sheet)
+                    cb.setChecked(True)
+                    checkboxes[sheet] = cb
+                    layout.addWidget(cb)
+                
+                # Add buttons
+                btn_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+                btn_box.accepted.connect(dialog.accept)
+                btn_box.rejected.connect(dialog.reject)
+                layout.addWidget(btn_box)
+                
+                if dialog.exec_() == QDialog.Accepted:
+                    # Import selected sheets
+                    for sheet, cb in checkboxes.items():
+                        if cb.isChecked():
+                            df = pd.read_excel(file_path, sheet_name=sheet)
+                            df = controller.clean_power_system_data(df)
+                            self._import_dataframe(df, sheet.lower())
+            else:
+                # For other formats, import directly
+                df = controller.load_file(file_path)
+                df = controller.clean_power_system_data(df)
+                
+                # If it's a single table, try to guess the type
+                if len(df) > 0:
+                    self._import_dataframe(df, self._guess_table_type(df))
+            
+            # Emit signal that file was imported
+            self.file_imported.emit(file_path)
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Erro ao Importar", f"Ocorreu um erro ao importar o arquivo:\n{str(e)}")
+        finally:
+            QApplication.restoreOverrideCursor()
+    
+    def _guess_table_type(self, df):
+        """Guess the table type based on column names."""
+        cols = [col.lower() for col in df.columns]
+        
+        if any(x in ['from_bus', 'to_bus', 'length_km'] for x in cols):
+            return 'lines'
+        elif 'hv_bus' in cols and 'lv_bus' in cols:
+            return 'transformers'
+        elif 'bus' in cols and 'p_mw' in cols and 'q_mvar' in cols:
+            return 'loads'
+        elif 'bus' in cols and 'p_mw' in cols and 'vm_pu' in cols:
+            return 'generators'
+        elif 'vn_kv' in cols and 'type' in cols:
+            return 'buses'
+        return 'dados'
+    
+    def _import_dataframe(self, df, table_name):
+        """Import a single dataframe into the specified table."""
+        if not df.empty:
+            # Normalize table name
+            table_name = table_name.lower()
+            
+            # If table doesn't exist, create it
+            if table_name not in self.tables:
+                self._create_table(table_name, df.columns.tolist())
+            
+            # Load data into table
+            self.load_dataframes({table_name: df})
+            
+            # Switch to the tab
+            for i in range(self.editor_tabs.count()):
+                if self.editor_tabs.tabText(i).lower() == table_name:
+                    self.editor_tabs.setCurrentIndex(i)
+                    break
+    
+    def _create_table(self, name, headers):
+        """Create a new table with the given name and headers."""
+        # Create container widget for table + buttons
+        container = QWidget()
+        container_layout = QVBoxLayout(container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.setSpacing(5)
+        
+        # Create table
+        table = QTableWidget()
+        table.setColumnCount(len(headers))
+        table.setHorizontalHeaderLabels(headers)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        table.setRowCount(5)  # Start with 5 empty rows
+        table.horizontalHeader().setStretchLastSection(True)
+        
+        # Add row button
+        add_row_btn = QPushButton("➕ Adicionar Linha")
+        add_row_btn.clicked.connect(lambda _, t=table: t.insertRow(t.rowCount()))
+        
+        # Add widgets to container
+        container_layout.addWidget(table)
+        container_layout.addWidget(add_row_btn)
+        
+        # Store table reference
+        self.tables[name] = table
+        self.editor_tabs.addTab(container, name.capitalize())
+    
+    def export_to_excel(self):
+        """Export all tables to an Excel file."""
+        try:
+            # Get save file path
+            file_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Exportar para Excel",
+                "",
+                "Arquivos Excel (*.xlsx);;Todos os Arquivos (*)"
+            )
+            
+            if not file_path:
+                return
+                
+            # Ensure .xlsx extension
+            if not file_path.lower().endswith('.xlsx'):
+                file_path += '.xlsx'
+            
+            # Show loading indicator
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            
+            # Get all dataframes
+            dfs = self.get_dataframes()
+            
+            # Export to Excel with multiple sheets
+            with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+                for name, df in dfs.items():
+                    if not df.empty:
+                        df.to_excel(writer, sheet_name=name.capitalize(), index=False)
+            
+            QMessageBox.information(self, "Exportação Concluída", 
+                                  f"Dados exportados com sucesso para:\n{file_path}")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Erro ao Exportar", 
+                               f"Ocorreu um erro ao exportar os dados:\n{str(e)}")
+        finally:
+            QApplication.restoreOverrideCursor()
 
 class MainWindow(QMainWindow):
     """The main application window."""
     
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("⚡ Dashboard de Análise de Contingências Elétricas")
+        self.setWindowTitle("⚡ Dashboard de Análise de Contingências de Redes Elétricas SmartGrids from Pedro Victor Veras")
         self.setGeometry(100, 100, 1600, 900)
         self.current_theme = 'dark'
         self.setup_ui()
         self.apply_theme()
 
     def apply_theme(self):
-        #stylesheet = AppStyles.DARK_MODE_STYLESHEET if self.current_theme == 'dark' else AppStyles.LIGHT_MODE_STYLESHEET
-        #self.setStyleSheet(stylesheet)
+        """Apply the current theme to all UI components."""
+        # Apply theme to widgets
+        stylesheet = AppStyles.DARK_MODE_STYLESHEET if self.current_theme == 'dark' else AppStyles.LIGHT_MODE_STYLESHEET
+        self.setStyleSheet(stylesheet)
+        
+        # Update theme for custom widgets
         self.sidebar.update_theme_colors(self.current_theme)
         self.metrics_widget.update_theme_colors(self.current_theme)
         self.network_canvas.update_theme_colors(self.current_theme)
-        if PLOTLY_AVAILABLE:
-            self.voltage_plot.update_theme_colors(self.current_theme)
-            self.line_loading_plot.update_theme_colors(self.current_theme)
-            self.trafo_loading_plot.update_theme_colors(self.current_theme)
-            self.line_p_flow_plot.update_theme_colors(self.current_theme)
-            self.line_q_flow_plot.update_theme_colors(self.current_theme)
-        self.update_status(self.status_label.text().strip('✅❌ℹ️ '), self.status_label.property("style_type"))
+        
+        # Update status label style
+        current_status = self.status_label.text().strip('✅❌ℹ️ ')
+        style_type = self.status_label.property("style_type") if hasattr(self.status_label, "property") else 'info'
+        self.update_status(current_status, style_type)
 
     def toggle_theme(self):
+        """Toggle between light and dark theme."""
         self.current_theme = 'light' if self.current_theme == 'dark' else 'dark'
         self.apply_theme()
 
@@ -760,6 +1279,7 @@ class PowerSystemController:
     def __init__(self):
         self.view = MainWindow()
         self.model = PowerSystemModel()
+        self.charts = ChartsManager(self.view)
         self.current_contingencies = []
         self.setup_connections()
         self.load_network(self.view.sidebar.network_combo.currentText())
@@ -774,7 +1294,10 @@ class PowerSystemController:
         self.view.new_network_editor.build_network_requested.connect(self.build_network_from_editor)
 
     def handle_theme_toggle(self):
-        self.view.toggle_theme()
+        theme = 'light' if self.view.current_theme == 'dark' else 'dark'
+        self.view.current_theme = theme
+        self.charts.set_theme(theme)
+        self.view.apply_theme()
 
     def show(self):
         self.view.show()
@@ -842,55 +1365,20 @@ class PowerSystemController:
         try:
             repo = ResultsRepository(self.model.net)
             self.view.metrics_widget.update_metrics(repo.get_kpis())
-            voltage_df = repo.get_bus_voltage_data()
-            line_loading_df = repo.get_line_loading_data()
-            trafo_loading_df = repo.get_trafo_loading_data()
+            
+            # Update tables
+            self.view.update_table(self.view.voltage_table, repo.get_bus_voltage_data())
+            self.view.update_table(self.view.line_loading_table, repo.get_line_loading_data())
+            self.view.update_table(self.view.trafo_loading_table, repo.get_trafo_loading_data())
             power_flow_df = repo.get_line_power_flow_data()
-
-            self.view.update_table(self.view.voltage_table, voltage_df)
-            self.view.update_table(self.view.line_loading_table, line_loading_df)
-            self.view.update_table(self.view.trafo_loading_table, trafo_loading_df)
             self.view.update_table(self.view.power_flow_table, power_flow_df)
-
-            if PLOTLY_AVAILABLE:
-                self._update_plots(voltage_df, line_loading_df, trafo_loading_df, power_flow_df)
+            
+            # Update all charts using ChartsManager
+            self.charts.update_all_charts(self.model.net)
+            
         except Exception as e:
             self.view.update_status(f"Erro ao processar resultados: {e}", 'error')
             traceback.print_exc()
-
-    def _update_plots(self, voltage_df, line_df, trafo_df, power_flow_df):
-        if not voltage_df.empty:
-            fig_v = go.Figure(data=[go.Bar(x=voltage_df['Barra'], y=voltage_df['Tensão (p.u.)'], marker_color='#1f77b4')])
-            fig_v.add_hline(y=1.05, line_dash="dash", line_color="red"); fig_v.add_hline(y=0.95, line_dash="dash", line_color="red")
-            fig_v.update_layout(title_text='Tensão nas Barras', yaxis_range=[0.9, 1.1])
-            self.view.voltage_plot.plot_chart(fig_v)
-
-        if not line_df.empty:
-            fig_l = go.Figure(data=[go.Bar(x=line_df['Linha'], y=line_df['Carregamento (%)'], marker_color='#ff7f0e')])
-            fig_l.add_hline(y=100, line_dash="dash", line_color="red")
-            fig_l.update_layout(title_text='Carregamento das Linhas', yaxis_range=[0, max(110, line_df['Carregamento (%)'].max() * 1.1 if not line_df.empty else 110)])
-            self.view.line_loading_plot.plot_chart(fig_l)
-        else:
-            self.view.line_loading_plot.clear()
-
-        if not trafo_df.empty:
-            fig_t = go.Figure(data=[go.Bar(x=trafo_df['Transformador'], y=trafo_df['Carregamento (%)'], marker_color='#2ca02c')])
-            fig_t.add_hline(y=100, line_dash="dash", line_color="red")
-            fig_t.update_layout(title_text='Carregamento dos Transformadores', yaxis_range=[0, max(110, trafo_df['Carregamento (%)'].max() * 1.1 if not trafo_df.empty else 110)])
-            self.view.trafo_loading_plot.plot_chart(fig_t)
-        else:
-            self.view.trafo_loading_plot.clear()
-
-        if not power_flow_df.empty:
-            fig_p = go.Figure(data=[go.Bar(x=power_flow_df['Linha'], y=power_flow_df['Potência Ativa (MW)'], name='P (MW)', marker_color='#d62728')])
-            fig_p.update_layout(title_text='Fluxo de Potência Ativa (MW)')
-            self.view.line_p_flow_plot.plot_chart(fig_p)
-            fig_q = go.Figure(data=[go.Bar(x=power_flow_df['Linha'], y=power_flow_df['Potência Reativa (MVAr)'], name='Q (MVAr)', marker_color='#9467bd')])
-            fig_q.update_layout(title_text='Fluxo de Potência Reativa (MVAr)')
-            self.view.line_q_flow_plot.plot_chart(fig_q)
-        else:
-            self.view.line_p_flow_plot.clear()
-            self.view.line_q_flow_plot.clear()
 
     def import_network_from_excel(self):
         path, _ = QFileDialog.getOpenFileName(self.view, "Importar Rede de Arquivo Excel", "", "Excel Files (*.xlsx)")
