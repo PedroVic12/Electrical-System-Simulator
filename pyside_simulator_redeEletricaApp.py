@@ -340,7 +340,7 @@ class MetricsWidget(QWidget):
             "load": "Carga Total (MW)",
             "gen": "Geração Total (MW)",
             "voltage": "Violações de Tensão",
-            "overload": "Sobrecargas",
+            "overload": "Sobrecargas (Geradores)",
             "overvoltage": "Sobretensões (Barras)",
         }
         for key, title in titles.items():
@@ -380,11 +380,11 @@ class MetricsWidget(QWidget):
             if theme == 'light':
                 card.setStyleSheet("QGroupBox { background-color: white; border: 1px solid #ddd; border-radius: 8px; margin-top: 10px; font-size: 11px; font-weight: bold; color: #555; } QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; padding: 0 5px; left: 10px; } ")
                 value_label = card.findChild(QLabel, "value_label")
-                if value_label: value_label.setStyleSheet("font-size: 22px; color: #000; font-weight: bold; padding-top: 5px;")
+                if value_label: value_label.setStyleSheet("font-size: 24px; color: #000; font-weight: bold; padding-top: 5px;")
             else:
                 card.setStyleSheet("QGroupBox { background-color: #343a40; border: 1px solid #495057; border-radius: 8px; margin-top: 10px; font-size: 11px; font-weight: bold; color: #f8f9fa; } QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; padding: 0 5px; left: 10px; } ")
                 value_label = card.findChild(QLabel, "value_label")
-                if value_label: value_label.setStyleSheet("font-size: 22px; color: #f8f9fa; font-weight: bold; padding-top: 5px;")
+                if value_label: value_label.setStyleSheet("font-size: 24px; color: #f8f9fa; font-weight: bold; padding-top: 5px;")
 
 class ChartsManager:
     """Manages all chart-related functionality for the application."""
