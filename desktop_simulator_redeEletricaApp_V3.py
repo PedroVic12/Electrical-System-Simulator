@@ -329,6 +329,23 @@ class MetricsWidget(QWidget):
     
     def __init__(self):
         super().__init__()
+        # Theme-aware, easily editable color map
+        self.theme = 'dark'
+        self.colors = {
+            'light': {
+                'card_bg': '#ffffff', 'card_border': '#ddd', 'card_text': '#555', 'value_default': '#000',
+                'gen_value': '#2e7d32',   # green
+                'load_value': '#b08900',  # amber/dark yellow
+                'alert_bg': '#ffebee', 'alert_border': '#c62828', 'alert_value': '#c62828'
+            },
+            'dark': {
+                'card_bg': '#343a40', 'card_border': '#495057', 'card_text': '#f8f9fa', 'value_default': '#f8f9fa',
+                'gen_value': '#66bb6a',   # green
+                'load_value': '#ffca28',  # yellow
+                'alert_bg': '#4a1f1f', 'alert_border': '#ef5350', 'alert_value': '#ef5350'
+            }
+        }
+        self.last_kpis = {}
         self.setup_ui()
 
     def setup_ui(self):
@@ -337,7 +354,7 @@ class MetricsWidget(QWidget):
         layout.setContentsMargins(0,0,0,0)
         self.metric_cards = {}
         titles = {
-            "load": "Carga Total (MW)",
+            "load": "Carga Total Sistema Elétrico (MW)",
             "gen": "Geração Total (MW)",
             "voltage": "Violações de Tensão",
             "overload": "Sobrecargas (Geradores)",
@@ -347,6 +364,8 @@ class MetricsWidget(QWidget):
             card = self._create_metric_card(title, "0.00")
             layout.addWidget(card)
             self.metric_cards[key] = card
+        # Apply initial theme styles
+        self._apply_theme_styles()
 
     def _create_metric_card(self, title, value):
         card = QGroupBox(title)
@@ -358,6 +377,8 @@ class MetricsWidget(QWidget):
         return card
 
     def update_metrics(self, kpis):
+        # keep last values for reapplying styles on theme change
+        self.last_kpis = dict(kpis)
         values = {
             "load": f"{kpis['total_load_mw']:.2f}",
             "gen": f"{kpis['total_gen_mw']:.2f}",
@@ -374,17 +395,57 @@ class MetricsWidget(QWidget):
             buses = kpis.get('overvoltage_buses', [])
             tooltip = "\n".join(buses) if buses else "Sem sobretensões"
             ov_card.setToolTip(tooltip)
+        # Apply color logic after updating values
+        self._apply_theme_styles()
 
     def update_theme_colors(self, theme):
+        self.theme = 'light' if theme == 'light' else 'dark'
+        self._apply_theme_styles()
+
+    # ===== Styling helpers (editable) =====
+    def _apply_theme_styles(self):
+        c = self.colors[self.theme]
+        # Base style for all cards
+        base_card_css = (
+            "QGroupBox { "
+            f"background-color: {c['card_bg']}; border: 1px solid {c['card_border']}; border-radius: 8px; margin-top: 10px; "
+            "font-size: 11px; font-weight: bold; "
+            f"color: {c['card_text']}; "
+            "} QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; padding: 0 5px; left: 10px; }"
+        )
+
         for key, card in self.metric_cards.items():
-            if theme == 'light':
-                card.setStyleSheet("QGroupBox { background-color: white; border: 1px solid #ddd; border-radius: 8px; margin-top: 10px; font-size: 11px; font-weight: bold; color: #555; } QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; padding: 0 5px; left: 10px; } ")
-                value_label = card.findChild(QLabel, "value_label")
-                if value_label: value_label.setStyleSheet("font-size: 24px; color: #000; font-weight: bold; padding-top: 5px;")
+            # Determine alert state
+            alert = False
+            if self.last_kpis:
+                if key == 'overload':
+                    alert = int(self.last_kpis.get('overloads', 0)) > 0
+                elif key == 'overvoltage':
+                    alert = int(self.last_kpis.get('overvoltage_count', 0)) > 0
+
+            if alert:
+                card_css = (
+                    "QGroupBox { "
+                    f"background-color: {c['alert_bg']}; border: 1px solid {c['alert_border']}; border-radius: 8px; margin-top: 10px; "
+                    "font-size: 11px; font-weight: bold; "
+                    f"color: {c['alert_value']}; "
+                    "} QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; padding: 0 5px; left: 10px; }"
+                )
+                card.setStyleSheet(card_css)
             else:
-                card.setStyleSheet("QGroupBox { background-color: #343a40; border: 1px solid #495057; border-radius: 8px; margin-top: 10px; font-size: 11px; font-weight: bold; color: #f8f9fa; } QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; padding: 0 5px; left: 10px; } ")
-                value_label = card.findChild(QLabel, "value_label")
-                if value_label: value_label.setStyleSheet("font-size: 24px; color: #f8f9fa; font-weight: bold; padding-top: 5px;")
+                card.setStyleSheet(base_card_css)
+
+            # Value label colors (gen = green, load = yellow)
+            value_label = card.findChild(QLabel, "value_label")
+            if value_label:
+                color = c['value_default']
+                if key == 'gen':
+                    color = c['gen_value']
+                elif key == 'load':
+                    color = c['load_value']
+                if alert and key in ('overload', 'overvoltage'):
+                    color = c['alert_value']
+                value_label.setStyleSheet(f"font-size: 24px; color: {color}; font-weight: bold; padding-top: 5px;")
 
 class ChartsManager:
     """Manages all chart-related functionality for the application."""
