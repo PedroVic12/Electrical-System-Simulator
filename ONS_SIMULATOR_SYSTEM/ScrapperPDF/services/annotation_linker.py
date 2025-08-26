@@ -49,7 +49,6 @@ class AnnotationLinker:
             table_number = table_match.group(1)
             table_title = table_match.group(2).strip()
             print(f"\n  -> Processando Tabela {table_number}: {table_title}")
-            print(table_number, type(table_number))
 
                 # critério de parada ANTES de extrair anotações
             if table_number != "01":

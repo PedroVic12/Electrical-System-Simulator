@@ -347,6 +347,74 @@ class MiniPowerQuery:
         (self.read_must_tables(pdf_path, pages=page_range)
         .trim_spaces().drop_duplicates().preview(2).export_excel(output_file))
 
+    def consolidar_tabela_final(self, output_folder, output_filename="database_must.xlsx"):
+        """
+        Consolida todas as abas do arquivo Excel gerado pelo run_folder_mode
+        em um único DataFrame com uma coluna adicional 'EMPRESA'.
+        """
+        # Caminho do arquivo gerado pelo run_folder_mode
+        input_excel_path = os.path.join(output_folder, "resultado_tabelas_MUST_ONS.xlsx")
+        
+        if not os.path.exists(input_excel_path):
+            self.console.log(f"Arquivo de entrada não encontrado: {input_excel_path}", "error")
+            return
+        
+        try:
+            # Ler todas as abas do arquivo Excel
+            all_sheets = pd.read_excel(input_excel_path, sheet_name=None)
+            
+            # Lista para armazenar todos os DataFrames com a coluna EMPRESA
+            consolidated_dfs = []
+            empresas = set()
+            
+            # Processar cada aba
+            for sheet_name, df in all_sheets.items():
+                # Extrair nome da empresa do nome da aba
+                empresa = self._extrair_empresa_da_aba(sheet_name)
+                empresas.add(empresa)
+                
+                # Adicionar coluna EMPRESA ao DataFrame
+                df_copy = df.copy()
+                df_copy.insert(0, "EMPRESA", empresa)
+                
+                consolidated_dfs.append(df_copy)
+            
+            # Concatenar todos os DataFrames
+            final_consolidated_df = pd.concat(consolidated_dfs, ignore_index=True)
+            
+            # Salvar o resultado consolidado
+            output_path = os.path.join(output_folder, output_filename)
+            with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
+                final_consolidated_df.to_excel(writer, sheet_name="Tabelas Consolidada", index=False)
+                
+                # Adicionar aba com lista de empresas
+                pd.DataFrame({"Empresas": sorted(empresas)}).to_excel(writer, sheet_name="Empresas", index=False)
+            
+            self.console.log(f"✅ Consolidação final concluída: {output_path}", "success")
+            self.console.log(f"🔎 {len(empresas)} empresas identificadas: {sorted(empresas)}", "info")
+            
+            return final_consolidated_df
+            
+        except Exception as e:
+            self.console.log(f"Erro ao consolidar tabelas: {e}", "error")
+            return pd.DataFrame()
+
+    def _extrair_empresa_da_aba(self, sheet_name: str) -> str:
+        """
+        Extrai o nome da empresa a partir do nome da aba.
+        Exemplo: "sheet_SUL SUDESTE" -> "SUL SUDESTE"
+        """
+        # Remove o prefixo "sheet_"
+        if sheet_name.startswith("sheet_"):
+            empresa = sheet_name[6:]
+        else:
+            empresa = sheet_name
+        
+        # Remove qualquer sufixo adicional (como "_minuta_")
+        empresa = re.split(r'[_\-]', empresa)[0]
+        
+        return empresa.strip().upper()
+    
     def run_folder_mode(self, input_folder, output_folder, mapeamento):
         """Executa o processo para uma pasta, salvando em abas de um único Excel."""
         all_company_data = {}
@@ -370,6 +438,9 @@ class MiniPowerQuery:
                     sheet_name = f"sheet_{company_name}"[:31]
                     df.to_excel(writer, sheet_name=sheet_name, index=False)
             console.log(f"\n\n📁 Arquivo consolidado salvo em:\n{output_excel_path}", "success")
+
+            # Agora consolide todas as abas em um único DataFrame com coluna EMPRESA
+            self.consolidar_tabela_final(output_folder)
 
 def get_company_name_from_filename(filename: str) -> str:
     """Extrai um nome limpo de empresa do nome do arquivo."""

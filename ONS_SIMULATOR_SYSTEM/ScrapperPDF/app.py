@@ -75,6 +75,6 @@ intervalos_paginas = ["8-16", "8-24", "7-10", "10-32", "7-13", "7-9"]
 
 if __name__ == "__main__":
 
-    #run_extract_PDF_tables(intervalos_paginas, mode="folder")
+    run_extract_PDF_tables(intervalos_paginas, mode="folder")
 
     extract_text_from_must_tables(mode ="folder")
