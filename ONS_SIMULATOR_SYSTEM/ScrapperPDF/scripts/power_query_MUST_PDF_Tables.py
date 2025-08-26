@@ -66,12 +66,14 @@ class MiniPowerQuery:
 
             self.console.log(f"  -> Processando Tabela {i+1} (Página: {table.page})...", "info")
             processed_df = self._process_must_table_direct(temp_df, i+1)
-            
+
             if not processed_df.empty:
                 self.console.log(f"    -> Tabela processada resultou em: {processed_df.shape[0]} linhas x {processed_df.shape[1]} colunas", "info")
                 all_processed_tables.append(processed_df)
+                break  # <<< para logo após a primeira tabela válida
             else:
                 self.console.log(f"    -> Nenhuma linha de dados válida na Tabela {i+1}. Não é uma tabela MUST", "warning")
+
 
         if not all_processed_tables:
             self.console.log("Nenhuma tabela MUST válida foi encontrada após o processamento.", "warning")
@@ -80,7 +82,8 @@ class MiniPowerQuery:
         self.final_df = pd.concat(all_processed_tables, ignore_index=True)
         
         self.console.log("Processamento de todas as tabelas concluído!", "step")
-        self.console.log(f"📊 DataFrame final consolidado: {self.final_df.shape[0]} linhas x {self.final_df.shape[1]} colunas", "success")
+        self.console.log(f"\n📊 DataFrame final consolidado: {self.final_df.shape[0]} linhas x {self.final_df.shape[1]} colunas", "success")
+        print("\n")
         
         return self
 

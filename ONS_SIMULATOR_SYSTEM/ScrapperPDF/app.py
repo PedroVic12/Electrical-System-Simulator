@@ -61,7 +61,8 @@ def extract_text_from_must_tables(mode = "folder"):
 # Caminho da pasta contendo os PDFs
 #! windows
 input_folder = r"C:\Users\pedrovictor.veras\OneDrive - Operador Nacional do Sistema Eletrico\Documentos\ESTAGIO_ONS_PVRV_2025\AUTOMACÕES ONS\arquivos"
-input_folder = r"C:\Users\pedrovictor.veras\OneDrive - Operador Nacional do Sistema Eletrico\Documentos\ESTAGIO_ONS_PVRV_2025\GitHub\Electrical-System-Simulator\ONS_SIMULATOR_SYSTEM\arquivos"
+
+#input_folder = r"C:\Users\pedrovictor.veras\OneDrive - Operador Nacional do Sistema Eletrico\Documentos\ESTAGIO_ONS_PVRV_2025\GitHub\Electrical-System-Simulator\ONS_SIMULATOR_SYSTEM\arquivos"
 
 #!Linux
 #input_folder = r"/home/pedrov12/Documentos/GitHub/Electrical-System-Simulator/ONS_SIMULATOR_SYSTEM/arquivos"
@@ -74,6 +75,6 @@ intervalos_paginas = ["8-16", "8-24", "7-10", "10-32", "7-13", "7-9"]
 
 if __name__ == "__main__":
 
-    run_extract_PDF_tables(intervalos_paginas, mode="folder")
+    #run_extract_PDF_tables(intervalos_paginas, mode="folder")
 
-    #extract_text_from_must_tables(mode ="single")
+    extract_text_from_must_tables(mode ="folder")
