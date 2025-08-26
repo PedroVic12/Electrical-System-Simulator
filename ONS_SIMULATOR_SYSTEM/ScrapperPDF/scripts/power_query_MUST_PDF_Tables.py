@@ -94,7 +94,7 @@ class MiniPowerQuery:
         """
         self.console.log("    -> Processando tabela MUST com separação de anotações", "info")
         
-        # Força todas as colunas como texto
+        # Força todas das colunas como texto
         df_texto = df.astype(str).replace('nan', '').replace('', '')
         
         if len(df_texto) < 3:
@@ -323,7 +323,7 @@ class MiniPowerQuery:
         return self
 
     def export_excel(self, output_path: str):
-        """Exporta os dados para um arquivo Excel."""
+        """Exporta os dados para a planilha Excel."""
         if self.final_df.empty:
             self.console.log("Nenhum dado para exportar.", "warning")
             return self
@@ -390,7 +390,7 @@ class MiniPowerQuery:
                 # Adicionar aba com lista de empresas
                 pd.DataFrame({"Empresas": sorted(empresas)}).to_excel(writer, sheet_name="Empresas", index=False)
             
-            self.console.log(f"✅ Consolidação final concluída: {output_path}", "success")
+            self.console.log(f"\n✅ Consolidação final concluída: {output_path}", "success")
             self.console.log(f"🔎 {len(empresas)} empresas identificadas: {sorted(empresas)}", "info")
             
             return final_consolidated_df
@@ -409,9 +409,6 @@ class MiniPowerQuery:
             empresa = sheet_name[6:]
         else:
             empresa = sheet_name
-        
-        # Remove qualquer sufixo adicional (como "_minuta_")
-        empresa = re.split(r'[_\-]', empresa)[0]
         
         return empresa.strip().upper()
     
@@ -444,15 +441,21 @@ class MiniPowerQuery:
 
 def get_company_name_from_filename(filename: str) -> str:
     """Extrai um nome limpo de empresa do nome do arquivo."""
-    name = re.sub(r'^CUST-\d{4}-\d{3}-\d{2}\s*-\s*', '', filename, flags=re.IGNORECASE)
-    name = os.path.splitext(name)[0]
-    name = re.sub(r'\s*RECON.*', '', name, flags=re.IGNORECASE).strip()
-    return name
-
-
+    # Remove a extensão .pdf
+    name = os.path.splitext(filename)[0]
+    
+    # Remove o prefixo CUST-XXXX-XXX-XX (com variações de hífen, espaço, underscore)
+    name = re.sub(r'^CUST-\d{4}-\d{2,4}-\d{2,3}[\s_-]*', '', name, flags=re.IGNORECASE)
+    
+    # Remove qualquer texto após palavras-chave como minuta, recon, final, etc.
+    name = re.split(r'[\s_-]*(?:minuta|recon|final|202[0-9])[\s_-]*', name, flags=re.IGNORECASE)[0]
+    
+    # Remove qualquer caractere especial restante (underscores, hífens) e espaços extras
+    name = re.sub(r'[_\s]+', ' ', name).strip()
+    
+    return name.upper()
 
 power_query = MiniPowerQuery()
-
 
 def run_automation(mode = "single" ):
     """Função principal para iniciar o processo de extração de tabelas MUST de PDFs."""
