@@ -1,0 +1,80 @@
+*********************************
+*** GERADOR DE DECKS - ACESSO ***
+*********************************
+
+-----------------
+--- Objetivo: ---
+-----------------
+
+Gerar os decks das usinas a serem incluídas na análise do acesso (fila do acesso, manutenção GPA ou CUST assinado), além de gerar o modelo ANATEM destas usinas.
+
+-----------------
+--- Entradas: ---
+-----------------
+
+(OBRIGATÓRIO)
+
+1. Arquivo de Rede (PWF)
+	O arquivo de rede (PWF) é utilizado para verificar os números de barra disponíveis para uso nos decks
+
+2. Arquivo com as usinas a serem incluídas (.xlsx)
+	O usuário deve preencher a planilha dada como modelo (Usinar_a_incluir.xlsx) para inserir as informações básicas de cada acesso a ser incluído
+
+3. Arquivo com valores de despacho (.xlsx)
+	Planilha com os valores das premissas válidas para a análise do acesso. A planilha valores despacho.xlsx traz os valores das premissas vigentes atualmente (consulta em 07/08/2025).
+
+4. Número de barra inicial:
+	Número a partir do qual o programa irá procurar barras disponíveis para os decks (Default: 90000)
+
+5. Número inicial de deck
+	Número a partir do qual os decks serão enumerados (Default: 1)
+
+6. Pasta de Saída:
+	Pasta onde serão salvos os arquivos de saída (decks ANAREDE e modelos ANATEM)
+
+(OPCIONAL)
+
+7. Checkbox "Gerar Modelos ANATEM?"
+	Selecione o checkbox caso queira que o programa gere os modelos ANATEM para as usinas baseado nas topologias padrão para EOL ou UFV
+
+8. Caminho da pasta BDADOS:
+	Informa o caminho da pasta BDADOS para que o programa verifique os números de CDUs e DLOCs disponíveis para uso nos novos modelos.
+
+---------------
+--- Saídas: ---
+---------------
+
+1. Decks individuais de cada usina na subpasta Decks_Individuais
+
+2. Decks por ano na subpasta Decks_Por_Ano
+	Nesta pasta encontram-se os arquivos com as usinas que devem ser incluídas no caso de cada ano.
+	Os decks apresentam os valores de despacho conforme as premissas de cada cenário (NE_EXP, N_EXP, carga MAX_D ou MIN_N)
+
+(OPCIONAL)
+3. Modelos ANATEM para cada usina, considerando a topologia típica para cada tipo (EOL ou UFV) na subpasta MODELOS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
