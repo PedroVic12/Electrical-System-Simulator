@@ -117,7 +117,7 @@ class PowerSystemModel:
             if not hasattr(self.net, 'res_bus') or self.net.res_bus.empty:
                 return False, "Cálculo concluído, mas sem resultados."
                 
-            return True, "Fluxo de potência CONVERGENTE com sucesso."
+            return True, "Fluxo de potência CONVERGENTE!"
             
         except pp.LoadflowNotConverged as e:
             return False, f"Fluxo de Potência NÃO CONVERGENTE: {str(e)}"
