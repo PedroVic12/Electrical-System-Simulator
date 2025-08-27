@@ -39,7 +39,9 @@ if %errorlevel% neq 0 (
 )
 echo.
 
+python -m pip install -r requirements.txt --break-system-packages
+
 echo Iniciando o programa...
 cd System-Simulator-Desktop
-python instalador.py
+python simulator_darkmode_desktop.py
 
