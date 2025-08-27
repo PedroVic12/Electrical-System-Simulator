@@ -1,5 +1,6 @@
 import sys
 import traceback
+from pathlib import Path
 import pandas as pd
 import pandapower as pp
 import pandapower.networks as pn
@@ -13,12 +14,14 @@ from PySide6.QtWidgets import (
     QLabel, QComboBox, QListWidget, QListWidgetItem, QPushButton,
     QTabWidget, QTableWidget, QTableWidgetItem, QHeaderView,
     QGroupBox, QSplitter, QTextEdit, QMessageBox, QFrame, QStackedLayout,
-    QFileDialog
+    QFileDialog, QDialog, QDialogButtonBox, QCheckBox
 )
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont, QColor
 
 from styles import AppStyles
+
+
 
 # Desativa o modo interativo do Matplotlib para evitar pop-ups
 plt.ioff()
