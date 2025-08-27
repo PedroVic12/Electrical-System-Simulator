@@ -1363,10 +1363,10 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("⚡ Dashboard de Análise de Contingências de Redes Elétricas SmartGrids from Pedro Victor Veras")
-        self.setGeometry(100, 100, 1600, 900)
         self.current_theme = 'dark'
         self.setup_ui()
         self.apply_theme()
+        self.showFullScreen()
 
     def apply_theme(self):
         """Apply the current theme to all UI components."""
@@ -1405,7 +1405,7 @@ class MainWindow(QMainWindow):
         """Configures the tabs for detailed analysis."""
         diagram_tab = QWidget()
         diagram_layout = QVBoxLayout(diagram_tab)
-        self.network_canvas = NetworkCanvas(self)
+        self.network_canvas = NetworkCanvas()
         diagram_layout.addWidget(self.network_canvas)
         self.tabs.addTab(diagram_tab, "🗺️ Diagrama da Rede")
 
