@@ -41,7 +41,7 @@ echo.
 
 python -m pip install -r requirements.txt --break-system-packages
 
-echo Iniciando o programa...
-cd System-Simulator-Desktop
-python simulator_darkmode_desktop.py
+echo Iniciando o programa...aguarde...
+REM cd System-Simulator-Desktop
+python app.py
 
