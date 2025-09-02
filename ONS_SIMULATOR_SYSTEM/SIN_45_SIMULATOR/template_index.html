@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Relatório Pandapower - SIN45</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+  <style>
+    body { max-width: 1200px; margin: 16px auto; font-family: Inter, Arial, sans-serif; }
+    header { display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; }
+    .meta { font-size: 0.9rem; color: #333; }
+    .plot-container { margin-top: 1rem; }
+    table { font-size: 0.9rem; }
+    pre.log { white-space: pre-wrap; background:#f7f7f7; padding:10px; border-radius:6px; overflow:auto; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Relatório Pandapower (SIN45)</h1>
+      <div class="meta">Gerado em: {{GEN_TIME}}</div>
+    </div>
+    <div>
+      <a href="/" title="Abrir template">Início</a>
+    </div>
+  </header>
+
+  <section id="summary">
+    <h2>Resumo da Rede</h2>
+    {{NET_SUMMARY}}
+  </section>
+
+  <section id="plot" class="plot-container">
+    <h2>Topologia / Resultados (Plotly)</h2>
+    <!-- Aqui será colocado o HTML do Plotly (div + script) -->
+    {{PLOTLY_PLOT}}
+  </section>
+
+  <section id="tables">
+    <h2>Dados Tabulares (Excel / Resultados)</h2>
+    {{TABLES}}
+  </section>
+
+  <footer style="margin-top:2rem; font-size:0.85rem; color:#666;">
+    <p>Gerado por <strong>mestre Pedro Victor</strong> · Pipeline Flask + PySide6 · Pandapower</p>
+  </footer>
+</body>
+</html>
