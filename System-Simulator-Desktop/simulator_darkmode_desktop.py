@@ -18,12 +18,14 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont, QColor
 
+# styles em arquivo separado pelo CSS
 from styles import AppStyles
+
 
 # Desativa o modo interativo do Matplotlib para evitar pop-ups
 plt.ioff()
 
-# NOTE: QWebEngineView is required for Plotly charts. 
+# NOTE: QWebEngineView is required for Plotly charts.
 # You may need to install it separately:
 # pip install PySide6-WebEngine
 try:
@@ -40,7 +42,7 @@ class PowerSystemModel:
     Model - Encapsulates the logic for power system analysis using Pandapower.
     Handles loading, simulating, and modifying the electrical network.
     """
-    
+
     def __init__(self, network_name="case14"):
         """Initializes the model with a default network."""
         self.network_name = network_name
@@ -62,9 +64,9 @@ class PowerSystemModel:
                 self.net = pp.create_empty_network(name="New Network")
             else:
                 self.net = pn.case14()
-            
+
             if self.net and ('coords' not in self.net.bus_geodata.columns or self.net.bus_geodata.empty):
-                 plot.create_generic_coordinates(self.net)
+                plot.create_generic_coordinates(self.net)
 
             if self.net:
                 self.net.name = network_name
@@ -82,13 +84,9 @@ class PowerSystemModel:
 
     def run_power_flow(self):
         """Executes the power flow calculation."""
-        try:
-            pp.runpp(self.net, algorithm="nr", numba=True)
-            return True, "Fluxo de potência convergiu com sucesso."
-        except pp.LoadflowNotConverged:
-            return False, "Fluxo de Potência Não Convergiu."
-        except Exception as e:
-            return False, f"Ocorreu um erro inesperado: {e}"
+        # This function will raise an exception on failure, which the controller will handle.
+        pp.runpp(self.net, algorithm="nr", numba=True)
+
 
     def apply_contingencies(self, contingencies):
         """Applies a list of contingencies to the network."""
@@ -101,7 +99,7 @@ class PowerSystemModel:
 
 class ResultsRepository:
     """Repository for fetching and formatting simulation results."""
-    
+
     def __init__(self, net):
         if net is None or not hasattr(net, 'res_bus') or net.res_bus.empty:
             raise ValueError("A rede não foi simulada ou não contém resultados.")
@@ -109,7 +107,7 @@ class ResultsRepository:
 
     def get_kpis(self):
         """Calculates and returns key performance indicators (KPIs)."""
-        voltage_violations = ((self.net.res_bus.vm_pu > self.net.bus.max_vm_pu) | 
+        voltage_violations = ((self.net.res_bus.vm_pu > self.net.bus.max_vm_pu) |
                               (self.net.res_bus.vm_pu < self.net.bus.min_vm_pu)).sum()
         line_overloads = (self.net.res_line.loading_percent > 100).sum()
         trafo_overloads = 0
@@ -118,7 +116,7 @@ class ResultsRepository:
 
         return {
             "total_load_mw": self.net.res_load.p_mw.sum(),
-            "total_gen_mw": self.net.res_gen.p_mw.sum(),
+            "total_gen_mw": self.net.res_gen.p_mw.sum() + abs(self.net.res_bus.p_mw[self.net.ext_grid.bus[0]]),
             "voltage_violations": int(voltage_violations),
             "overloads": int(line_overloads + trafo_overloads)
         }
@@ -145,21 +143,29 @@ class ResultsRepository:
 # =========================== VIEW ===========================
 class NetworkCanvas(FigureCanvas):
     """Matplotlib canvas for plotting the power grid."""
-    
+
     def __init__(self, parent=None, width=8, height=8, dpi=100):
         self.fig = Figure(figsize=(width, height), dpi=dpi, tight_layout=True)
         super().__init__(self.fig)
         self.ax = self.fig.add_subplot(111)
-        self.current_theme = 'dark'
         self.net = None
 
     def plot_network(self, net):
         """Plots the network, highlighting out-of-service elements and adding a legend."""
         self.net = net
         self.ax.clear()
-        self.fig.set_facecolor("#f0f2f6")
-        self.ax.set_facecolor("#f0f2f6")
-        title_color, legend_text_color = '#333', '#333'
+
+        # ALWAYS use a light theme for the plot for clarity
+        bg_color = "#ffffff"
+        title_color = '#333333'
+        legend_text_color = '#333333'
+        legend_bg_color = '#f0f0f0'
+        legend_edge_color = '#cccccc'
+        bus_label_color = 'navy'
+        trafo_color = 'k'
+
+        self.fig.set_facecolor(bg_color)
+        self.ax.set_facecolor(bg_color)
 
         try:
             if not net or net.bus.empty:
@@ -177,10 +183,10 @@ class NetworkCanvas(FigureCanvas):
             for bus_idx in net.bus.index:
                 is_gen = bus_idx in gen_buses
                 is_load = bus_idx in load_buses
-                if is_gen and is_load: bus_colors.append("purple")
-                elif is_gen: bus_colors.append("green")
-                elif is_load: bus_colors.append("orange")
-                else: bus_colors.append("blue")
+                if is_gen and is_load: bus_colors.append("#800080") # purple
+                elif is_gen: bus_colors.append("#2ca02c") # green
+                elif is_load: bus_colors.append("#ff7f0e") # orange
+                else: bus_colors.append("#1f77b4") # blue
 
             # --- Create Collections ---
             bc = plot.create_bus_collection(net, buses=net.bus.index, size=0.05, color=bus_colors, zorder=10)
@@ -188,14 +194,14 @@ class NetworkCanvas(FigureCanvas):
 
             if hasattr(net, 'bus_geodata') and not net.bus_geodata.empty:
                 for i, bus in net.bus_geodata.iterrows():
-                    self.ax.text(bus.x, bus.y + 0.02, str(i), fontsize=8, weight='bold', ha='center', va='bottom', color='navy', zorder=11)
+                    self.ax.text(bus.x, bus.y + 0.02, str(i), fontsize=8, weight='bold', ha='center', va='bottom', color=bus_label_color, zorder=11)
 
             # --- Prepare Legend Handles ---
             bus_handles = [
-                Line2D([0], [0], marker='o', color='w', label='Barra (Transfer)', markerfacecolor='blue', markersize=8),
-                Line2D([0], [0], marker='o', color='w', label='Barra (Geração)', markerfacecolor='green', markersize=8),
-                Line2D([0], [0], marker='o', color='w', label='Barra (Carga)', markerfacecolor='orange', markersize=8),
-                Line2D([0], [0], marker='o', color='w', label='Barra (Geração/Carga)', markerfacecolor='purple', markersize=8)
+                Line2D([0], [0], marker='o', color='w', label='Barra (Transfer)', markerfacecolor='#1f77b4', markersize=8),
+                Line2D([0], [0], marker='o', color='w', label='Barra (Geração)', markerfacecolor='#2ca02c', markersize=8),
+                Line2D([0], [0], marker='o', color='w', label='Barra (Carga)', markerfacecolor='#ff7f0e', markersize=8),
+                Line2D([0], [0], marker='o', color='w', label='Barra (Geração/Carga)', markerfacecolor='#800080', markersize=8)
             ]
             line_handles = []
 
@@ -224,7 +230,7 @@ class NetworkCanvas(FigureCanvas):
                 in_service_trafos = net.trafo.index[net.trafo.in_service]
                 oos_trafos = net.trafo.index[~net.trafo.in_service]
                 if not in_service_trafos.empty:
-                    tc = plot.create_trafo_collection(net, trafos=in_service_trafos, color='k', zorder=5)
+                    tc = plot.create_trafo_collection(net, trafos=in_service_trafos, color=trafo_color, zorder=5)
                     for collection in tc if isinstance(tc, (list, tuple)) else [tc]:
                         if collection: self.ax.add_collection(collection)
                 if not oos_trafos.empty:
@@ -235,13 +241,13 @@ class NetworkCanvas(FigureCanvas):
                         line_handles.append(Line2D([0], [0], color='r', linestyle='--', lw=2, label='Fora de Serviço'))
 
             self.ax.set_title(title, fontsize=14, weight='bold', color=title_color)
-            
+
             # --- Create Organized Legend ---
             legend_elements = []
             if bus_handles:
                 legend_elements.append(Line2D([0], [0], marker='None', color='None', label='Info Barras'))
                 legend_elements.extend(bus_handles)
-            
+
             if line_handles:
                 if legend_elements: # Add a spacer
                     legend_elements.append(Line2D([0], [0], marker='None', color='None', label=''))
@@ -249,14 +255,14 @@ class NetworkCanvas(FigureCanvas):
                 legend_elements.extend(line_handles)
 
             if legend_elements:
-                legend = self.ax.legend(handles=legend_elements, title="Legenda", labelcolor=legend_text_color)
-                legend.get_frame().set_facecolor('#ffffff')
-                legend.get_frame().set_edgecolor('#cccccc')
+                legend = self.ax.legend(handles=legend_elements, labelcolor=legend_text_color)
+                legend.get_frame().set_facecolor(legend_bg_color)
+                legend.get_frame().set_edgecolor(legend_edge_color)
                 # Make titles bold
                 for text in legend.get_texts():
                     if text.get_text() in ['Info Barras', 'Info Linhas']:
                         text.set_fontweight('bold')
-            
+
             self.ax.autoscale_view()
             self.ax.set_xticks([])
             self.ax.set_yticks([])
@@ -267,17 +273,13 @@ class NetworkCanvas(FigureCanvas):
             traceback.print_exc()
             print("-----------------------------")
             self.ax.text(0.5, 0.5, f"Erro ao plotar a rede:\n{e}", ha='center', va='center', color=title_color)
-        
+
         self.draw()
         plt.close('all')
 
-    def update_theme_colors(self, theme):
-        self.current_theme = theme
-        self.plot_network(self.net)
-
 class MetricsWidget(QWidget):
     """Widget to display KPIs in styled cards."""
-    
+
     def __init__(self):
         super().__init__()
         self.setup_ui()
@@ -287,37 +289,60 @@ class MetricsWidget(QWidget):
         layout.setSpacing(15)
         layout.setContentsMargins(0,0,0,0)
         self.metric_cards = {}
-        titles = {"load": "Carga Total (MW)", "gen": "Geração Total (MW)", "voltage": "Violações de Tensão", "overload": "Sobrecargas"}
-        for key, title in titles.items():
+        # Use a dictionary to map keys to titles and object names
+        card_info = {
+            "load": ("Carga Total (MW)", "loadCard"),
+            "gen": ("Geração Total (MW)", "genCard"),
+            "voltage": ("Violações de Tensão", "voltageCard"),
+            "overload": ("Sobrecargas", "overloadCard")
+        }
+        for key, (title, obj_name) in card_info.items():
             card = self._create_metric_card(title, "0.00")
+            card.setObjectName(obj_name) # Set unique object name for styling
             layout.addWidget(card)
             self.metric_cards[key] = card
 
     def _create_metric_card(self, title, value):
         card = QGroupBox(title)
+        # Use a general object name for default styling that can be overridden
+        card.setObjectName("metricCard")
         layout = QVBoxLayout(card)
         value_label = QLabel(value)
-        value_label.setObjectName("value_label")
+        value_label.setObjectName("metricValue")
+        value_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(value_label)
-        layout.addStretch()
         return card
 
     def update_metrics(self, kpis):
-        values = {"load": f"{kpis['total_load_mw']:.2f}", "gen": f"{kpis['total_gen_mw']:.2f}", "voltage": f"{kpis['voltage_violations']}", "overload": f"{kpis['overloads']}"}
+        values = {
+            "load": f"{kpis['total_load_mw']:.2f}",
+            "gen": f"{kpis['total_gen_mw']:.2f}",
+            "voltage": f"{kpis['voltage_violations']}",
+            "overload": f"{kpis['overloads']}"
+        }
         for key, value in values.items():
-            value_label = self.metric_cards[key].findChild(QLabel, "value_label")
-            if value_label: value_label.setText(str(value))
+            card = self.metric_cards[key]
+            value_label = card.findChild(QLabel, "metricValue")
+            if value_label:
+                value_label.setText(str(value))
 
-    def update_theme_colors(self, theme):
-        for key, card in self.metric_cards.items():
-            if theme == 'light':
-                card.setStyleSheet("QGroupBox { background-color: white; border: 1px solid #ddd; border-radius: 8px; margin-top: 10px; font-size: 11px; font-weight: bold; color: #555; } QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; padding: 0 5px; left: 10px; } ")
-                value_label = card.findChild(QLabel, "value_label")
-                if value_label: value_label.setStyleSheet("font-size: 22px; color: #000; font-weight: bold; padding-top: 5px;")
-            else:
-                card.setStyleSheet("QGroupBox { background-color: #343a40; border: 1px solid #495057; border-radius: 8px; margin-top: 10px; font-size: 11px; font-weight: bold; color: #f8f9fa; } QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; padding: 0 5px; left: 10px; } ")
-                value_label = card.findChild(QLabel, "value_label")
-                if value_label: value_label.setStyleSheet("font-size: 22px; color: #f8f9fa; font-weight: bold; padding-top: 5px;")
+            # Conditional styling for voltage and overload cards
+            if key == "voltage":
+                has_issues = kpis['voltage_violations'] > 0
+                new_status = "alert" if has_issues else "ok"
+                if card.property("status") != new_status:
+                    card.setProperty("status", new_status)
+                    card.style().unpolish(card)
+                    card.style().polish(card)
+
+            if key == "overload":
+                has_issues = kpis['overloads'] > 0
+                new_status = "alert" if has_issues else "ok"
+                if card.property("status") != new_status:
+                    card.setProperty("status", new_status)
+                    card.style().unpolish(card)
+                    card.style().polish(card)
+
 
 class PlotlyWidget(QWebEngineView if PLOTLY_AVAILABLE else QTextEdit):
     """Widget to display Plotly charts."""
@@ -331,15 +356,29 @@ class PlotlyWidget(QWebEngineView if PLOTLY_AVAILABLE else QTextEdit):
             self.setHtml(self._get_html_template())
 
     def _get_html_template(self):
-        bg_color = "#f0f2f6" if self.current_theme == 'light' else "#343a40"
-        return f"<html><body style='background-color:{bg_color};'></body></html>"
+        bg_color = "#f0f2f6" if self.current_theme == 'light' else "#1e1e1e"
+        return f"<html><body style='background-color:{bg_color}; margin:0; padding:0; overflow:hidden;'></body></html>"
 
     def plot_chart(self, fig):
         if PLOTLY_AVAILABLE:
             if self.current_theme == 'dark':
-                fig.update_layout(paper_bgcolor='#343a40', plot_bgcolor='#343a40', font=dict(color='#f8f9fa'), title_font_color='#f8f9fa', xaxis=dict(gridcolor='#495057', zerolinecolor='#495057'), yaxis=dict(gridcolor='#495057', zerolinecolor='#495057'))
+                fig.update_layout(
+                    paper_bgcolor='#1e1e1e',
+                    plot_bgcolor='#1e1e1e',
+                    font=dict(color='#f0f0f0'),
+                    title_font_color='#00d4ff',
+                    xaxis=dict(gridcolor='#404040', zerolinecolor='#404040'),
+                    yaxis=dict(gridcolor='#404040', zerolinecolor='#404040')
+                )
             else:
-                fig.update_layout(paper_bgcolor='#f0f2f6', plot_bgcolor='#f0f2f6', font=dict(color='#333'), title_font_color='#333', xaxis=dict(gridcolor='#d0d0d0', zerolinecolor='#d0d0d0'), yaxis=dict(gridcolor='#d0d0d0', zerolinecolor='#d0d0d0'))
+                fig.update_layout(
+                    paper_bgcolor='#ffffff',
+                    plot_bgcolor='#ffffff',
+                    font=dict(color='#000000'),
+                    title_font_color='#007acc',
+                     xaxis=dict(gridcolor='#e0e0e0', zerolinecolor='#e0e0e0'),
+                    yaxis=dict(gridcolor='#e0e0e0', zerolinecolor='#e0e0e0')
+                )
             self.setHtml(pio.to_html(fig, full_html=False, include_plotlyjs='cdn'))
 
     def clear(self):
@@ -347,36 +386,35 @@ class PlotlyWidget(QWebEngineView if PLOTLY_AVAILABLE else QTextEdit):
 
     def update_theme_colors(self, theme):
         self.current_theme = theme
-        if PLOTLY_AVAILABLE: self.setHtml(self._get_html_template())
+        if PLOTLY_AVAILABLE: self.clear()
 
 class SidebarWidget(QWidget):
     """Sidebar widget with all simulation controls."""
-    
+
     network_changed = Signal(str)
     contingencies_changed = Signal(list)
     run_simulation_requested = Signal()
     theme_toggle_requested = Signal()
-    
+
     def __init__(self):
         super().__init__()
-        self.current_theme = 'dark'
         self.setup_ui()
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
         layout.setSpacing(15)
-        
+
         title = QLabel("Parâmetros da Simulação")
-        title.setObjectName("SidebarTitle")
+        title.setObjectName("subtitle")
         layout.addWidget(title)
-        
+
         network_group = QGroupBox("Seleção da Rede Elétrica")
         network_layout = QVBoxLayout(network_group)
         self.network_combo = QComboBox()
         self.network_combo.addItems(["case14", "case30", "case57", "case118", "New Network"])
         network_layout.addWidget(self.network_combo)
         layout.addWidget(network_group)
-        
+
         self.contingency_group = QGroupBox("Análise de Contingência (N-k)")
         contingency_layout = QVBoxLayout(self.contingency_group)
         self.element_list = QListWidget()
@@ -385,45 +423,22 @@ class SidebarWidget(QWidget):
         layout.addWidget(self.contingency_group)
 
         self.run_button = QPushButton("Executar Fluxo de Potência")
-        self.run_button.setStyleSheet("QPushButton { background-color: #28a745; color: white; padding: 8px; border-radius: 5px; font-weight: bold; } QPushButton:disabled { background-color: #9E9E9E; }")
+        self.run_button.setObjectName("run_button")
         layout.addWidget(self.run_button)
 
         self.theme_toggle_button = QPushButton("Alternar Tema")
-        self.theme_toggle_button.setObjectName("ThemeToggle")
         layout.addWidget(self.theme_toggle_button)
-        
+
         layout.addStretch()
-        
+
         self.network_combo.currentTextChanged.connect(self.network_changed.emit)
         self.element_list.itemClicked.connect(self._on_item_clicked)
         self.run_button.clicked.connect(self.run_simulation_requested.emit)
         self.theme_toggle_button.clicked.connect(self.theme_toggle_requested.emit)
-        self.update_theme_colors(self.current_theme)
-
-    def update_theme_colors(self, theme):
-        self.current_theme = theme
-        title = self.findChild(QLabel, "SidebarTitle")
-        if title:
-            title.setStyleSheet(f"font-size: 16px; font-weight: bold; color: {{'#f8f9fa' if theme == 'dark' else '#333'}}; ")
-
-        for i in range(self.element_list.count()):
-            item = self.element_list.item(i)
-            self._update_item_visuals(item, item.checkState() == Qt.Checked)
-
-    def _update_item_visuals(self, item, is_checked):
-        if self.current_theme == 'light':
-            bg_color = QColor("#d4edda") if is_checked else QColor("white")
-            text_color = QColor("black")
-        else: # dark
-            bg_color = QColor("#2a9d8f") if is_checked else QColor("#495057")
-            text_color = QColor("white")
-        item.setBackground(bg_color)
-        item.setForeground(text_color)
 
     def _on_item_clicked(self, item):
         new_state = Qt.Checked if item.checkState() == Qt.Unchecked else Qt.Unchecked
         item.setCheckState(new_state)
-        self._update_item_visuals(item, new_state == Qt.Checked)
         self._emit_contingencies()
 
     def _emit_contingencies(self):
@@ -444,7 +459,6 @@ class SidebarWidget(QWidget):
                 item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
                 item.setCheckState(Qt.Unchecked)
                 self.element_list.addItem(item)
-                self._update_item_visuals(item, False)
         if net and not net.trafo.empty:
             for idx, row in net.trafo.iterrows():
                 item = QListWidgetItem(f"[T] Trafo {idx} ({row.hv_bus}↔{row.lv_bus})")
@@ -452,7 +466,6 @@ class SidebarWidget(QWidget):
                 item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
                 item.setCheckState(Qt.Unchecked)
                 self.element_list.addItem(item)
-                self._update_item_visuals(item, False)
         self.element_list.itemClicked.connect(self._on_item_clicked)
 
     def set_run_button_loading(self, is_loading):
@@ -493,8 +506,8 @@ class NewNetworkEditor(QWidget):
         button_layout = QHBoxLayout()
         self.import_button = QPushButton("📥 Importar de Excel")
         self.export_button = QPushButton("📤 Exportar para Excel")
-        self.build_button = QPushButton("🛠️ Construir Rede a partir das Tabelas")
-        self.build_button.setStyleSheet("background-color: #007bff; color: white; font-weight: bold; padding: 8px; border-radius: 5px;")
+        self.build_button = QPushButton("🛠️ Construir Rede")
+        self.build_button.setObjectName("run_button") # Use same style as run button
         button_layout.addWidget(self.import_button)
         button_layout.addWidget(self.export_button)
         button_layout.addStretch()
@@ -511,6 +524,7 @@ class NewNetworkEditor(QWidget):
             "trafo": ["name", "hv_bus", "lv_bus", "std_type", "in_service"],
             "gen": ["name", "bus", "p_mw", "vm_pu", "in_service"],
             "load": ["name", "bus", "p_mw", "q_mvar", "in_service"],
+            "ext_grid": ["name", "bus", "vm_pu", "va_degree"]
         }
 
         for name, header_list in headers.items():
@@ -559,7 +573,7 @@ class NewNetworkEditor(QWidget):
 
 class MainWindow(QMainWindow):
     """The main application window."""
-    
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("⚡ Dashboard de Análise de Contingências Elétricas")
@@ -571,16 +585,15 @@ class MainWindow(QMainWindow):
     def apply_theme(self):
         stylesheet = AppStyles.DARK_MODE_STYLESHEET if self.current_theme == 'dark' else AppStyles.LIGHT_MODE_STYLESHEET
         self.setStyleSheet(stylesheet)
-        self.sidebar.update_theme_colors(self.current_theme)
-        self.metrics_widget.update_theme_colors(self.current_theme)
-        self.network_canvas.update_theme_colors(self.current_theme)
         if PLOTLY_AVAILABLE:
-            self.voltage_plot.update_theme_colors(self.current_theme)
-            self.line_loading_plot.update_theme_colors(self.current_theme)
-            self.trafo_loading_plot.update_theme_colors(self.current_theme)
-            self.line_p_flow_plot.update_theme_colors(self.current_theme)
-            self.line_q_flow_plot.update_theme_colors(self.current_theme)
-        self.update_status(self.status_label.text().strip('✅❌ℹ️ '), self.status_label.property("style_type"))
+            widgets = [self.voltage_plot, self.line_loading_plot, self.trafo_loading_plot, self.line_p_flow_plot, self.line_q_flow_plot]
+            for widget in widgets:
+                widget.update_theme_colors(self.current_theme)
+
+        # Re-apply status style to match theme
+        if hasattr(self, 'status_label') and self.status_label.property("style_type"):
+             self.update_status(self.status_label.text().strip('✅❌ℹ️⚠️ '), self.status_label.property("style_type"))
+
 
     def toggle_theme(self):
         self.current_theme = 'light' if self.current_theme == 'dark' else 'dark'
@@ -617,8 +630,8 @@ class MainWindow(QMainWindow):
 
         self.tabs.addTab(self.create_tab(self.voltage_plot, self.voltage_table), "📊 Tensões nas Barras")
         self.tabs.addTab(self.create_tab(self.line_loading_plot, self.line_loading_table), "📈 Carregamento nas Linhas")
-        self.tabs.addTab(self.create_tab(self.trafo_loading_plot, self.trafo_loading_table), "📈 Carregamento dos Transformadores")
-        
+        self.tabs.addTab(self.create_tab(self.trafo_loading_plot, self.trafo_loading_table), "📈 Carregamentos nos Transformadores")
+
         power_flow_tab = QWidget()
         pf_layout = QVBoxLayout(power_flow_tab)
         pf_splitter_plots = QSplitter(Qt.Horizontal)
@@ -634,25 +647,35 @@ class MainWindow(QMainWindow):
     def setup_ui(self):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        
+
         # Root layout for stacking UI and loading screen
         self.root_stack = QStackedLayout(central_widget)
+        self.root_stack.setStackingMode(QStackedLayout.StackAll)
 
         # Main UI container
         main_ui_widget = QWidget()
         main_layout = QHBoxLayout(main_ui_widget)
-        
+
         self.sidebar = SidebarWidget()
-        self.sidebar.setMaximumWidth(350)
+        self.sidebar.setFixedWidth(300)
         main_layout.addWidget(self.sidebar)
 
         main_content_area = QWidget()
         main_content_layout = QVBoxLayout(main_content_area)
         main_layout.addWidget(main_content_area)
 
+        header_layout = QHBoxLayout()
+        title_label = QLabel("Dashboard de Análise de Contingências Elétricas")
+        title_label.setObjectName("title")
+        header_layout.addWidget(title_label)
+        header_layout.addStretch()
+
         self.status_label = QLabel("Carregando rede inicial...")
         self.status_label.setProperty("style_type", "info")
-        main_content_layout.addWidget(self.status_label)
+        header_layout.addWidget(self.status_label, 0, Qt.AlignRight)
+
+        main_content_layout.addLayout(header_layout)
+
         self.metrics_widget = MetricsWidget()
         main_content_layout.addWidget(self.metrics_widget)
 
@@ -666,12 +689,9 @@ class MainWindow(QMainWindow):
         main_vertical_splitter.addWidget(view_container)
 
         # View 1: Detailed Results (Tabs)
-        detailed_results_group = QGroupBox("Resultados Detalhados da Simulação")
-        detailed_results_layout = QVBoxLayout(detailed_results_group)
         self.tabs = QTabWidget()
         self.setup_tabs()
-        detailed_results_layout.addWidget(self.tabs)
-        self.view_stack.addWidget(detailed_results_group)
+        self.view_stack.addWidget(self.tabs)
 
         # View 2: New Network Editor
         self.new_network_editor = NewNetworkEditor()
@@ -684,34 +704,52 @@ class MainWindow(QMainWindow):
         self.network_description_text.setReadOnly(True)
         network_description_layout.addWidget(self.network_description_text)
         main_vertical_splitter.addWidget(network_description_group)
-        main_vertical_splitter.setSizes([700, 300])
+        main_vertical_splitter.setSizes([600, 250])
 
         # Add main UI and loading widget to the root stack
         self.root_stack.addWidget(main_ui_widget)
         self.loading_widget = LoadingWidget()
+        self.loading_widget.setVisible(False)
         self.root_stack.addWidget(self.loading_widget)
 
         self.sidebar.theme_toggle_requested.connect(self.toggle_theme)
 
     def show_loading_overlay(self, show):
-        self.root_stack.setCurrentIndex(1 if show else 0)
+        self.loading_widget.setVisible(show)
 
     def show_view(self, name):
         self.view_stack.setCurrentIndex(1 if name == "new_network" else 0)
         self.sidebar.contingency_group.setVisible(name != "new_network")
 
     def update_status(self, text, style_type='info'):
-        base_style = "padding: 10px; border-radius: 5px; font-weight: bold;"
+        base_style = "padding: 8px 12px; border-radius: 5px; font-weight: bold; font-size: 11px;"
         self.status_label.setProperty("style_type", style_type)
+
+        is_light = self.current_theme == 'light'
+
         if style_type == 'success':
+            bg = "#d4edda" if is_light else "#1d402b"
+            border = "#c3e6cb" if is_light else "#2a9d8f"
+            color = "#155724" if is_light else "#f0f0f0"
             self.status_label.setText(f"✅ {text}")
-            self.status_label.setStyleSheet(f"QLabel {{ {base_style} background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }}")
         elif style_type == 'error':
+            bg = "#f8d7da" if is_light else "#582125"
+            border = "#f5c6cb" if is_light else "#d90429"
+            color = "#721c24" if is_light else "#f0f0f0"
             self.status_label.setText(f"❌ {text}")
-            self.status_label.setStyleSheet(f"QLabel {{ {base_style} background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }}")
-        else:
+        elif style_type == 'warning':
+            bg = "#fff3cd" if is_light else "#6f4e00"
+            border = "#ffeeba" if is_light else "#ffb703"
+            color = "#856404" if is_light else "#f0f0f0"
+            self.status_label.setText(f"⚠️ {text}")
+        else: # info
+            bg = "#e2e3e5" if is_light else "#343a40"
+            border = "#d6d8db" if is_light else "#495057"
+            color = "#383d41" if is_light else "#f0f0f0"
             self.status_label.setText(f"ℹ️ {text}")
-            self.status_label.setStyleSheet(f"QLabel {{ {base_style} background-color: #e2e3e5; border: 1px solid #d6d8db; color: #383d41; }}")
+
+        self.status_label.setStyleSheet(f"QLabel {{ {base_style} background-color: {bg}; border: 1px solid {border}; color: {color}; }}")
+
 
     def update_table(self, table_widget, df):
         table_widget.clearContents()
@@ -743,18 +781,20 @@ class MainWindow(QMainWindow):
         trafo_items = [f"<b>Trafo {idx}:</b> HV {trafo.hv_bus} ↔ LV {trafo.lv_bus}, Tipo = {trafo.std_type}" for idx, trafo in net.trafo.iterrows()]
         load_items = [f"<b>Carga {idx}</b> @ Barra {load.bus}: P={load.p_mw:.2f} MW, Q={load.q_mvar:.2f} MVAr" for idx, load in net.load.iterrows()]
         gen_items = [f"<b>Gerador {idx}</b> @ Barra {gen.bus}: P={gen.p_mw:.2f} MW" for idx, gen in net.gen.iterrows()]
+        ext_grid_items = [f"<b>Grid Externo {idx}</b> @ Barra {ext_grid.bus}" for idx, ext_grid in net.ext_grid.iterrows()]
 
         description += create_html_list("Barras", len(net.bus), bus_items)
         description += create_html_list("Linhas", len(net.line), line_items)
         description += create_html_list("Transformadores", len(net.trafo), trafo_items)
         description += create_html_list("Cargas", len(net.load), load_items)
         description += create_html_list("Geradores", len(net.gen), gen_items)
+        description += create_html_list("Grid Externo", len(net.ext_grid), ext_grid_items)
         self.network_description_text.setHtml(description)
 
 # =========================== CONTROLLER ===========================
 class PowerSystemController:
     """Controller - Manages interaction between Model and View."""
-    
+
     def __init__(self):
         self.view = MainWindow()
         self.model = PowerSystemModel()
@@ -766,13 +806,9 @@ class PowerSystemController:
         self.view.sidebar.network_changed.connect(self.load_network)
         self.view.sidebar.contingencies_changed.connect(self.prepare_contingencies)
         self.view.sidebar.run_simulation_requested.connect(self.run_simulation_with_delay)
-        self.view.sidebar.theme_toggle_requested.connect(self.handle_theme_toggle)
         self.view.new_network_editor.import_requested.connect(self.import_network_from_excel)
         self.view.new_network_editor.export_requested.connect(self.export_network_to_excel)
         self.view.new_network_editor.build_network_requested.connect(self.build_network_from_editor)
-
-    def handle_theme_toggle(self):
-        self.view.toggle_theme()
 
     def show(self):
         self.view.show()
@@ -821,14 +857,15 @@ class PowerSystemController:
                 return
 
             self.model.apply_contingencies(self.current_contingencies)
-            success, msg = self.model.run_power_flow()
-            if success:
-                self.view.update_status(msg, 'success')
+            try:
+                self.model.run_power_flow()
+                self.view.update_status("Fluxo de potência convergiu com sucesso.", 'success')
                 self.update_results_display()
-            else:
-                self.view.update_status(msg, 'error')
+            except pp.LoadflowNotConverged:
+                self.view.update_status("Fluxo de Potência Não Convergiu.", 'warning')
                 self.clear_results()
                 self.view.network_canvas.plot_network(self.model.net)
+
         except Exception as e:
             self.view.update_status(f"Erro crítico na simulação: {e}", 'error')
             traceback.print_exc()
@@ -863,18 +900,28 @@ class PowerSystemController:
             fig_v.update_layout(title_text='Tensão nas Barras', yaxis_range=[0.9, 1.1])
             self.view.voltage_plot.plot_chart(fig_v)
 
+
+
+        # Gráfico de Carregamento das Linhas
         if not line_df.empty:
+
             fig_l = go.Figure(data=[go.Bar(x=line_df['Linha'], y=line_df['Carregamento (%)'], marker_color='#ff7f0e')])
-            fig_l.add_hline(y=100, line_dash="dash", line_color="red")
-            fig_l.update_layout(title_text='Carregamento das Linhas', yaxis_range=[0, max(8, line_df['Carregamento (%)'].max() * 1.1 if not line_df.empty else 110)])
+
+            fig_l.add_hline(y=1, line_dash="dash", line_color="red")
+
+            fig_l.update_layout(title_text='Carregamento das Linhas (%) ', yaxis_range=[0, 2.5])
+         #    fig_l.update_layout(title_text='Carregamento das Linhas', yaxis_range=[0, max(50, line_df['Carregamento (%)'].max() * 1.1 if not line_df.empty else 50)])
+
             self.view.line_loading_plot.plot_chart(fig_l)
+
         else:
+
             self.view.line_loading_plot.clear()
 
         if not trafo_df.empty:
             fig_t = go.Figure(data=[go.Bar(x=trafo_df['Transformador'], y=trafo_df['Carregamento (%)'], marker_color='#2ca02c')])
             fig_t.add_hline(y=100, line_dash="dash", line_color="red")
-            fig_t.update_layout(title_text='Carregamento dos Transformadores', yaxis_range=[0, max(8, trafo_df['Carregamento (%)'].max() * 1.1 if not trafo_df.empty else 110)])
+            fig_t.update_layout(title_text='Carregamento dos Transformadores (%)', yaxis_range=[0, max(80, trafo_df['Carregamento (%)'].max() * 1.1 if not trafo_df.empty else 50)])
             self.view.trafo_loading_plot.plot_chart(fig_t)
         else:
             self.view.trafo_loading_plot.clear()
@@ -960,6 +1007,9 @@ class PowerSystemController:
 
     def _get_element_mappers(self, bus_map):
         return [
+            ('ext_grid', pp.create_ext_grid, [
+                ('bus', 'bus', lambda x: bus_map[x]), ('vm_pu', 'vm_pu', float), ('va_degree', 'va_degree', float)
+            ]),
             ('line', pp.create_line_from_parameters, [
                 ('from_bus', 'from_bus', lambda x: bus_map[x]), ('to_bus', 'to_bus', lambda x: bus_map[x]),
                 ('length_km', 'length_km', float), ('r_ohm_per_km', 'r_ohm_per_km', float),
@@ -995,3 +1045,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
