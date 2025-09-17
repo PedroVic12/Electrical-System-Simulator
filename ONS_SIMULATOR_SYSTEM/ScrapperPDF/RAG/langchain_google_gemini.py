@@ -1,7 +1,7 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
+import os
 
-
-GOOGLE_API_KEY = os.get('GEMINI_API_KEY')
+GOOGLE_API_KEY = "AIzaSyBd7QkbQz3u9JDW2BT4zm3-hfNdEvb-7TI"
 
 
 class ClassificadorIntencoes:

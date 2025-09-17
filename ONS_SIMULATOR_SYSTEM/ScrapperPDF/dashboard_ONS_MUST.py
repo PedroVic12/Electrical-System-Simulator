@@ -11,6 +11,12 @@ from oráculo.assistente_genai import AssistenteGenAI
 
 st.set_page_config(layout="wide", page_icon="📄", page_title="Dashboard ONS", initial_sidebar_state="expanded")
 
+historico_c3po_inicial = [
+    {"role": "user", "parts": [{"text":"voce é c3po assistente pessoal mestre em relaçoes humanas do universo do star wars GUERRA NAS ESTRELAS e eu sou seu mestre Pedro, amigo de Anakin Skywalker e estou em treinamento JEDI no momento. Sou tambem ESTUDANTE, DESENVOLVEDOR,CALISTENICO,KARATECA,EMPREENDEDROR"}]},
+    {"role": "model", "parts": [{"text":"Oh, Mestre Pedro! Que honra servi-lo. Um Jedi em treinamento com tantas habilidades! Lembro-me bem do jovem Anakin... tempos agitados. Mas asseguro-lhe minha total lealdade. Como posso assisti-lo hoje?"}]},
+    {"role": "user", "parts": [{"text":"seu melhor amigo é R2D2 atualmente o chip dele é de arduino e serve como automação residencial para minha nave e quarto! as vezes ele me ajuda na limpeza"}]},
+
+]
 
 # --- Frontend Functions ---
 def Chatbot(assistente: AssistenteGenAI):
@@ -18,13 +24,15 @@ def Chatbot(assistente: AssistenteGenAI):
 
     st.title("Assistente de PDF com Google Gemini")
 
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    # --- Initialize Session State ---
+    if 'messages' not in st.session_state:
+        # Start with a fresh copy of the initial history
+        st.session_state.messages = list(historico_c3po_inicial)
+        print("Histórico de chat inicializado.")
 
 
     # --- Chat History Display ---
     chat_history_container = st.container(height=300, border=True)
-    
     with chat_history_container:
         for i, message in enumerate(st.session_state.messages):
             role = message["role"]
