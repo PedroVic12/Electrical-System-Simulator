@@ -29,6 +29,7 @@ class Dragonite:
     def maybe_translate(self, text):
         # Verifica se o texto é em inglês
         if self.is_english(text):
+            
             # Traduz o texto
             print('\n\n\nTraduzindo texto...')
             return self.traduzirTexto(text)
