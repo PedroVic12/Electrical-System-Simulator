@@ -51,7 +51,7 @@ class RAGPipeline:
         
         from langchain_google_genai import ChatGoogleGenerativeAI
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             temperature=0.0,
             api_key=self.api_key
         )
@@ -236,7 +236,7 @@ if __name__ == "__main__":
 
     # Carrega a chave da API do arquivo .env
     GOOGLE_API_KEY = os.getenv('GEMINI_API_KEY')
-    GOOGLE_API_KEY = "AIzaSyBeoQUgDGxOO-uU075SUrAfGklnimpdO2M"
+    GOOGLE_API_KEY = "AIzaSyBd7QkbQz3u9JDW2BT4zm3-hfNdEvb-7TI"
 
     # Especifique o caminho para o seu arquivo PDF
     # O 'r' antes da string é importante no Windows para evitar erros com barras invertidas

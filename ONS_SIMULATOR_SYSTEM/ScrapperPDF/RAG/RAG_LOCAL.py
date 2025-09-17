@@ -26,7 +26,7 @@ class RAGPipelineHibrida:
         
         # --- MUDANÇA 1: O LLM volta a ser o Gemini via API ---
         from langchain_google_genai import ChatGoogleGenerativeAI
-        self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.0, api_key=google_api_key)
+        self.llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.0, api_key=google_api_key)
         
         # --- MUDANÇA 2: O Embedding continua sendo local e open-source ---
         from langchain_community.embeddings import HuggingFaceEmbeddings
