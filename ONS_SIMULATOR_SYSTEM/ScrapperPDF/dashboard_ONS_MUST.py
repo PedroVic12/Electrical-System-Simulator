@@ -6,8 +6,49 @@ from PyPDF2 import PdfReader
 import os
 import camelot
 
+from oráculo.assistente_genai import AssistenteGenAI 
+
+
+st.set_page_config(layout="wide", page_icon="📄", page_title="Dashboard ONS", initial_sidebar_state="expanded")
+
+
+# --- Frontend Functions ---
+def Chatbot(assistente: AssistenteGenAI):
+    """Renders the chat interface and handles interactions."""
+
+    st.title("Assistente de PDF com Google Gemini")
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+
+    # --- Chat History Display ---
+    chat_history_container = st.container(height=300, border=True)
+    
+    with chat_history_container:
+        for i, message in enumerate(st.session_state.messages):
+            role = message["role"]
+
+            # Ensure parts exist and extract text
+            display_text = ""
+            if "parts" in message and isinstance(message["parts"], list):
+                 display_text = "".join(p.get("text", "") for p in message["parts"] if isinstance(p, dict))
+
+            with st.chat_message(name=role, avatar="🤖" if role == "model" else "🧑‍🚀"):
+                st.markdown(display_text)
+     
+    # --- User Input ---
+    user_prompt = st.chat_input("Digite sua mensagem:")
+    if user_prompt:
+        print(f"Usuário digitou: {user_prompt[:50]}...")
+
+        # Append user message to state immediately for display
+        st.session_state.messages.append({"role": "user", "parts": [{"text": user_prompt}]})
+        st.rerun() # Rerun to show user message instantly
+
+
 def DashboardONS():
-    st.set_page_config(layout="wide", page_icon="📄", page_title="Dashboard ONS", initial_sidebar_state="expanded")
+    
     st.title("📄 Dashboard ONS")
 
     # Sidebar configuration
@@ -52,11 +93,12 @@ def DashboardONS():
         pages = st.text_input("Páginas para extração (ex: 1-3,5 ou 'all')", value='all')
 
         # Tabs for functionalities
-        tab1, tab2, tab3, tab4 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "📂 Funcionalidades",
             "📄 Extrair Texto (PyPDF2)", 
             "👁️ Extrair Texto (OCR)", 
             "📊 Extrair Tabelas (Camelot)",
+            "🤖 Chatbot"
         ])
 
         with tab1:
@@ -70,6 +112,18 @@ def DashboardONS():
 
         with tab4:
             tab_extract_tables(controller, pages)
+
+        with tab5:
+            GOOGLE_API_KEY = "AIzaSyBeoQUgDGxOO-uU075SUrAfGklnimpdO2M"
+
+            assistente = AssistenteGenAI(api_key=GOOGLE_API_KEY)
+
+            if not assistente.model: # Check if model loaded successfully
+                st.error("🔴 Modelo de IA não pôde ser carregado. A aplicação não pode continuar.")
+                st.stop()
+
+            Chatbot(assistente)
+
 
             
 

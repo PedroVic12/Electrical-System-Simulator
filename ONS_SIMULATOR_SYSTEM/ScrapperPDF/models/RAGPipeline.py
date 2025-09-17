@@ -210,8 +210,7 @@ if __name__ == "__main__":
     #GOOGLE_API_KEY = os.getenv('GEMINI_API_KEY')
     
     # Use uma das suas chaves de API
-    GOOGLE_API_KEY = "AIzaSyCLme7gMz1BPw30uUKwuqo-Zp1F-FaKwaI" 
-    GOOGLE_API_KEY = "AIzaSyAdt2aLEfxxEUWYYKl1gUwvwsiaXDRC51Y"
+    GOOGLE_API_KEY = "AIzaSyBeoQUgDGxOO-uU075SUrAfGklnimpdO2M"
 
     pasta_arquivos_PDF = r"C:\Users\pedrovictor.veras\OneDrive - Operador Nacional do Sistema Eletrico\Documentos\ESTAGIO_ONS_PVRV_2025\GitHub\Electrical-System-Simulator\ONS_SIMULATOR_SYSTEM\arquivos"
 

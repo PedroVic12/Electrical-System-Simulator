@@ -2,7 +2,7 @@ import streamlit as st
 import google.generativeai as genai
 
 # --- Constants ---
-DEFAULT_MODEL = "gemini-2.0-flash" # Use a known current model
+DEFAULT_MODEL = "gemini-2.5-flash" # Use a known current model
 
 # --- API Key Configuration (MUST BE SET VIA STREAMLIT SECRETS) ---
 try:
