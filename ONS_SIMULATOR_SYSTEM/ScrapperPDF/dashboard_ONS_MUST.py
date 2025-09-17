@@ -53,22 +53,24 @@ def DashboardONS():
 
         # Tabs for functionalities
         tab1, tab2, tab3, tab4 = st.tabs([
+            "📂 Funcionalidades",
             "📄 Extrair Texto (PyPDF2)", 
             "👁️ Extrair Texto (OCR)", 
-            "📊 Extrair Tabelas",
-            "📂 Container de Funcionalidades"
+            "📊 Extrair Tabelas (Camelot)",
         ])
 
         with tab1:
-            tab_extract_text(controller, pages)
+            read_must_tables_page(controller, pages)
 
         with tab2:
-            tab_extract_text_ocr(controller)
+            tab_extract_text(controller, pages)
 
         with tab3:
-            tab_extract_tables(controller, pages)
+            tab_extract_text_ocr(controller)
 
         with tab4:
-            read_must_tables_page(controller, pages)
+            tab_extract_tables(controller, pages)
+
+            
 
 DashboardONS()

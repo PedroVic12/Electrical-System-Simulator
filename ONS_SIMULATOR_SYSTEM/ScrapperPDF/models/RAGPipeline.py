@@ -1,10 +1,12 @@
 import os
+import time
 from pathlib import Path
 from dotenv import load_dotenv
 
 # Carrega as variáveis de ambiente do arquivo .env no início.
-# Isso garante que a chave da API esteja disponível para o resto do script.
-load_dotenv()
+#load_dotenv()
+
+#! https://github.com/google-gemini/cookbook/tree/8f9eb8fed4106da996020cd895ac0e2bf009ff0c/examples
 
 class RAGPipeline:
     """
@@ -33,7 +35,7 @@ class RAGPipeline:
         from langchain_google_genai import ChatGoogleGenerativeAI
         
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash", # Modelo atualizado para a versão mais recente
+            model="gemini-2.5-flash", # Usando o flash para velocidade e custo-benefício
             temperature=0.0,
             api_key=self.api_key
         )
@@ -46,8 +48,8 @@ class RAGPipeline:
         # Ferramenta para carregar o conteúdo de arquivos PDF.
         from langchain_community.document_loaders import PyMuPDFLoader
         
-        if not self.pdf_directory.exists():
-            print(f"Diretório '{self.pdf_directory}' não encontrado. Crie-o e adicione seus PDFs.")
+        if not self.pdf_directory.exists() or not any(self.pdf_directory.glob("*.pdf")):
+            print(f"Diretório '{self.pdf_directory}' não encontrado ou está vazio. Crie-o e adicione seus PDFs.")
             return
 
         for n in self.pdf_directory.glob("*.pdf"):
@@ -78,6 +80,8 @@ class RAGPipeline:
         
         # Ferramenta para converter os chunks de texto em vetores numéricos (embeddings).
         from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+        # Modelo de embedding
         embeddings = GoogleGenerativeAIEmbeddings(
             model="models/gemini-embedding-001",
             google_api_key=self.api_key
@@ -85,14 +89,30 @@ class RAGPipeline:
 
         # Ferramenta para criar um banco de dados em memória para buscar vetores similares.
         from langchain_community.vectorstores import FAISS
-        self.vectorstore = FAISS.from_documents(chunks, embeddings)
         
+        #! --- CORREÇÃO: PROCESSAMENTO EM LOTES PARA EVITAR RATE LIMIT ---
+        batch_size = 100  # Número de chunks a processar por vez
+        
+        print(f"  - Processando o primeiro lote de {min(batch_size, len(chunks))} chunks...")
+        self.vectorstore = FAISS.from_documents(chunks[:batch_size], embeddings)
+        
+        # Processa o restante dos chunks em lotes, com uma pausa entre eles
+        for i in range(batch_size, len(chunks), batch_size):
+
+            print(f"\n  - Aguardando 62 segundos para respeitar o limite da API...")
+            time.sleep(62)  # Pausa para o limite de RPM resetar
+            
+            batch = chunks[i:i + batch_size]
+            print(f"  - Processando próximo lote de {len(batch)} chunks (iniciando no índice {i})...")
+            
+            self.vectorstore.add_documents(batch)
+
         # O retriever é o componente que busca os chunks relevantes para uma pergunta.
         self.retriever = self.vectorstore.as_retriever(
             search_type="similarity_score_threshold",
             search_kwargs={"score_threshold": 0.5, "k": 5} # Ajustado para melhor relevância
         )
-        print("Vector store e retriever criados com sucesso.")
+        print("\nVector store e retriever criados com sucesso.")
 
     def _criar_cadeia_rag(self):
         """Etapa 3: Monta a cadeia (chain) que conecta o prompt, o LLM e os documentos."""
@@ -189,9 +209,9 @@ class RAGPipeline:
 if __name__ == "__main__":
     #GOOGLE_API_KEY = os.getenv('GEMINI_API_KEY')
     
-    GOOGLE_API_KEY = "AIzaSyAvfZOvi92GpSAglWMmOABXef4fHEmOfdY"
-
-    GOOGLE_API_KEY = "AIzaSyDBhPisK2y127Rg8rCluMInEJ7dJIl9Dx4"
+    # Use uma das suas chaves de API
+    GOOGLE_API_KEY = "AIzaSyCLme7gMz1BPw30uUKwuqo-Zp1F-FaKwaI" 
+    GOOGLE_API_KEY = "AIzaSyAdt2aLEfxxEUWYYKl1gUwvwsiaXDRC51Y"
 
     pasta_arquivos_PDF = r"C:\Users\pedrovictor.veras\OneDrive - Operador Nacional do Sistema Eletrico\Documentos\ESTAGIO_ONS_PVRV_2025\GitHub\Electrical-System-Simulator\ONS_SIMULATOR_SYSTEM\arquivos"
 
@@ -204,7 +224,7 @@ if __name__ == "__main__":
     # 3. Faz uma pergunta (apenas se a configuração foi bem-sucedida)
     if pipeline.document_chain:
         print("\n" + "="*50)
-        
+
         pergunta = "Quais são as principais observações MUST"
 
         print(f"Fazendo a pergunta: [bold]{pergunta}[/bold]")
@@ -222,3 +242,4 @@ if __name__ == "__main__":
         else:
             print("Nenhuma fonte específica foi consultada.")
         print("="*50)
+
