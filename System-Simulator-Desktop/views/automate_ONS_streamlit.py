@@ -4,13 +4,14 @@ from pathlib import Path
 import sys
 
 # Adiciona o caminho do projeto onde estão os models Dragonite/Palkia
-MODELS_BASE = "/home/pedrov12/Documentos/GitHub/elon-musk/Tecnologia e Inovação/Automações/Manipulando PDF e Word"
-if MODELS_BASE not in sys.path:
-    sys.path.append(MODELS_BASE)
+#MODELS_BASE = "/home/pedrov12/Documentos/GitHub/elon-musk/Tecnologia e Inovação/Automações/Manipulando PDF e Word"
+#if MODELS_BASE not in sys.path:
+#    sys.path.append(MODELS_BASE)
 
 try:
     from models.Dragonite_PDF import Dragonite
     from models.Palkia_Excel import Palkia
+    
 except Exception as e:
     Dragonite = None
     Palkia = None
