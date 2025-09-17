@@ -859,28 +859,44 @@ class PowerSystemController:
             traceback.print_exc()
 
     def _update_plots(self, voltage_df, line_df, trafo_df, power_flow_df):
+
+        # Gráfico de Tensão nas barras
         if not voltage_df.empty:
             fig_v = go.Figure(data=[go.Bar(x=voltage_df['Barra'], y=voltage_df['Tensão (p.u.)'], marker_color='#1f77b4')])
             fig_v.add_hline(y=1.05, line_dash="dash", line_color="red"); fig_v.add_hline(y=0.95, line_dash="dash", line_color="red")
-            fig_v.update_layout(title_text='Tensão nas Barras', yaxis_range=[0.9, 1.1])
+            fig_v.update_layout(title_text='Tensão nas Barras', yaxis_range=[0.7, 1.2])
             self.view.voltage_plot.plot_chart(fig_v)
+        else:
+            self.view.voltage_plot.clear()
 
+        # Gráfico de Carregamento das Linhas
         if not line_df.empty:
+
             fig_l = go.Figure(data=[go.Bar(x=line_df['Linha'], y=line_df['Carregamento (%)'], marker_color='#ff7f0e')])
-            fig_l.add_hline(y=100, line_dash="dash", line_color="red")
-            fig_l.update_layout(title_text='Carregamento das Linhas', yaxis_range=[0, max(110, line_df['Carregamento (%)'].max() * 1.1 if not line_df.empty else 110)])
+
+            fig_l.add_hline(y=1, line_dash="dash", line_color="red")
+            
+            #! Colocando limites de porcentagem corretamente
+            fig_l.update_layout(title_text='Carregamento das Linhas (%) ', yaxis_range=[0, 2.5])
+            #fig_l.update_layout(title_text='Carregamento das Linhas', yaxis_range=[0, max(50, line_df['Carregamento (%)'].max() * 1.1 if not line_df.empty else 50)])
+
             self.view.line_loading_plot.plot_chart(fig_l)
+
         else:
             self.view.line_loading_plot.clear()
 
+
+        # Gráfico Carregamento de Trafos
         if not trafo_df.empty:
             fig_t = go.Figure(data=[go.Bar(x=trafo_df['Transformador'], y=trafo_df['Carregamento (%)'], marker_color='#2ca02c')])
-            fig_t.add_hline(y=100, line_dash="dash", line_color="red")
-            fig_t.update_layout(title_text='Carregamento dos Transformadores', yaxis_range=[0, max(110, trafo_df['Carregamento (%)'].max() * 1.1 if not trafo_df.empty else 110)])
+            fig_t.add_hline(y=1, line_dash="dash", line_color="red")
+            fig_l.update_layout(title_text='Carregamento dos Transformadores (%)', yaxis_range=[0, 2.0])
+            #fig_t.update_layout(title_text='Carregamento dos Transformadores (%)', yaxis_range=[0, max(80, trafo_df['Carregamento (%)'].max() * 1.1 if not trafo_df.empty else 50)])
             self.view.trafo_loading_plot.plot_chart(fig_t)
         else:
             self.view.trafo_loading_plot.clear()
 
+        # Gráfico de Fluxo de potencai
         if not power_flow_df.empty:
             fig_p = go.Figure(data=[go.Bar(x=power_flow_df['Linha'], y=power_flow_df['Potência Ativa (MW)'], name='P (MW)', marker_color='#d62728')])
             fig_p.update_layout(title_text='Fluxo de Potência Ativa (MW)')

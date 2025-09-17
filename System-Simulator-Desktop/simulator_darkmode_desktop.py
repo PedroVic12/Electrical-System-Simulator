@@ -60,8 +60,8 @@ class PowerSystemModel:
                 self.net = pn.case57()
             elif network_name == "case118":
                 self.net = pn.case118()
-            elif network_name == "New Network":
-                self.net = pp.create_empty_network(name="New Network")
+            elif network_name == "nova":
+                self.net = pp.create_empty_network(name="nova")
             else:
                 self.net = pn.case14()
 
@@ -86,6 +86,7 @@ class PowerSystemModel:
         """Executes the power flow calculation."""
         # This function will raise an exception on failure, which the controller will handle.
         pp.runpp(self.net, algorithm="nr", numba=True)
+        print("Fluxo de potencia executado!")
 
 
     def apply_contingencies(self, contingencies):
@@ -834,10 +835,12 @@ class PowerSystemController:
     def clear_results(self):
         self.view.update_status("Pronto para simular. Pressione o botão para executar.", 'info')
         self.view.metrics_widget.update_metrics({"total_load_mw": 0, "total_gen_mw": 0, "voltage_violations": 0, "overloads": 0})
+        
         self.view.update_table(self.view.voltage_table, pd.DataFrame())
         self.view.update_table(self.view.line_loading_table, pd.DataFrame())
         self.view.update_table(self.view.trafo_loading_table, pd.DataFrame())
         self.view.update_table(self.view.power_flow_table, pd.DataFrame())
+
         if PLOTLY_AVAILABLE:
             self.view.voltage_plot.clear()
             self.view.line_loading_plot.clear()
@@ -861,6 +864,7 @@ class PowerSystemController:
                 self.model.run_power_flow()
                 self.view.update_status("Fluxo de potência convergiu com sucesso.", 'success')
                 self.update_results_display()
+
             except pp.LoadflowNotConverged:
                 self.view.update_status("Fluxo de Potência Não Convergiu.", 'warning')
                 self.clear_results()
@@ -894,13 +898,15 @@ class PowerSystemController:
             traceback.print_exc()
 
     def _update_plots(self, voltage_df, line_df, trafo_df, power_flow_df):
+
+        # Gráfico de Tensão nas barras
         if not voltage_df.empty:
             fig_v = go.Figure(data=[go.Bar(x=voltage_df['Barra'], y=voltage_df['Tensão (p.u.)'], marker_color='#1f77b4')])
             fig_v.add_hline(y=1.05, line_dash="dash", line_color="red"); fig_v.add_hline(y=0.95, line_dash="dash", line_color="red")
-            fig_v.update_layout(title_text='Tensão nas Barras', yaxis_range=[0.9, 1.1])
+            fig_v.update_layout(title_text='Tensão nas Barras', yaxis_range=[0.8, 1.2])
             self.view.voltage_plot.plot_chart(fig_v)
-
-
+        else:
+            self.view.voltage_plot.clear()
 
         # Gráfico de Carregamento das Linhas
         if not line_df.empty:
@@ -908,24 +914,28 @@ class PowerSystemController:
             fig_l = go.Figure(data=[go.Bar(x=line_df['Linha'], y=line_df['Carregamento (%)'], marker_color='#ff7f0e')])
 
             fig_l.add_hline(y=1, line_dash="dash", line_color="red")
-
+            
+            #! Colocando limites de porcentagem corretamente
             fig_l.update_layout(title_text='Carregamento das Linhas (%) ', yaxis_range=[0, 2.5])
-         #    fig_l.update_layout(title_text='Carregamento das Linhas', yaxis_range=[0, max(50, line_df['Carregamento (%)'].max() * 1.1 if not line_df.empty else 50)])
+            #fig_l.update_layout(title_text='Carregamento das Linhas', yaxis_range=[0, max(50, line_df['Carregamento (%)'].max() * 1.1 if not line_df.empty else 50)])
 
             self.view.line_loading_plot.plot_chart(fig_l)
 
         else:
-
             self.view.line_loading_plot.clear()
 
+
+        # Gráfico Carregamento de Trafos
         if not trafo_df.empty:
             fig_t = go.Figure(data=[go.Bar(x=trafo_df['Transformador'], y=trafo_df['Carregamento (%)'], marker_color='#2ca02c')])
-            fig_t.add_hline(y=100, line_dash="dash", line_color="red")
-            fig_t.update_layout(title_text='Carregamento dos Transformadores (%)', yaxis_range=[0, max(80, trafo_df['Carregamento (%)'].max() * 1.1 if not trafo_df.empty else 50)])
+            fig_t.add_hline(y=1, line_dash="dash", line_color="red")
+            fig_l.update_layout(title_text='Carregamento dos Transformadores (%)', yaxis_range=[0, 2.0])
+            #fig_t.update_layout(title_text='Carregamento dos Transformadores (%)', yaxis_range=[0, max(80, trafo_df['Carregamento (%)'].max() * 1.1 if not trafo_df.empty else 50)])
             self.view.trafo_loading_plot.plot_chart(fig_t)
         else:
             self.view.trafo_loading_plot.clear()
 
+        # Gráfico de Fluxo de potencai
         if not power_flow_df.empty:
             fig_p = go.Figure(data=[go.Bar(x=power_flow_df['Linha'], y=power_flow_df['Potência Ativa (MW)'], name='P (MW)', marker_color='#d62728')])
             fig_p.update_layout(title_text='Fluxo de Potência Ativa (MW)')
