@@ -1,5 +1,0 @@
-PyPDF2
-camelot
-pdf2image
-streamlit 
-python-poppler
