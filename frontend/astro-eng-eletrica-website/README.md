@@ -1,4 +1,5 @@
-# Astro Starter Kit: Basics
+# Astro Starter Kit: Template
+--- 
 
 ```sh
 npm create astro@latest -- --template basics
@@ -10,6 +11,11 @@ Instalar CSS e depedencias
 npm install @astrojs/tailwind @astrojs/mdx
 
 ```
+npm install -d tailwindcss @tailwindcss/typography 
+
+npx tailwind init -p
+
+
 
 ## Como funciona:
 
@@ -78,6 +84,3 @@ All commands are run from the root of the project, from a terminal:
 | `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `npm run astro -- --help` | Get help using the Astro CLI                     |
 
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).

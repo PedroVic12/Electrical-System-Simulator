@@ -10,6 +10,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@tailwindcss/typography": "^0.5.18",
     "@tauri-apps/api": "^2.0.0-beta.13",
     "chart.js": "^4.4.3",
     "react": "^18.2.0",
@@ -19,7 +20,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.4",
+    "tailwindcss": "^3.4.17",
     "vite": "^5.2.0"
   }
 }

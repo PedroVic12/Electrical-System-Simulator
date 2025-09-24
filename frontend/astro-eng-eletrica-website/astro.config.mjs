@@ -1,9 +1,8 @@
 import { defineConfig } from 'astro/config';
-import tailwind from "@astrojs/tailwind";
-import mdx from "@astrojs/mdx"; // Se for usar MDX para mais funcionalidades
+// import mdx from "@astrojs/mdx"; // Se for usar MDX para mais funcionalidades
 
 export default defineConfig({
-  integrations: [tailwind(), mdx()],
+  integrations: [],
   markdown: {
     remarkPlugins: [],
     rehypePlugins: [],
