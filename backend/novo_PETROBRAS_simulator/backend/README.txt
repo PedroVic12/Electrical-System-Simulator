@@ -1,11 +1,5 @@
 Versão do Python utilizada - 3.11.4
-Versão do pip utilizada - 23.2.1
 
-Crie um ambiente vitual ...
-
-O ambiente utilizado chama-se NOVO_PETRO (você pode criar o seu).
-O arquivo requirements.txt, foi gerado da seguinte forma: pip freeze > requirements.txt.
-Instale todas as bibliotecas utilizadas neste projeto -> no ambiente virtual que criou.
 Para isso faça: pip install -r requirements.txt.
 Os dados de entrada foram colocados no diretório chamado DADOS.
 Os dados de saída foram gravados no diretório chamado DADOS_SIMUL.
