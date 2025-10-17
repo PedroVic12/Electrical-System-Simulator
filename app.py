@@ -565,6 +565,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("⚡ Dashboard de Análise de Contingências Elétricas")
         self.setGeometry(100, 100, 1600, 900)
         self.current_theme = 'dark'
+        self.network_canvas = NetworkCanvas(self)
         self.setup_ui()
         self.apply_theme()
 
@@ -600,7 +601,6 @@ class MainWindow(QMainWindow):
         """Configures the tabs for detailed analysis."""
         diagram_tab = QWidget()
         diagram_layout = QVBoxLayout(diagram_tab)
-        self.network_canvas = NetworkCanvas(self)
         diagram_layout.addWidget(self.network_canvas)
         self.tabs.addTab(diagram_tab, "🗺️ Diagrama da Rede")
 
