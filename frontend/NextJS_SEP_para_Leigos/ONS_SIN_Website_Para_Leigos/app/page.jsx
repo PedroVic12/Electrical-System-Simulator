@@ -6,29 +6,33 @@ import dynamic from 'next/dynamic'
 // Importar Chart.js dinamicamente para evitar problemas de SSR
 const Chart = dynamic(() => import('chart.js/auto').then((mod) => mod.Chart), { ssr: false })
 
-// DATA MODEL
+// ============================================================================
+// MVC INTEGRATION - Integração com Model-View-Controller
+// ============================================================================
+
+// DATA MODEL - Carregado do arquivo público
 const AppDataModel = {
   generationData: [
-    { name: 'Hidrelétricas', description: 'Utilizam a força da água para girar turbinas e geradores. São uma fonte limpa e renovável, mas dependem de recursos hídricos.' },
-    { name: 'Termelétricas', description: 'Queimam combustíveis fósseis ou biomassa para aquecer água, produzir vapor e girar turbinas. São flexíveis, mas emitem gases de efeito estufa.' },
-    { name: 'Nucleares', description: 'Utilizam a fissão nuclear para gerar calor, que produz vapor para as turbinas. São eficientes e não emitem gases de efeito estufa, mas geram resíduos radioativos.' },
-    { name: 'Eólicas', description: 'Convertem a energia do vento em eletricidade através de aerogeradores. São renováveis e limpas, mas intermitentes.' },
-    { name: 'Solares', description: 'Convertem a luz do sol em eletricidade, seja por painéis fotovoltaicos (diretamente) ou por usinas termossolares. Também são renováveis e limpas, mas intermitentes.' }
+    { id: 'hidreletricas', name: 'Hidrelétricas', description: 'Utilizam a força da água para girar turbinas e geradores. São uma fonte limpa e renovável, mas dependem de recursos hídricos.', notePath: '/mvc/models/notes/hidreletricas.md' },
+    { id: 'termeletricas', name: 'Termelétricas', description: 'Queimam combustíveis fósseis ou biomassa para aquecer água, produzir vapor e girar turbinas. São flexíveis, mas emitem gases de efeito estufa.', notePath: '/mvc/models/notes/termeletricas.md' },
+    { id: 'nucleares', name: 'Nucleares', description: 'Utilizam a fissão nuclear para gerar calor, que produz vapor para as turbinas. São eficientes e não emitem gases de efeito estufa, mas geram resíduos radioativos.', notePath: '/mvc/models/notes/nucleares.md' },
+    { id: 'eolicas', name: 'Eólicas', description: 'Convertem a energia do vento em eletricidade através de aerogeradores. São renováveis e limpas, mas intermitentes.', notePath: '/mvc/models/notes/eolicas.md' },
+    { id: 'solares', name: 'Solares', description: 'Convertem a luz do sol em eletricidade, seja por painéis fotovoltaicos (diretamente) ou por usinas termossolares. Também são renováveis e limpas, mas intermitentes.', notePath: '/mvc/models/notes/solares.md' }
   ],
   componentsData: [
-    { name: 'Geradores', description: 'Convertem outras formas de energia (mecânica, térmica, etc.) em energia elétrica. São o coração das usinas.' },
-    { name: 'Transformadores', description: 'Alteram os níveis de tensão da eletricidade. Elevam a tensão para a transmissão e a reduzem para a distribuição e consumo.' },
-    { name: 'Linhas', description: 'Conduzem a energia através de cabos aéreos ou subterrâneos, formando as redes de transmissão e distribuição.' },
-    { name: 'Disjuntores', description: 'Controlam o fluxo de energia e protegem o sistema contra falhas. Atuam como interruptores de grande porte.' },
-    { name: 'Relés', description: 'Detectam condições anormais (curtos-circuitos) e acionam os disjuntores para isolar a falha e proteger o resto do sistema.' },
-    { name: 'Barramentos', description: 'São barras condutoras que conectam vários circuitos em uma subestação, funcionando como um nó de distribuição de energia.' },
-    { name: 'Reativos', description: 'Capacitores e Reatores são usados para controlar a tensão e compensar a potência reativa na rede, melhorando a eficiência e a estabilidade.' }
+    { id: 'geradores', name: 'Geradores', description: 'Convertem outras formas de energia (mecânica, térmica, etc.) em energia elétrica. São o coração das usinas.' },
+    { id: 'transformadores', name: 'Transformadores', description: 'Alteram os níveis de tensão da eletricidade. Elevam a tensão para a transmissão e a reduzem para a distribuição e consumo.' },
+    { id: 'linhas', name: 'Linhas', description: 'Conduzem a energia através de cabos aéreos ou subterrâneos, formando as redes de transmissão e distribuição.' },
+    { id: 'disjuntores', name: 'Disjuntores', description: 'Controlam o fluxo de energia e protegem o sistema contra falhas. Atuam como interruptores de grande porte.' },
+    { id: 'reles', name: 'Relés', description: 'Detectam condições anormais (curtos-circuitos) e acionam os disjuntores para isolar a falha e proteger o resto do sistema.' },
+    { id: 'barramentos', name: 'Barramentos', description: 'São barras condutoras que conectam vários circuitos em uma subestação, funcionando como um nó de distribuição de energia.' },
+    { id: 'reativos', name: 'Reativos', description: 'Capacitores e Reatores são usados para controlar a tensão e compensar a potência reativa na rede, melhorando a eficiência e a estabilidade.' }
   ],
   externalSites: {
-    sin: { name: 'SIN', url: 'https://sig.ons.org.br/app/sinmaps/', color: 'blue-500', iframe: true },
-    sinmaps: { name: 'SIN Maps', url: 'https://www.ons.org.br/paginas/sobre-o-sin/mapas', color: 'blue-500', iframe: false },
-    aneel: { name: 'ANEEL', url: 'https://www.gov.br/aneel/pt-br', color: 'blue-600', iframe: false },
-    ons: { name: 'ONS - Carga e Geração em tempo real', url: 'https://www.ons.org.br/paginas/energia-agora/carga-e-geracao', color: 'blue-700', iframe: true }
+    sin: { id: 'sin', name: 'SIN', url: 'https://sig.ons.org.br/app/sinmaps/', color: 'blue-500', iframe: true },
+    sinmaps: { id: 'sinmaps', name: 'SIN Maps', url: 'https://www.ons.org.br/paginas/sobre-o-sin/mapas', color: 'blue-500', iframe: false },
+    aneel: { id: 'aneel', name: 'ANEEL', url: 'https://www.gov.br/aneel/pt-br', color: 'blue-600', iframe: false },
+    ons: { id: 'ons', name: 'ONS - Carga e Geração em tempo real', url: 'https://www.ons.org.br/paginas/energia-agora/carga-e-geracao', color: 'blue-700', iframe: true }
   },
   chartData: {
     labels: ['Hidrelétrica', 'Termelétrica', 'Eólica', 'Solar', 'Nuclear & Outras'],
@@ -37,22 +41,49 @@ const AppDataModel = {
   }
 }
 
-// HEADER COMPONENT
+// DATABASE CONTROLLER - Funções para carregar notas MD
+const loadMarkdownNote = async (notePath) => {
+  try {
+    const response = await fetch(notePath)
+    if (!response.ok) return null
+    return await response.text()
+  } catch (error) {
+    console.error('Erro ao carregar nota:', error)
+    return null
+  }
+}
+
+const markdownToHtml = (markdown) => {
+  if (!markdown) return ''
+  return markdown
+    .replace(/^### (.*$)/gim, '<h3 class="text-lg sm:text-xl font-bold mt-3 sm:mt-4 mb-2">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-xl sm:text-2xl font-bold mt-4 sm:mt-6 mb-2 sm:mb-3">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1 class="text-2xl sm:text-3xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4">$1</h1>')
+    .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-semibold">$1</strong>')
+    .replace(/^\- (.*$)/gim, '<li class="ml-4 mb-1">• $1</li>')
+    .replace(/\n\n/g, '</p><p class="mb-3 sm:mb-4 text-sm sm:text-base">')
+}
+
+// HEADER COMPONENT - Responsivo
 function PageHeader() {
   return (
-    <header className="page-header text-center mb-12 animate-on-scroll">
-      <h1 className="text-4xl md:text-5xl font-bold mb-2" style={{ color: 'var(--color-primary-dark)' }}>
+    <header className="page-header text-center mb-8 sm:mb-10 md:mb-12 px-4 animate-on-scroll">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight" style={{ color: 'var(--color-primary-dark)' }}>
         Sistema Elétrico de Potência Interativo para Leigos e Estudantes
       </h1>
-      <p className="text-lg max-w-3xl mx-auto" style={{ color: 'var(--color-text-medium)' }}>
+      <p className="text-sm sm:text-base md:text-lg max-w-3xl mx-auto px-2" style={{ color: 'var(--color-text-medium)' }}>
         Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que move nosso mundo.
       </p>
-      <img src="/assets/Logo_ONSInspira_1 1.png" alt="Logo ONS Inspira" className="mx-auto h-48 w-auto mb-4" />
+      <img 
+        src="/assets/Logo_ONSInspira_1 1.png" 
+        alt="Logo ONS Inspira" 
+        className="mx-auto h-32 sm:h-40 md:h-48 w-auto mb-4 mt-4"
+      />
     </header>
   )
 }
 
-// SITE CARD COMPONENT
+// SITE CARD COMPONENT - Responsivo
 function SiteCard({ siteKey, siteName, siteUrl, siteColor, allowIframe }) {
   const [viewMode, setViewMode] = useState(null)
 
@@ -67,45 +98,47 @@ function SiteCard({ siteKey, siteName, siteUrl, siteColor, allowIframe }) {
   }
 
   return (
-    <div className="site-card mb-6">
+    <div className="site-card mb-4 sm:mb-6">
       <div className="flex flex-col">
-        <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--color-primary)' }}>
+        <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3" style={{ color: 'var(--color-primary)' }}>
           {siteName}
         </h3>
         
-        <div className="flex gap-3 mb-4">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
           {allowIframe && (
             <button
               onClick={handleToggleIframe}
-              className={`view-mode-btn flex-1 px-4 py-2 rounded-lg font-medium border-2 ${
+              className={`view-mode-btn flex-1 px-3 sm:px-4 py-2 rounded-lg font-medium border-2 text-sm sm:text-base ${
                 viewMode === 'iframe' 
                   ? 'active border-transparent' 
                   : `border-${siteColor} text-${siteColor} hover:bg-${siteColor} hover:text-white`
               }`}
             >
-              📺 Ver no Iframe
+              <span className="hidden sm:inline">📺 Ver no Iframe</span>
+              <span className="sm:hidden">📺 Iframe</span>
             </button>
           )}
           
           <button
             onClick={handleOpenNewTab}
-            className={`view-mode-btn flex-1 px-4 py-2 rounded-lg font-medium border-2 ${
+            className={`view-mode-btn flex-1 px-3 sm:px-4 py-2 rounded-lg font-medium border-2 text-sm sm:text-base ${
               viewMode === 'newtab' 
                 ? 'active border-transparent' 
                 : `border-${siteColor} text-${siteColor} hover:bg-${siteColor} hover:text-white`
             }`}
           >
-            🔗 Abrir em Nova Aba
+            <span className="hidden sm:inline">🔗 Abrir em Nova Aba</span>
+            <span className="sm:hidden">🔗 Nova Aba</span>
           </button>
         </div>
 
         {viewMode === 'iframe' && allowIframe && (
-          <div className="iframe-container flex justify-center mt-4">
+          <div className="iframe-container flex justify-center mt-2 sm:mt-4">
             <iframe 
               id={`iframe-${siteKey}`}
               src={siteUrl} 
-              className="square-iframe border-4 rounded-lg shadow-lg"
-              style={{ borderColor: 'var(--color-primary-border)' }}
+              className="w-full sm:w-[500px] md:w-[600px] h-[400px] sm:h-[500px] md:h-[600px] border-2 sm:border-4 rounded-lg shadow-lg"
+              style={{ borderColor: 'var(--color-primary-border)', aspectRatio: '1/1' }}
               frameBorder="0"
               allowFullScreen
               title={`${siteName} Iframe`}

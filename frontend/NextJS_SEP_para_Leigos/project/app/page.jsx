@@ -109,13 +109,13 @@ export default function Home() {
 
         <header className="text-center mb-12 pt-16">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-slate-800">
-            Sistema Elétrico de Potência Interativo
+            Sistema Elétrico de Potência para Leigos (BOLT Version 2025)
           </h1>
           <p className="text-lg max-w-3xl mx-auto text-slate-600 mb-6">
             Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que move nosso mundo.
           </p>
           <p className="text-sm text-slate-500">
-            Desenvolvido para fins educacionais pela UFF e ONS
+            Desenvolvido para fins educacionais pela UFF e ONS por Pedro Victor and Claude 3.5 Sonnet
           </p>
         </header>
 
