@@ -14,11 +14,11 @@ const Chart = dynamic(() => import('chart.js/auto').then((mod) => mod.Chart), { 
 // DATA MODEL - Carregado do arquivo público
 const AppDataModel = {
   generationData: [
-    { id: 'hidreletricas', name: 'Hidrelétricas', description: 'Utilizam a força da água para girar turbinas e geradores. São uma fonte limpa e renovável, mas dependem de recursos hídricos.', notePath: '/mvc/models/notes/hidreletricas.md' },
-    { id: 'termeletricas', name: 'Termelétricas', description: 'Queimam combustíveis fósseis ou biomassa para aquecer água, produzir vapor e girar turbinas. São flexíveis, mas emitem gases de efeito estufa.', notePath: '/mvc/models/notes/termeletricas.md' },
-    { id: 'nucleares', name: 'Nucleares', description: 'Utilizam a fissão nuclear para gerar calor, que produz vapor para as turbinas. São eficientes e não emitem gases de efeito estufa, mas geram resíduos radioativos.', notePath: '/mvc/models/notes/nucleares.md' },
-    { id: 'eolicas', name: 'Eólicas', description: 'Convertem a energia do vento em eletricidade através de aerogeradores. São renováveis e limpas, mas intermitentes.', notePath: '/mvc/models/notes/eolicas.md' },
-    { id: 'solares', name: 'Solares', description: 'Convertem a luz do sol em eletricidade, seja por painéis fotovoltaicos (diretamente) ou por usinas termossolares. Também são renováveis e limpas, mas intermitentes.', notePath: '/mvc/models/notes/solares.md' }
+    { id: 'hidreletricas', name: 'Hidrelétricas', description: 'Utilizam a força da água para girar turbinas e geradores. São uma fonte limpa e renovável, mas dependem de recursos hídricos.', notePath: '/mvc/models/notes/hidreletricas.md', capacityMW: 109000 },
+    { id: 'termeletricas', name: 'Termelétricas', description: 'Queimam combustíveis fósseis ou biomassa para aquecer água, produzir vapor e girar turbinas. São flexíveis, mas emitem gases de efeito estufa.', notePath: '/mvc/models/notes/termeletricas.md', capacityMW: 35000 },
+    { id: 'nucleares', name: 'Nucleares', description: 'Utilizam a fissão nuclear para gerar calor, que produz vapor para as turbinas. São eficientes e não emitem gases de efeito estufa, mas geram resíduos radioativos.', notePath: '/mvc/models/notes/nucleares.md', capacityMW: 3500 },
+    { id: 'eolicas', name: 'Eólicas', description: 'Convertem a energia do vento em eletricidade através de aerogeradores. São renováveis e limpas, mas intermitentes.', notePath: '/mvc/models/notes/eolicas.md', capacityMW: 19000 },
+    { id: 'solares', name: 'Solares', description: 'Convertem a luz do sol em eletricidade, seja por painéis fotovoltaicos (diretamente) ou por usinas termossolares. Também são renováveis e limpas, mas intermitentes.', notePath: '/mvc/models/notes/solares.md', capacityMW: 8500 }
   ],
   componentsData: [
     { id: 'geradores', name: 'Geradores', description: 'Convertem outras formas de energia (mecânica, térmica, etc.) em energia elétrica. São o coração das usinas.' },
@@ -482,15 +482,13 @@ function FlowArrow() {
   )
 }
 
-// NAVIGATION BUTTON COMPONENT
-function NavigationButton({ id, icon, title, description, isActive, onClick }) {
+// NAVIGATION BUTTON COMPONENT - Agora apenas informativo
+function NavigationButton({ id, icon, title, description, onClick }) {
   return (
     <div 
       id={`btn-${id}`}
       onClick={onClick}
-      className={`main-nav-btn m-2 cursor-pointer p-6 rounded-xl hover:bg-cyan-100 transition-all duration-300 shadow-md hover:shadow-lg ${
-        isActive ? 'active' : 'bg-white'
-      }`}
+      className="main-nav-btn m-2 cursor-pointer p-6 rounded-xl hover:bg-cyan-100 transition-all duration-300 shadow-md hover:shadow-lg bg-white"
     >
       <div className="flex items-center justify-between">
         <div className="flex-1">
@@ -500,28 +498,22 @@ function NavigationButton({ id, icon, title, description, isActive, onClick }) {
           <p className="text-base sm:text-lg" style={{ color: 'var(--color-text-medium)' }}>{description}</p>
         </div>
         <div className="ml-4 flex items-center">
-          {isActive ? (
-            <ChevronDown size={32} className="text-cyan-600 animate-bounce" />
-          ) : (
-            <ChevronRight size={32} className="text-gray-400" />
-          )}
+          <ChevronDown size={32} className="text-cyan-600" />
         </div>
       </div>
-      {!isActive && (
-        <div className="mt-3 pt-3 border-t border-gray-200">
-          <p className="text-sm text-gray-500 italic">👆 Clique para expandir e explorar</p>
-        </div>
-      )}
+      <div className="mt-3 pt-3 border-t border-gray-200">
+        <p className="text-sm text-gray-500 italic">👆 Clique para ver esta etapa abaixo</p>
+      </div>
     </div>
   )
 }
 
 // MAIN NAVIGATION COMPONENT
-function MainNavigation({ activeSection, onSectionChange }) {
+function MainNavigation({ onScrollToSection }) {
   const navigationSections = [
-    { id: 'geracao', icon: '⚡', title: 'Geração', description: 'Onde tudo começa' },
-    { id: 'transmissao', icon: '🗼', title: 'Transmissão', description: 'Levando energia longe' },
-    { id: 'distribuicao', icon: '🏠', title: 'Distribuição', description: 'Energia na sua porta' }
+    { id: 'content-geracao', icon: '⚡', title: 'Geração', description: 'Onde tudo começa' },
+    { id: 'content-transmissao', icon: '🗼', title: 'Transmissão', description: 'Levando energia longe' },
+    { id: 'content-distribuicao', icon: '🏠', title: 'Distribuição', description: 'Energia na sua porta' }
   ]
 
   return (
@@ -534,8 +526,7 @@ function MainNavigation({ activeSection, onSectionChange }) {
             icon={section.icon}
             title={section.title}
             description={section.description}
-            isActive={activeSection === section.id}
-            onClick={() => onSectionChange(section.id)}
+            onClick={() => onScrollToSection(section.id)}
           />
         </div>
       ))}
@@ -558,7 +549,7 @@ function TabButton({ index, name, isActive, onClick }) {
   )
 }
 
-// GENERATION CHART COMPONENT
+// GENERATION CHART COMPONENT - Matriz Energética (%)
 function GenerationChart() {
   const chartRef = useRef(null)
   const chartInstanceRef = useRef(null)
@@ -568,7 +559,7 @@ function GenerationChart() {
       import('chart.js/auto').then((ChartModule) => {
         const ChartJS = ChartModule.Chart
         const ctx = chartRef.current.getContext('2d')
-        chartInstanceRef.current =  ChartJS(ctx, {
+        chartInstanceRef.current = new ChartJS(ctx, {
           type: 'doughnut',
           data: {
             labels: AppDataModel.chartData.labels,
@@ -576,7 +567,7 @@ function GenerationChart() {
               label: 'Matriz Energética (%)',
               data: AppDataModel.chartData.data,
               backgroundColor: AppDataModel.chartData.backgroundColor,
-              borderColor: 'var(--color-bg-card)',
+              borderColor: '#ffffff',
               borderWidth: 3
             }]
           },
@@ -601,53 +592,138 @@ function GenerationChart() {
 
   return (
     <div className="chart-container relative w-full max-w-sm mx-auto h-72 md:h-80">
-      <canvas ref={chartRef} id="generationChart"></canvas>
+      <canvas ref={chartRef} id="generationPercentChart"></canvas>
+    </div>
+  )
+}
+
+// CAPACITY CHART COMPONENT - Capacidade Instalada (MW)
+function CapacityChart() {
+  const chartRef = useRef(null)
+  const chartInstanceRef = useRef(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && chartRef.current && !chartInstanceRef.current) {
+      import('chart.js/auto').then((ChartModule) => {
+        const ChartJS = ChartModule.Chart
+        const ctx = chartRef.current.getContext('2d')
+        
+        const capacityData = AppDataModel.generationData.map(item => item.capacityMW)
+        const labels = AppDataModel.generationData.map(item => item.name)
+        
+        chartInstanceRef.current = new ChartJS(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Capacidade Instalada (MW)',
+              data: capacityData,
+              backgroundColor: AppDataModel.chartData.backgroundColor,
+              borderColor: AppDataModel.chartData.backgroundColor.map(color => color),
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(value) {
+                    return value.toLocaleString() + ' MW'
+                  }
+                }
+              }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: { 
+                callbacks: { 
+                  label: ctx => `${ctx.parsed.y.toLocaleString()} MW` 
+                } 
+              }
+            }
+          }
+        })
+      })
+    }
+    return () => {
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy()
+        chartInstanceRef.current = null
+      }
+    }
+  }, [])
+
+  return (
+    <div className="chart-container relative w-full max-w-sm mx-auto h-72 md:h-80">
+      <canvas ref={chartRef} id="capacityMWChart"></canvas>
     </div>
   )
 }
 
 // GENERATION SECTION COMPONENT
-function GenerationSection({ isActive }) {
+function GenerationSection() {
+  const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(0)
   const handleTabClick = useCallback((index) => { setActiveTab(index) }, [])
 
   return (
     <section 
       id="content-geracao"
-      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll ${isActive ? 'open' : ''}`}
+      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
       style={{ 
-        borderColor: isActive ? 'var(--color-primary-border)' : 'var(--color-border)',
-        minHeight: isActive ? 'auto' : '120px'
+        borderColor: isOpen ? 'var(--color-primary-border)' : 'var(--color-border)',
+        minHeight: isOpen ? 'auto' : '120px'
       }}
     >
       <div className="flex items-start justify-between mb-4">
         <h3 className="text-3xl sm:text-4xl font-bold" style={{ color: 'var(--color-primary-dark)' }}>
           ⚡ 1. Geração de Energia Elétrica
         </h3>
-        {isActive && (
-          <div className="text-cyan-600 font-bold text-sm bg-cyan-50 px-3 py-1 rounded-full">
-            Expandido ✓
-          </div>
-        )}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-all"
+          aria-label={isOpen ? 'Recolher seção' : 'Expandir seção'}
+        >
+          {isOpen ? (
+            <X size={24} className="text-gray-600" />
+          ) : (
+            <ChevronDown size={24} className="text-cyan-600" />
+          )}
+        </button>
       </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
         Esta é a primeira etapa, onde a energia é produzida a partir de diversas fontes. 
         Explore os principais tipos de usinas e veja uma representação de como elas compõem nossa matriz energética.
       </p>
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="lg:w-1/2">
+      <div className="space-y-8">
+        {/* Tabs e Descrição */}
+        <div>
           <div id="tabs-container" className="flex flex-wrap gap-2 mb-4 border-b pb-2" style={{ borderColor: 'var(--color-border)' }}>
             {AppDataModel.generationData.map((item, index) => (
               <TabButton key={index} index={index} name={item.name} isActive={activeTab === index} onClick={() => handleTabClick(index)} />
             ))}
           </div>
           <div id="tab-content-container" className="p-4 rounded-lg min-h-[200px]" style={{ backgroundColor: 'var(--color-bg-card-alt)' }}>
-            <p>{AppDataModel.generationData[activeTab].description}</p>
+            <p className="mb-3">{AppDataModel.generationData[activeTab].description}</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>
+              Capacidade Instalada: {AppDataModel.generationData[activeTab].capacityMW.toLocaleString()} MW
+            </p>
           </div>
         </div>
-        <div id="chart" className="lg:w-1/2 flex flex-col items-center scroll-mt-20">
-          <h4 className="text-xl sm:text-2xl font-semibold text-center mb-4">Exemplo de Matriz Energética</h4>
-          <GenerationChart />
+
+        {/* Gráficos */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div id="chart-percent" className="flex flex-col items-center scroll-mt-20">
+            <h4 className="text-xl sm:text-2xl font-semibold text-center mb-4">Matriz Energética (%)</h4>
+            <GenerationChart />
+          </div>
+          <div id="chart-capacity" className="flex flex-col items-center scroll-mt-20">
+            <h4 className="text-xl sm:text-2xl font-semibold text-center mb-4">Capacidade Instalada (MW)</h4>
+            <CapacityChart />
+          </div>
         </div>
       </div>
     </section>
@@ -655,7 +731,8 @@ function GenerationSection({ isActive }) {
 }
 
 // TRANSMISSION SECTION COMPONENT
-function TransmissionSection({ isActive }) {
+function TransmissionSection() {
+  const [isOpen, setIsOpen] = useState(false)
   const transmissionItems = [
     { title: 'Altas Tensões', description: 'Para reduzir perdas, a energia é transmitida em tensões muito elevadas, permitindo transportar mais energia com menos desperdício.' },
     { title: 'Linhas de Transmissão', description: 'São as grandes torres e cabos que levam a eletricidade por todo o país.' },
@@ -665,21 +742,27 @@ function TransmissionSection({ isActive }) {
   return (
     <section 
       id="content-transmissao"
-      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll ${isActive ? 'open' : ''}`}
+      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
       style={{ 
-        borderColor: isActive ? 'var(--color-primary-border)' : 'var(--color-border)',
-        minHeight: isActive ? 'auto' : '120px'
+        borderColor: isOpen ? 'var(--color-primary-border)' : 'var(--color-border)',
+        minHeight: isOpen ? 'auto' : '120px'
       }}
     >
       <div className="flex items-start justify-between mb-4">
         <h3 className="text-3xl sm:text-4xl font-bold" style={{ color: 'var(--color-primary-dark)' }}>
           🗼 2. Transmissão de Energia Elétrica
         </h3>
-        {isActive && (
-          <div className="text-cyan-600 font-bold text-sm bg-cyan-50 px-3 py-1 rounded-full">
-            Expandido ✓
-          </div>
-        )}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-all"
+          aria-label={isOpen ? 'Recolher seção' : 'Expandir seção'}
+        >
+          {isOpen ? (
+            <X size={24} className="text-gray-600" />
+          ) : (
+            <ChevronDown size={24} className="text-cyan-600" />
+          )}
+        </button>
       </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
         Após ser gerada, a energia precisa viajar grandes distâncias. 
@@ -697,7 +780,8 @@ function TransmissionSection({ isActive }) {
 }
 
 // DISTRIBUTION SECTION COMPONENT
-function DistributionSection({ isActive }) {
+function DistributionSection() {
+  const [isOpen, setIsOpen] = useState(false)
   const distributionItems = [
     { title: 'Redução de Tensão', description: 'Transformadores em subestações de distribuição reduzem a tensão para níveis utilizáveis e seguros.' },
     { title: 'Redes de Distribuição', description: 'São os cabos e postes nas cidades que levam a energia até os transformadores de rua e, daí, para os consumidores.' },
@@ -707,21 +791,27 @@ function DistributionSection({ isActive }) {
   return (
     <section 
       id="content-distribuicao"
-      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll ${isActive ? 'open' : ''}`}
+      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
       style={{ 
-        borderColor: isActive ? 'var(--color-primary-border)' : 'var(--color-border)',
-        minHeight: isActive ? 'auto' : '120px'
+        borderColor: isOpen ? 'var(--color-primary-border)' : 'var(--color-border)',
+        minHeight: isOpen ? 'auto' : '120px'
       }}
     >
       <div className="flex items-start justify-between mb-4">
         <h3 className="text-3xl sm:text-4xl font-bold" style={{ color: 'var(--color-primary-dark)' }}>
           🏠 3. Distribuição de Energia Elétrica
         </h3>
-        {isActive && (
-          <div className="text-cyan-600 font-bold text-sm bg-cyan-50 px-3 py-1 rounded-full">
-            Expandido ✓
-          </div>
-        )}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-all"
+          aria-label={isOpen ? 'Recolher seção' : 'Expandir seção'}
+        >
+          {isOpen ? (
+            <X size={24} className="text-gray-600" />
+          ) : (
+            <ChevronDown size={24} className="text-cyan-600" />
+          )}
+        </button>
       </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
         Esta é a etapa final da jornada, onde a energia elétrica é entregue aos consumidores 
@@ -799,6 +889,72 @@ function ComponentsSection() {
   )
 }
 
+// EQUATIONS SECTION COMPONENT - Placeholder para futuro
+function EquationsSection() {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <section 
+      id="equations"
+      className="rounded-xl shadow-lg p-6 md:p-8 mt-12 mb-12 border-2 animate-on-scroll scroll-mt-20"
+      style={{ 
+        backgroundColor: 'var(--color-bg-card)', 
+        borderColor: 'var(--color-primary-border)'
+      }}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <h3 className="text-3xl sm:text-4xl font-bold" style={{ color: 'var(--color-primary-dark)' }}>
+          📊 Equações e Modelos Matemáticos de SEP
+        </h3>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-all"
+          aria-label={isOpen ? 'Recolher seção' : 'Expandir seção'}
+        >
+          {isOpen ? (
+            <X size={24} className="text-gray-600" />
+          ) : (
+            <ChevronDown size={24} className="text-cyan-600" />
+          )}
+        </button>
+      </div>
+      
+      <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
+        Explore as principais equações que governam os Sistemas Elétricos de Potência.
+        Esta seção será expandida com equações em LaTeX e implementações em Python com SymPy.
+      </p>
+
+      {isOpen && (
+        <div className="space-y-6">
+          {/* Placeholder para conteúdo futuro */}
+          <div className="bg-white p-6 rounded-lg border-2 border-dashed border-gray-300">
+            <h4 className="text-xl font-bold mb-3 text-gray-700">
+              🚧 Em Desenvolvimento
+            </h4>
+            <p className="text-gray-600 mb-4">
+              Esta seção incluirá:
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-gray-600">
+              <li><strong>Lei de Ohm:</strong> V = R × I</li>
+              <li><strong>Potência Elétrica:</strong> P = V × I × cos(φ)</li>
+              <li><strong>Fluxo de Potência:</strong> Equações de Newton-Raphson</li>
+              <li><strong>Curto-Circuito:</strong> Cálculos de corrente de falta</li>
+              <li><strong>Estabilidade:</strong> Equações de swing</li>
+              <li><strong>Implementações em Python:</strong> Códigos com SymPy e NumPy</li>
+            </ul>
+            <div className="mt-4 p-4 bg-gray-50 rounded font-mono text-sm">
+              <p className="text-gray-500"># Exemplo futuro:</p>
+              <p className="text-blue-600">import sympy as sp</p>
+              <p className="text-green-600">V, I, R = sp.symbols('V I R')</p>
+              <p className="text-purple-600">ohms_law = sp.Eq(V, I * R)</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
 // FOOTER COMPONENT
 function PageFooter() {
   return (
@@ -859,8 +1015,18 @@ export default function Home() {
     return () => observer.disconnect()
   }, [activeSection])
 
-  const handleSectionChange = useCallback((sectionId) => {
-    setActiveSection(prev => prev === sectionId ? null : sectionId)
+  const scrollToSection = useCallback((sectionId) => {
+    const element = document.getElementById(sectionId)
+    if (element) {
+      const headerOffset = 80
+      const elementPosition = element.getBoundingClientRect().top
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      })
+    }
   }, [])
 
   return (
@@ -874,17 +1040,18 @@ export default function Home() {
           <ImportantLinksSection />
           
           <MainNavigation 
-            activeSection={activeSection}
-            onSectionChange={handleSectionChange}
+            onScrollToSection={scrollToSection}
           />
           
           <div id="content-container" className="mt-4">
-            <GenerationSection isActive={activeSection === 'geracao'} />
-            <TransmissionSection isActive={activeSection === 'transmissao'} />
-            <DistributionSection isActive={activeSection === 'distribuicao'} />
+            <GenerationSection />
+            <TransmissionSection />
+            <DistributionSection />
           </div>
 
           <ComponentsSection />
+          
+          <EquationsSection />
         </main>
 
         <PageFooter />
