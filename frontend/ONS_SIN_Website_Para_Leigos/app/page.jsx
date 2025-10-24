@@ -509,11 +509,11 @@ function NavigationButton({ id, icon, title, description, onClick }) {
 }
 
 // MAIN NAVIGATION COMPONENT
-function MainNavigation({ onScrollToSection }) {
+function MainNavigation({ onNavigate }) {
   const navigationSections = [
-    { id: 'content-geracao', icon: '⚡', title: 'Geração', description: 'Onde tudo começa' },
-    { id: 'content-transmissao', icon: '🗼', title: 'Transmissão', description: 'Levando energia longe' },
-    { id: 'content-distribuicao', icon: '🏠', title: 'Distribuição', description: 'Energia na sua porta' }
+    { id: 'geracao', sectionId: 'content-geracao', icon: '⚡', title: 'Geração', description: 'Onde tudo começa' },
+    { id: 'transmissao', sectionId: 'content-transmissao', icon: '🗼', title: 'Transmissão', description: 'Levando energia longe' },
+    { id: 'distribuicao', sectionId: 'content-distribuicao', icon: '🏠', title: 'Distribuição', description: 'Energia na sua porta' }
   ]
 
   return (
@@ -526,7 +526,7 @@ function MainNavigation({ onScrollToSection }) {
             icon={section.icon}
             title={section.title}
             description={section.description}
-            onClick={() => onScrollToSection(section.id)}
+            onClick={() => onNavigate(section.id, section.sectionId)}
           />
         </div>
       ))}
@@ -555,10 +555,18 @@ function GenerationChart() {
   const chartInstanceRef = useRef(null)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && chartRef.current && !chartInstanceRef.current) {
+    if (typeof window !== 'undefined' && chartRef.current) {
+      // Destruir gráfico existente antes de criar novo
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy()
+        chartInstanceRef.current = null
+      }
+
       import('chart.js/auto').then((ChartModule) => {
         const ChartJS = ChartModule.Chart
-        const ctx = chartRef.current.getContext('2d')
+        const ctx = chartRef.current?.getContext('2d')
+        if (!ctx) return
+
         chartInstanceRef.current = new ChartJS(ctx, {
           type: 'doughnut',
           data: {
@@ -603,10 +611,17 @@ function CapacityChart() {
   const chartInstanceRef = useRef(null)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && chartRef.current && !chartInstanceRef.current) {
+    if (typeof window !== 'undefined' && chartRef.current) {
+      // Destruir gráfico existente antes de criar novo
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy()
+        chartInstanceRef.current = null
+      }
+
       import('chart.js/auto').then((ChartModule) => {
         const ChartJS = ChartModule.Chart
-        const ctx = chartRef.current.getContext('2d')
+        const ctx = chartRef.current?.getContext('2d')
+        if (!ctx) return
         
         const capacityData = AppDataModel.generationData.map(item => item.capacityMW)
         const labels = AppDataModel.generationData.map(item => item.name)
@@ -664,8 +679,7 @@ function CapacityChart() {
 }
 
 // GENERATION SECTION COMPONENT
-function GenerationSection() {
-  const [isOpen, setIsOpen] = useState(false)
+function GenerationSection({ isOpen, onToggle }) {
   const [activeTab, setActiveTab] = useState(0)
   const handleTabClick = useCallback((index) => { setActiveTab(index) }, [])
 
@@ -683,15 +697,16 @@ function GenerationSection() {
           ⚡ 1. Geração de Energia Elétrica
         </h3>
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={onToggle}
           className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-all"
           aria-label={isOpen ? 'Recolher seção' : 'Expandir seção'}
         >
-          {isOpen ? (
-            <X size={24} className="text-gray-600" />
-          ) : (
-            <ChevronDown size={24} className="text-cyan-600" />
-          )}
+          <ChevronDown 
+            size={24} 
+            className={`text-cyan-600 transition-transform duration-300 ${
+              isOpen ? 'rotate-180' : ''
+            }`} 
+          />
         </button>
       </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
@@ -731,8 +746,7 @@ function GenerationSection() {
 }
 
 // TRANSMISSION SECTION COMPONENT
-function TransmissionSection() {
-  const [isOpen, setIsOpen] = useState(false)
+function TransmissionSection({ isOpen, onToggle }) {
   const transmissionItems = [
     { title: 'Altas Tensões', description: 'Para reduzir perdas, a energia é transmitida em tensões muito elevadas, permitindo transportar mais energia com menos desperdício.' },
     { title: 'Linhas de Transmissão', description: 'São as grandes torres e cabos que levam a eletricidade por todo o país.' },
@@ -753,15 +767,16 @@ function TransmissionSection() {
           🗼 2. Transmissão de Energia Elétrica
         </h3>
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={onToggle}
           className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-all"
           aria-label={isOpen ? 'Recolher seção' : 'Expandir seção'}
         >
-          {isOpen ? (
-            <X size={24} className="text-gray-600" />
-          ) : (
-            <ChevronDown size={24} className="text-cyan-600" />
-          )}
+          <ChevronDown 
+            size={24} 
+            className={`text-cyan-600 transition-transform duration-300 ${
+              isOpen ? 'rotate-180' : ''
+            }`} 
+          />
         </button>
       </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
@@ -780,8 +795,7 @@ function TransmissionSection() {
 }
 
 // DISTRIBUTION SECTION COMPONENT
-function DistributionSection() {
-  const [isOpen, setIsOpen] = useState(false)
+function DistributionSection({ isOpen, onToggle }) {
   const distributionItems = [
     { title: 'Redução de Tensão', description: 'Transformadores em subestações de distribuição reduzem a tensão para níveis utilizáveis e seguros.' },
     { title: 'Redes de Distribuição', description: 'São os cabos e postes nas cidades que levam a energia até os transformadores de rua e, daí, para os consumidores.' },
@@ -802,15 +816,16 @@ function DistributionSection() {
           🏠 3. Distribuição de Energia Elétrica
         </h3>
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={onToggle}
           className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-all"
           aria-label={isOpen ? 'Recolher seção' : 'Expandir seção'}
         >
-          {isOpen ? (
-            <X size={24} className="text-gray-600" />
-          ) : (
-            <ChevronDown size={24} className="text-cyan-600" />
-          )}
+          <ChevronDown 
+            size={24} 
+            className={`text-cyan-600 transition-transform duration-300 ${
+              isOpen ? 'rotate-180' : ''
+            }`} 
+          />
         </button>
       </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
@@ -1015,18 +1030,40 @@ export default function Home() {
     return () => observer.disconnect()
   }, [activeSection])
 
-  const scrollToSection = useCallback((sectionId) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      const headerOffset = 80
-      const elementPosition = element.getBoundingClientRect().top
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      })
-    }
+  const [openSections, setOpenSections] = useState({
+    geracao: false,
+    transmissao: false,
+    distribuicao: false
+  })
+
+  const handleNavigate = useCallback((sectionKey, sectionId) => {
+    // Expandir o card
+    setOpenSections(prev => ({
+      ...prev,
+      [sectionKey]: true
+    }))
+    
+    // Fazer scroll após um pequeno delay para garantir que o card expandiu
+    setTimeout(() => {
+      const element = document.getElementById(sectionId)
+      if (element) {
+        const headerOffset = 80
+        const elementPosition = element.getBoundingClientRect().top
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        })
+      }
+    }, 100)
+  }, [])
+
+  const toggleSection = useCallback((sectionKey) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey]
+    }))
   }, [])
 
   return (
@@ -1040,13 +1077,22 @@ export default function Home() {
           <ImportantLinksSection />
           
           <MainNavigation 
-            onScrollToSection={scrollToSection}
+            onNavigate={handleNavigate}
           />
           
           <div id="content-container" className="mt-4">
-            <GenerationSection />
-            <TransmissionSection />
-            <DistributionSection />
+            <GenerationSection 
+              isOpen={openSections.geracao}
+              onToggle={() => toggleSection('geracao')}
+            />
+            <TransmissionSection 
+              isOpen={openSections.transmissao}
+              onToggle={() => toggleSection('transmissao')}
+            />
+            <DistributionSection 
+              isOpen={openSections.distribuicao}
+              onToggle={() => toggleSection('distribuicao')}
+            />
           </div>
 
           <ComponentsSection />
