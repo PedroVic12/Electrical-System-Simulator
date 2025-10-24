@@ -102,6 +102,8 @@ function NavigationHeader({ onNavigate }) {
                 alt="Logo ONS" 
                 className="h-10 w-auto"
               />
+          <img src="assets/matriz_energetica_2025_ONS.png" alt="" className="mx-auto h-64 w-auto mb-4" />
+
             </div>
 
             {/* Navigation Buttons - Desktop */}
