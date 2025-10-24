@@ -488,14 +488,30 @@ function NavigationButton({ id, icon, title, description, isActive, onClick }) {
     <div 
       id={`btn-${id}`}
       onClick={onClick}
-      className={`main-nav-btn m-2 cursor-pointer p-4 rounded-lg hover:bg-cyan-100 transition-all duration-300 ${
-        isActive ? 'active' : ''
+      className={`main-nav-btn m-2 cursor-pointer p-6 rounded-xl hover:bg-cyan-100 transition-all duration-300 shadow-md hover:shadow-lg ${
+        isActive ? 'active' : 'bg-white'
       }`}
     >
-      <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: 'var(--color-primary)' }}>
-        {icon} {title}
-      </h2>
-      <p className="text-base sm:text-lg" style={{ color: 'var(--color-text-medium)' }}>{description}</p>
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: 'var(--color-primary)' }}>
+            {icon} {title}
+          </h2>
+          <p className="text-base sm:text-lg" style={{ color: 'var(--color-text-medium)' }}>{description}</p>
+        </div>
+        <div className="ml-4 flex items-center">
+          {isActive ? (
+            <ChevronDown size={32} className="text-cyan-600 animate-bounce" />
+          ) : (
+            <ChevronRight size={32} className="text-gray-400" />
+          )}
+        </div>
+      </div>
+      {!isActive && (
+        <div className="mt-3 pt-3 border-t border-gray-200">
+          <p className="text-sm text-gray-500 italic">👆 Clique para expandir e explorar</p>
+        </div>
+      )}
     </div>
   )
 }
@@ -598,11 +614,22 @@ function GenerationSection({ isActive }) {
   return (
     <section 
       id="content-geracao"
-      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border animate-on-scroll ${isActive ? 'open' : ''}`}
+      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll ${isActive ? 'open' : ''}`}
+      style={{ 
+        borderColor: isActive ? 'var(--color-primary-border)' : 'var(--color-border)',
+        minHeight: isActive ? 'auto' : '120px'
+      }}
     >
-      <h3 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: 'var(--color-primary-dark)' }}>
-        1. Geração de Energia Elétrica
-      </h3>
+      <div className="flex items-start justify-between mb-4">
+        <h3 className="text-3xl sm:text-4xl font-bold" style={{ color: 'var(--color-primary-dark)' }}>
+          ⚡ 1. Geração de Energia Elétrica
+        </h3>
+        {isActive && (
+          <div className="text-cyan-600 font-bold text-sm bg-cyan-50 px-3 py-1 rounded-full">
+            Expandido ✓
+          </div>
+        )}
+      </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
         Esta é a primeira etapa, onde a energia é produzida a partir de diversas fontes. 
         Explore os principais tipos de usinas e veja uma representação de como elas compõem nossa matriz energética.
@@ -638,11 +665,22 @@ function TransmissionSection({ isActive }) {
   return (
     <section 
       id="content-transmissao"
-      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border animate-on-scroll ${isActive ? 'open' : ''}`}
+      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll ${isActive ? 'open' : ''}`}
+      style={{ 
+        borderColor: isActive ? 'var(--color-primary-border)' : 'var(--color-border)',
+        minHeight: isActive ? 'auto' : '120px'
+      }}
     >
-      <h3 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: 'var(--color-primary-dark)' }}>
-        2. Transmissão de Energia Elétrica
-      </h3>
+      <div className="flex items-start justify-between mb-4">
+        <h3 className="text-3xl sm:text-4xl font-bold" style={{ color: 'var(--color-primary-dark)' }}>
+          🗼 2. Transmissão de Energia Elétrica
+        </h3>
+        {isActive && (
+          <div className="text-cyan-600 font-bold text-sm bg-cyan-50 px-3 py-1 rounded-full">
+            Expandido ✓
+          </div>
+        )}
+      </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
         Após ser gerada, a energia precisa viajar grandes distâncias. 
         Esta seção detalha como esse transporte é feito de forma eficiente e segura.
@@ -669,11 +707,22 @@ function DistributionSection({ isActive }) {
   return (
     <section 
       id="content-distribuicao"
-      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border animate-on-scroll ${isActive ? 'open' : ''}`}
+      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll ${isActive ? 'open' : ''}`}
+      style={{ 
+        borderColor: isActive ? 'var(--color-primary-border)' : 'var(--color-border)',
+        minHeight: isActive ? 'auto' : '120px'
+      }}
     >
-      <h3 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: 'var(--color-primary-dark)' }}>
-        3. Distribuição de Energia Elétrica
-      </h3>
+      <div className="flex items-start justify-between mb-4">
+        <h3 className="text-3xl sm:text-4xl font-bold" style={{ color: 'var(--color-primary-dark)' }}>
+          🏠 3. Distribuição de Energia Elétrica
+        </h3>
+        {isActive && (
+          <div className="text-cyan-600 font-bold text-sm bg-cyan-50 px-3 py-1 rounded-full">
+            Expandido ✓
+          </div>
+        )}
+      </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
         Esta é a etapa final da jornada, onde a energia elétrica é entregue aos consumidores 
         em tensões seguras e utilizáveis.
