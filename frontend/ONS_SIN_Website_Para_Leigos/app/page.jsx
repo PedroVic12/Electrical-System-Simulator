@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
-import { Menu, X, ChevronDown, ChevronRight } from 'lucide-react'
+import { Menu, X, ChevronDown, ChevronRight, LucideFileSignature } from 'lucide-react'
 
 // Importar Chart.js dinamicamente para evitar problemas de SSR
 const Chart = dynamic(() => import('chart.js/auto').then((mod) => mod.Chart), { ssr: false })
@@ -347,13 +347,18 @@ function ImportantLinksSection() {
   const categories = {
     mapas: [
       { id: 'sin', name: 'SIN Interativo', url: 'https://sig.ons.org.br/app/sinmaps/', color: 'blue-500', iframe: true },
-      { id: 'sinmaps', name: 'Mapas do SIN', url: 'https://www.ons.org.br/paginas/sobre-o-sin/mapas', color: 'blue-500', iframe: false }
+      { id: 'sinmaps', name: 'Mapas do SIN', url: 'https://www.ons.org.br/paginas/sobre-o-sin/mapas', color: 'blue-500', iframe: false },
+      { id: 'ons-plc', name: 'Procedimentos de Rede', url: 'https://www.ons.org.br/paginas/sobre-o-ons/procedimentos-de-rede/o-que-sao', color: 'blue-700', iframe: false },
+      { id: 'ons-plc', name: 'Resposta em Demanda', url: 'https://www.ons.org.br/paginas/energia-amanha/resposta-da-demanda', color: 'blue-700', iframe: false },
+    
     ],
     dados: [
       { id: 'ons', name: 'ONS - Carga e Geração', url: 'https://www.ons.org.br/paginas/energia-agora/carga-e-geracao', color: 'blue-700', iframe: true }
     ],
     regulacao: [
-      { id: 'aneel', name: 'ANEEL', url: 'https://www.gov.br/aneel/pt-br', color: 'blue-600', iframe: false }
+      { id: 'aneel', name: 'ANEEL', url: 'https://www.gov.br/aneel/pt-br', color: 'blue-600', iframe: false },
+      { id: 'docs', name: 'Documentos Publicados', url: 'https://www.ons.org.br/paginas/conhecimento/acervo-digital/documentos-e-publicacoes', color: 'blue-600', iframe: false },
+      { id: 'docs', name: 'Glossário', url: 'https://www.ons.org.br/paginas/conhecimento/glossario', color: 'blue-600', iframe: false }
     ]
   }
 
