@@ -259,7 +259,7 @@ function GenerationChart() {
       import('chart.js/auto').then((ChartModule) => {
         const ChartJS = ChartModule.Chart
         const ctx = chartRef.current.getContext('2d')
-        chartInstanceRef.current = new ChartJS(ctx, {
+        chartInstanceRef.current =  ChartJS(ctx, {
           type: 'doughnut',
           data: {
             labels: AppDataModel.chartData.labels,
