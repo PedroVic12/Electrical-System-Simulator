@@ -98,7 +98,7 @@ function NavigationHeader({ onNavigate }) {
             {/* Logo */}
             <div className="flex items-center">
               <img 
-                src="/assets/Logo_ONSInspira_1 1.png" 
+                src="/assets/Logo_ONSInspira.png" 
                 alt="Logo ONS" 
                 className="h-10 w-auto"
               />
@@ -260,7 +260,7 @@ function PageHeader() {
         Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que move nosso mundo.
       </p>
       <img 
-        src="/assets/Logo_ONSInspira_1 1.png" 
+        src="/assets/Logo_ONSInspira.png" 
         alt="Logo ONS Inspira" 
         className="mx-auto h-32 sm:h-40 md:h-48 w-auto mb-4 mt-4"
       />
@@ -689,7 +689,7 @@ function GenerationSection({ isOpen, onToggle }) {
       className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
       style={{ 
         borderColor: isOpen ? 'var(--color-primary-border)' : 'var(--color-border)',
-        minHeight: isOpen ? 'auto' : '120px'
+        minHeight: isOpen ? 'auto' : '180px'
       }}
     >
       <div className="flex items-start justify-between mb-4">
@@ -759,7 +759,7 @@ function TransmissionSection({ isOpen, onToggle }) {
       className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
       style={{ 
         borderColor: isOpen ? 'var(--color-primary-border)' : 'var(--color-border)',
-        minHeight: isOpen ? 'auto' : '120px'
+        minHeight: isOpen ? 'auto' : '180px'
       }}
     >
       <div className="flex items-start justify-between mb-4">
@@ -808,7 +808,7 @@ function DistributionSection({ isOpen, onToggle }) {
       className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
       style={{ 
         borderColor: isOpen ? 'var(--color-primary-border)' : 'var(--color-border)',
-        minHeight: isOpen ? 'auto' : '120px'
+        minHeight: isOpen ? 'auto' : '180px'
       }}
     >
       <div className="flex items-start justify-between mb-4">

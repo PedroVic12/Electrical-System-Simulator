@@ -27,7 +27,7 @@ body {
 
 .content-section {
   opacity: 1;
-  max-height: 150px;
+  max-height: 200px;
   overflow: hidden;
   transition: all 0.6s ease-in-out;
   background-color: var(--color-bg-card);
@@ -35,24 +35,32 @@ body {
   position: relative;
 }
 
+/* Gradiente no final quando fechado */
 .content-section:not(.open)::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 60px;
+  height: 80px;
   background: linear-gradient(to bottom, transparent, var(--color-bg-card));
   pointer-events: none;
 }
 
+/* Quando aberto */
 .content-section.open {
   opacity: 1;
   max-height: 5000px;
+  overflow: visible;
 }
 
 .content-section.open::after {
   display: none;
+}
+
+/* Conteúdo interno quando fechado */
+.content-section:not(.open) > *:not(:first-child):not(:nth-child(2)) {
+  opacity: 0.3;
 }
 
 .main-nav-btn {
