@@ -14,42 +14,31 @@ Aplicação educacional interativa desenvolvida para explicar o funcionamento do
 - **Chart.js** - Biblioteca para gráficos interativos
 - **JavaScript (JSX)** - Sem TypeScript, apenas JS puro
 
-## 📁 Estrutura do Projeto
-
-```
-ONS_SIN_Website_Para_Leigos/
-├── app/
-│   ├── page.jsx          # Página principal (TODO o código aqui!)
-│   ├── layout.jsx        # Layout raiz
-│   └── globals.css       # Estilos globais e CSS customizado
-├── public/
-│   └── assets/           # Imagens e recursos estáticos
-├── package.json          # Dependências do projeto
-├── tailwind.config.js    # Configuração do Tailwind
-├── postcss.config.js     # Configuração do PostCSS
-└── next.config.js        # Configuração do Next.js
-```
-
 ## 🎯 Funcionalidades
 
 ### 1. Links Importantes
+
 - **4 sites principais**: SIN, SIN Maps, ANEEL, ONS
+- Principais funcionamentos de como funciona Redes Elétricas num pais de tamanho continental, como o Brasil. Entenda como Energia chega em sua casa e entenda o papel de um operador no planejamento desta rede garantindo segurança e estabilidade.
 - **Dois modos de visualização**:
   - 📺 Ver no Iframe (600x600px quadrado)
   - 🔗 Abrir em Nova Aba
 - **Controle inteligente**: Alguns sites permitem iframe, outros apenas nova aba
 
 ### 2. Navegação Principal
+
 - ⚡ **Geração** - Tipos de usinas e matriz energética
 - 🗼 **Transmissão** - Linhas de alta tensão
 - 🏠 **Distribuição** - Entrega ao consumidor final
 
 ### 3. Seção de Geração
+
 - Tabs interativas com 5 tipos de usinas
 - Gráfico Chart.js com matriz energética brasileira
 - Descrições detalhadas de cada fonte
 
 ### 4. Componentes do Sistema
+
 - 7 componentes principais explicados
 - Interface interativa com seleção de componentes
 - Descrições técnicas simplificadas
@@ -57,27 +46,32 @@ ONS_SIN_Website_Para_Leigos/
 ## 🛠️ Instalação e Execução
 
 ### Pré-requisitos
+
 - Node.js 18+ instalado
 - npm ou yarn
 
 ### Passo a Passo
 
 1. **Instalar dependências**:
+
 ```bash
 npm install
 ```
 
 2. **Copiar logo** (se necessário):
+
 ```bash
 # Copie o arquivo Logo_ONSInspira_1 1.png para public/assets/
 ```
 
 3. **Executar em desenvolvimento**:
+
 ```bash
 npm run dev
 ```
 
 4. **Abrir no navegador**:
+
 ```
 http://localhost:3000
 ```
@@ -94,6 +88,7 @@ npm run lint     # Executa linter
 ## 🎨 Customização
 
 ### Cores (CSS Variables)
+
 As cores estão definidas em `app/globals.css`:
 
 ```css
@@ -108,6 +103,7 @@ As cores estão definidas em `app/globals.css`:
 ```
 
 ### Dados do Modelo
+
 Todos os dados estão centralizados em `AppDataModel` no arquivo `page.jsx`:
 
 ```javascript
@@ -130,7 +126,7 @@ Todos os componentes estão no arquivo `app/page.jsx`:
 5. **NavigationButton** - Botão de navegação
 6. **MainNavigation** - Navegação principal
 7. **TabButton** - Botão de aba
-8. **GenerationChart** - Gráfico Chart.js
+8. **GraficoLinhas** - Gráfico Chart.js
 9. **GenerationSection** - Seção de geração
 10. **TransmissionSection** - Seção de transmissão
 11. **DistributionSection** - Seção de distribuição
@@ -158,6 +154,7 @@ Todos os componentes estão no arquivo `app/page.jsx`:
 ## 🔧 Configurações Importantes
 
 ### Iframe Quadrado
+
 ```css
 .square-iframe {
   width: 600px;
@@ -168,10 +165,13 @@ Todos os componentes estão no arquivo `app/page.jsx`:
 ```
 
 ### Client Component
+
 O arquivo `page.jsx` usa `'use client'` no topo para habilitar hooks e interatividade.
 
 ### Chart.js Dinâmico
+
 Chart.js é importado dinamicamente para evitar problemas de SSR:
+
 ```javascript
 const Chart = dynamic(() => import('chart.js/auto'), { ssr: false })
 ```
@@ -184,23 +184,6 @@ const Chart = dynamic(() => import('chart.js/auto'), { ssr: false })
 
 Projeto educacional desenvolvido para UFF e ONS.
 
-## 🐛 Troubleshooting
-
-### Erro de Chart.js
-Se houver erro com Chart.js, certifique-se de que está instalado:
-```bash
-npm install chart.js react-chartjs-2
-```
-
-### Logo não aparece
-Copie o arquivo `Logo_ONSInspira_1 1.png` para `public/assets/`
-
-### Erro de Tailwind
-Reconstrua o CSS:
-```bash
-npm run build
-```
-
 ## 📚 Recursos Adicionais
 
 - [Next.js Documentation](https://nextjs.org/docs)
@@ -210,5 +193,5 @@ npm run build
 
 ---
 
-**Data de Criação**: 22 de Outubro de 2025  
-**Versão**: 1.0.0
+**Data de Criação**: 24 de Outubro de 2025
+**Versão**: 3.1.2
