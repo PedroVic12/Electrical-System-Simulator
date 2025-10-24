@@ -259,6 +259,9 @@ function PageHeader() {
       <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: 'var(--color-text-medium)' }}>
         Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que move nosso mundo.
       </p>
+      <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: 'var(--color-text-medium)' }}>
+        Simulação de Sistemas Elétricos de ponta, ao alcance do seu clique.
+      </p>
       <img 
         src="/assets/Logo_ONSInspira.png" 
         alt="Logo ONS Inspira" 
@@ -549,132 +552,143 @@ function TabButton({ index, name, isActive, onClick }) {
   )
 }
 
+
+// new fucntion for animations
+function animateOnScroll() {
+  const elements = document.querySelectorAll('.animate-on-scroll')
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible')
+        observer.unobserve(entry.target)
+      }
+    })
+  })
+
+  elements.forEach(element => observer.observe(element))
+}
+
 // GENERATION CHART COMPONENT - Matriz Energética (%)
-function GenerationChart() {
-  const chartRef = useRef(null)
-  const chartInstanceRef = useRef(null)
+function ReusableChart({ chartId, type, data, options, deps = [] }) {
+  const canvasRef = useRef(null)
+  const instanceRef = useRef(null)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && chartRef.current) {
-      // Destruir gráfico existente antes de criar novo
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy()
-        chartInstanceRef.current = null
+    let cancelled = false
+    const init = async () => {
+      const { Chart } = await import('chart.js/auto')
+
+      // Destruir gráfico existente associado a este canvas (se houver)
+      const existing = Chart.getChart(canvasRef.current)
+      if (existing) existing.destroy()
+      if (instanceRef.current) {
+        instanceRef.current.destroy()
+        instanceRef.current = null
       }
 
-      import('chart.js/auto').then((ChartModule) => {
-        const ChartJS = ChartModule.Chart
-        const ctx = chartRef.current?.getContext('2d')
-        if (!ctx) return
+      const ctx = canvasRef.current?.getContext('2d')
+      if (!ctx || cancelled) return
 
-        chartInstanceRef.current = new ChartJS(ctx, {
-          type: 'doughnut',
-          data: {
-            labels: AppDataModel.chartData.labels,
-            datasets: [{
-              label: 'Matriz Energética (%)',
-              data: AppDataModel.chartData.data,
-              backgroundColor: AppDataModel.chartData.backgroundColor,
-              borderColor: '#ffffff',
-              borderWidth: 3
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'bottom', labels: { font: { size: 12, family: 'Inter' } } },
-              tooltip: { callbacks: { label: ctx => `${ctx.label || ''}: ${ctx.parsed || 0}%` } }
-            }
-          }
-        })
-      })
+      instanceRef.current = new Chart(ctx, { type, data, options })
     }
+    init()
+
     return () => {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy()
-        chartInstanceRef.current = null
+      cancelled = true
+      const cleanup = async () => {
+        const { Chart } = await import('chart.js/auto')
+        const existing = Chart.getChart(canvasRef.current)
+        if (existing) existing.destroy()
+        if (instanceRef.current) {
+          instanceRef.current.destroy()
+          instanceRef.current = null
+        }
       }
+      cleanup()
     }
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps)
 
   return (
     <div className="chart-container relative w-full max-w-sm mx-auto h-72 md:h-80">
-      <canvas ref={chartRef} id="generationPercentChart"></canvas>
+      <canvas id={chartId} ref={canvasRef} />
     </div>
+  )
+}
+
+// GENERATION CHART COMPONENT - Matriz Energética (%)
+function GenerationChart() {
+  const data = {
+    labels: AppDataModel.chartData.labels,
+    datasets: [{
+      label: 'Matriz Energética (%)',
+      data: AppDataModel.chartData.data,
+      backgroundColor: AppDataModel.chartData.backgroundColor,
+      borderColor: '#ffffff',
+      borderWidth: 3
+    }]
+  }
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 12, family: 'Inter' } } },
+      tooltip: { callbacks: { label: ctx => `${ctx.label || ''}: ${ctx.parsed || 0}%` } }
+    }
+  }
+  return (
+    <ReusableChart 
+      chartId="generationPercentChart"
+      type="doughnut"
+      data={data}
+      options={options}
+      deps={[JSON.stringify(data)]}
+    />
   )
 }
 
 // CAPACITY CHART COMPONENT - Capacidade Instalada (MW)
 function CapacityChart() {
-  const chartRef = useRef(null)
-  const chartInstanceRef = useRef(null)
+  const capacityData = AppDataModel.generationData.map(item => item.capacityMW)
+  const labels = AppDataModel.generationData.map(item => item.name)
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && chartRef.current) {
-      // Destruir gráfico existente antes de criar novo
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy()
-        chartInstanceRef.current = null
-      }
-
-      import('chart.js/auto').then((ChartModule) => {
-        const ChartJS = ChartModule.Chart
-        const ctx = chartRef.current?.getContext('2d')
-        if (!ctx) return
-        
-        const capacityData = AppDataModel.generationData.map(item => item.capacityMW)
-        const labels = AppDataModel.generationData.map(item => item.name)
-        
-        chartInstanceRef.current = new ChartJS(ctx, {
-          type: 'bar',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'Capacidade Instalada (MW)',
-              data: capacityData,
-              backgroundColor: AppDataModel.chartData.backgroundColor,
-              borderColor: AppDataModel.chartData.backgroundColor.map(color => color),
-              borderWidth: 2
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  callback: function(value) {
-                    return value.toLocaleString() + ' MW'
-                  }
-                }
-              }
-            },
-            plugins: {
-              legend: { display: false },
-              tooltip: { 
-                callbacks: { 
-                  label: ctx => `${ctx.parsed.y.toLocaleString()} MW` 
-                } 
-              }
-            }
+  const data = {
+    labels,
+    datasets: [{
+      label: 'Capacidade Instalada (MW)',
+      data: capacityData,
+      backgroundColor: AppDataModel.chartData.backgroundColor,
+      borderColor: AppDataModel.chartData.backgroundColor.map(color => color),
+      borderWidth: 2
+    }]
+  }
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            try { return Number(value).toLocaleString() + ' MW' } catch { return value + ' MW' }
           }
-        })
-      })
-    }
-    return () => {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy()
-        chartInstanceRef.current = null
+        }
       }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => `${ctx.parsed.y.toLocaleString()} MW` } }
     }
-  }, [])
+  }
 
   return (
-    <div className="chart-container relative w-full max-w-sm mx-auto h-72 md:h-80">
-      <canvas ref={chartRef} id="capacityMWChart"></canvas>
-    </div>
+    <ReusableChart 
+      chartId="capacityMWChart"
+      type="bar"
+      data={data}
+      options={options}
+      deps={[JSON.stringify(data)]}
+    />
   )
 }
 
