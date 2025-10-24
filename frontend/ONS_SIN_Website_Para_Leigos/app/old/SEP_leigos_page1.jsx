@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
-import { Menu, X, ChevronDown, ChevronRight } from 'lucide-react'
 
 // Importar Chart.js dinamicamente para evitar problemas de SSR
 const Chart = dynamic(() => import('chart.js/auto').then((mod) => mod.Chart), { ssr: false })
@@ -65,198 +64,14 @@ const markdownToHtml = (markdown) => {
     .replace(/\n\n/g, '</p><p class="mb-3 sm:mb-4 text-sm sm:text-base">')
 }
 
-// NAVIGATION HEADER - Header fixo com navegação
-function NavigationHeader({ onNavigate }) {
-  const [isSideMenuOpen, setIsSideMenuOpen] = useState(false)
-  const [expandedMenus, setExpandedMenus] = useState({})
-
-  const toggleSubMenu = (menuId) => {
-    setExpandedMenus(prev => ({ ...prev, [menuId]: !prev[menuId] }))
-  }
-
-  const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      const headerOffset = 80
-      const elementPosition = element.getBoundingClientRect().top
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      })
-      setIsSideMenuOpen(false)
-    }
-  }
-
-  return (
-    <>
-      {/* Header Fixo */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center">
-              <img 
-                src="/assets/Logo_ONSInspira_1 1.png" 
-                alt="Logo ONS" 
-                className="h-10 w-auto"
-              />
-            </div>
-
-            {/* Navigation Buttons - Desktop */}
-            <nav className="hidden md:flex space-x-4">
-              <button onClick={() => scrollToSection('intro')} className="nav-header-btn">Início</button>
-              <button onClick={() => scrollToSection('generation')} className="nav-header-btn">Geração</button>
-              <button onClick={() => scrollToSection('components')} className="nav-header-btn">Componentes</button>
-              <button onClick={() => scrollToSection('chart')} className="nav-header-btn">Estatísticas</button>
-              <button onClick={() => scrollToSection('sites')} className="nav-header-btn">Sites Úteis</button>
-            </nav>
-
-            {/* Menu Hamburguer - Mobile */}
-            <button 
-              onClick={() => setIsSideMenuOpen(!isSideMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
-            >
-              {isSideMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Side Menu - Multi-level */}
-      <aside className={`fixed top-16 left-0 z-40 w-64 h-screen transition-transform ${
-        isSideMenuOpen ? 'translate-x-0' : '-translate-x-full'
-      } bg-white border-r border-gray-200 md:hidden`}>
-        <div className="h-full px-3 py-4 overflow-y-auto">
-          <ul className="space-y-2 font-medium">
-            {/* Início */}
-            <li>
-              <button
-                onClick={() => scrollToSection('intro')}
-                className="flex items-center w-full p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              >
-                <span className="ml-3">🏠 Início</span>
-              </button>
-            </li>
-
-            {/* Geração - Multi-level */}
-            <li>
-              <button
-                onClick={() => toggleSubMenu('generation')}
-                className="flex items-center w-full p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              >
-                <span className="flex-1 ml-3 text-left">⚡ Geração</span>
-                {expandedMenus['generation'] ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
-              </button>
-              {expandedMenus['generation'] && (
-                <ul className="py-2 space-y-2 pl-6">
-                  <li>
-                    <button onClick={() => scrollToSection('generation')} className="flex items-center w-full p-2 text-gray-700 rounded-lg hover:bg-gray-100 text-sm">
-                      💧 Hidrelétricas
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => scrollToSection('generation')} className="flex items-center w-full p-2 text-gray-700 rounded-lg hover:bg-gray-100 text-sm">
-                      🔥 Termelétricas
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => scrollToSection('generation')} className="flex items-center w-full p-2 text-gray-700 rounded-lg hover:bg-gray-100 text-sm">
-                      ☢️ Nucleares
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => scrollToSection('generation')} className="flex items-center w-full p-2 text-gray-700 rounded-lg hover:bg-gray-100 text-sm">
-                      🌬️ Eólicas
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => scrollToSection('generation')} className="flex items-center w-full p-2 text-gray-700 rounded-lg hover:bg-gray-100 text-sm">
-                      ☀️ Solares
-                    </button>
-                  </li>
-                </ul>
-              )}
-            </li>
-
-            {/* Componentes - Multi-level */}
-            <li>
-              <button
-                onClick={() => toggleSubMenu('components')}
-                className="flex items-center w-full p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              >
-                <span className="flex-1 ml-3 text-left">🔧 Componentes</span>
-                {expandedMenus['components'] ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
-              </button>
-              {expandedMenus['components'] && (
-                <ul className="py-2 space-y-2 pl-6">
-                  <li>
-                    <button onClick={() => scrollToSection('components')} className="flex items-center w-full p-2 text-gray-700 rounded-lg hover:bg-gray-100 text-sm">
-                      ⚙️ Geradores
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => scrollToSection('components')} className="flex items-center w-full p-2 text-gray-700 rounded-lg hover:bg-gray-100 text-sm">
-                      🔄 Transformadores
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => scrollToSection('components')} className="flex items-center w-full p-2 text-gray-700 rounded-lg hover:bg-gray-100 text-sm">
-                      📡 Linhas
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => scrollToSection('components')} className="flex items-center w-full p-2 text-gray-700 rounded-lg hover:bg-gray-100 text-sm">
-                      🔌 Disjuntores
-                    </button>
-                  </li>
-                </ul>
-              )}
-            </li>
-
-            {/* Estatísticas */}
-            <li>
-              <button
-                onClick={() => scrollToSection('chart')}
-                className="flex items-center w-full p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              >
-                <span className="ml-3">📊 Estatísticas</span>
-              </button>
-            </li>
-
-            {/* Sites Úteis */}
-            <li>
-              <button
-                onClick={() => scrollToSection('sites')}
-                className="flex items-center w-full p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              >
-                <span className="ml-3">🌐 Sites Úteis</span>
-              </button>
-            </li>
-          </ul>
-        </div>
-      </aside>
-
-      {/* Overlay para fechar o menu */}
-      {isSideMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-          onClick={() => setIsSideMenuOpen(false)}
-        />
-      )}
-    </>
-  )
-}
-
-// PAGE HEADER - Banner principal
+// HEADER COMPONENT - Responsivo
 function PageHeader() {
   return (
-    <header id="intro" className="page-header text-center mb-8 sm:mb-10 md:mb-12 px-4 animate-on-scroll pt-20">
-      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-5 leading-tight" style={{ color: 'var(--color-primary-dark)' }}>
+    <header className="page-header text-center mb-8 sm:mb-10 md:mb-12 px-4 animate-on-scroll">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight" style={{ color: 'var(--color-primary-dark)' }}>
         Sistema Elétrico de Potência Interativo para Leigos e Estudantes
       </h1>
-      <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: 'var(--color-text-medium)' }}>
+      <p className="text-sm sm:text-base md:text-lg max-w-3xl mx-auto px-2" style={{ color: 'var(--color-text-medium)' }}>
         Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que move nosso mundo.
       </p>
       <img 
@@ -335,138 +150,30 @@ function SiteCard({ siteKey, siteName, siteUrl, siteColor, allowIframe }) {
   )
 }
 
-// IMPORTANT LINKS SECTION COMPONENT - Com Tabs e Carousel
+// IMPORTANT LINKS SECTION COMPONENT
 function ImportantLinksSection() {
-  const [activeCategory, setActiveCategory] = useState('mapas')
-  const [currentSlide, setCurrentSlide] = useState(0)
-
-  // Organizar sites por categoria
-  const categories = {
-    mapas: [
-      { id: 'sin', name: 'SIN Interativo', url: 'https://sig.ons.org.br/app/sinmaps/', color: 'blue-500', iframe: true },
-      { id: 'sinmaps', name: 'Mapas do SIN', url: 'https://www.ons.org.br/paginas/sobre-o-sin/mapas', color: 'blue-500', iframe: false }
-    ],
-    dados: [
-      { id: 'ons', name: 'ONS - Carga e Geração', url: 'https://www.ons.org.br/paginas/energia-agora/carga-e-geracao', color: 'blue-700', iframe: true }
-    ],
-    regulacao: [
-      { id: 'aneel', name: 'ANEEL', url: 'https://www.gov.br/aneel/pt-br', color: 'blue-600', iframe: false }
-    ]
-  }
-
-  const currentCategorySites = categories[activeCategory] || []
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % currentCategorySites.length)
-  }
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + currentCategorySites.length) % currentCategorySites.length)
-  }
-
-  const handleCategoryChange = (category) => {
-    setActiveCategory(category)
-    setCurrentSlide(0)
-  }
-
   return (
-    <section id="sites" className="mb-8 sm:mb-12 md:mb-16 animate-on-scroll scroll-mt-20">
+    <section className="important-links-section mb-12 animate-on-scroll">
       <div className="text-center mb-8">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2" style={{ color: 'var(--color-primary-dark)' }}>
+        <h2 className="text-3xl font-bold mb-2" style={{ color: 'var(--color-primary-dark)' }}>
           🔗 Links Importantes
         </h2>
-        <p className="text-base sm:text-lg md:text-xl" style={{ color: 'var(--color-text-medium)' }}>
+        <p className="text-lg" style={{ color: 'var(--color-text-medium)' }}>
           Explore os principais órgãos e sistemas do setor elétrico brasileiro
         </p>
       </div>
 
-      {/* Tabs de Categorias */}
-      <div className="flex justify-center gap-2 sm:gap-4 mb-6 flex-wrap">
-        <button
-          onClick={() => handleCategoryChange('mapas')}
-          className={`tab-btn px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all ${
-            activeCategory === 'mapas' ? 'active' : 'bg-slate-200 hover:bg-cyan-500 hover:text-white'
-          }`}
-        >
-          🗺️ Mapas
-        </button>
-        <button
-          onClick={() => handleCategoryChange('dados')}
-          className={`tab-btn px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all ${
-            activeCategory === 'dados' ? 'active' : 'bg-slate-200 hover:bg-cyan-500 hover:text-white'
-          }`}
-        >
-          📊 Dados em Tempo Real
-        </button>
-        <button
-          onClick={() => handleCategoryChange('regulacao')}
-          className={`tab-btn px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all ${
-            activeCategory === 'regulacao' ? 'active' : 'bg-slate-200 hover:bg-cyan-500 hover:text-white'
-          }`}
-        >
-          ⚖️ Regulação
-        </button>
-      </div>
-
-      {/* Carousel Container */}
-      <div className="max-w-4xl mx-auto">
-        <div className="relative">
-          {/* Carousel Content */}
-          <div className="overflow-hidden">
-            <div 
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-            >
-              {currentCategorySites.map((site) => (
-                <div key={site.id} className="w-full flex-shrink-0 px-2">
-                  <SiteCard
-                    siteKey={site.id}
-                    siteName={site.name}
-                    siteUrl={site.url}
-                    siteColor={site.color}
-                    allowIframe={site.iframe}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Carousel Controls */}
-          {currentCategorySites.length > 1 && (
-            <>
-              <button
-                onClick={prevSlide}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
-                aria-label="Anterior"
-              >
-                <ChevronRight size={24} className="rotate-180" />
-              </button>
-              <button
-                onClick={nextSlide}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
-                aria-label="Próximo"
-              >
-                <ChevronRight size={24} />
-              </button>
-            </>
-          )}
-
-          {/* Indicators */}
-          {currentCategorySites.length > 1 && (
-            <div className="flex justify-center gap-2 mt-4">
-              {currentCategorySites.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentSlide(index)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    currentSlide === index ? 'bg-cyan-600 w-8' : 'bg-gray-300'
-                  }`}
-                  aria-label={`Ir para slide ${index + 1}`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+      <div className="links-container max-w-4xl mx-auto">
+        {Object.entries(AppDataModel.externalSites).map(([key, { name, url, color, iframe }]) => (
+          <SiteCard
+            key={key}
+            siteKey={key}
+            siteName={name}
+            siteUrl={url}
+            siteColor={color}
+            allowIframe={iframe}
+          />
+        ))}
       </div>
     </section>
   )
@@ -492,10 +199,10 @@ function NavigationButton({ id, icon, title, description, isActive, onClick }) {
         isActive ? 'active' : ''
       }`}
     >
-      <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: 'var(--color-primary)' }}>
+      <h2 className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>
         {icon} {title}
       </h2>
-      <p className="text-base sm:text-lg" style={{ color: 'var(--color-text-medium)' }}>{description}</p>
+      <p style={{ color: 'var(--color-text-medium)' }}>{description}</p>
     </div>
   )
 }
@@ -531,7 +238,7 @@ function MainNavigation({ activeSection, onSectionChange }) {
 function TabButton({ index, name, isActive, onClick }) {
   return (
     <button
-      className={`tab-btn px-4 py-2 rounded-md text-sm sm:text-base font-medium transition-all duration-200 ${
+      className={`tab-btn px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
         isActive ? 'active' : 'bg-slate-200 hover:bg-cyan-500 hover:text-white'
       }`}
       data-index={index}
@@ -600,10 +307,10 @@ function GenerationSection({ isActive }) {
       id="content-geracao"
       className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border animate-on-scroll ${isActive ? 'open' : ''}`}
     >
-      <h3 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: 'var(--color-primary-dark)' }}>
+      <h3 className="text-3xl font-bold mb-4" style={{ color: 'var(--color-primary-dark)' }}>
         1. Geração de Energia Elétrica
       </h3>
-      <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
+      <p className="mb-6" style={{ color: 'var(--color-text-medium)' }}>
         Esta é a primeira etapa, onde a energia é produzida a partir de diversas fontes. 
         Explore os principais tipos de usinas e veja uma representação de como elas compõem nossa matriz energética.
       </p>
@@ -618,8 +325,8 @@ function GenerationSection({ isActive }) {
             <p>{AppDataModel.generationData[activeTab].description}</p>
           </div>
         </div>
-        <div id="chart" className="lg:w-1/2 flex flex-col items-center scroll-mt-20">
-          <h4 className="text-xl sm:text-2xl font-semibold text-center mb-4">Exemplo de Matriz Energética</h4>
+        <div className="lg:w-1/2 flex flex-col items-center">
+          <h4 className="text-xl font-semibold text-center mb-4">Exemplo de Matriz Energética</h4>
           <GenerationChart />
         </div>
       </div>
@@ -640,10 +347,10 @@ function TransmissionSection({ isActive }) {
       id="content-transmissao"
       className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border animate-on-scroll ${isActive ? 'open' : ''}`}
     >
-      <h3 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: 'var(--color-primary-dark)' }}>
+      <h3 className="text-3xl font-bold mb-4" style={{ color: 'var(--color-primary-dark)' }}>
         2. Transmissão de Energia Elétrica
       </h3>
-      <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
+      <p className="mb-6" style={{ color: 'var(--color-text-medium)' }}>
         Após ser gerada, a energia precisa viajar grandes distâncias. 
         Esta seção detalha como esse transporte é feito de forma eficiente e segura.
       </p>
@@ -671,10 +378,10 @@ function DistributionSection({ isActive }) {
       id="content-distribuicao"
       className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border animate-on-scroll ${isActive ? 'open' : ''}`}
     >
-      <h3 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: 'var(--color-primary-dark)' }}>
+      <h3 className="text-3xl font-bold mb-4" style={{ color: 'var(--color-primary-dark)' }}>
         3. Distribuição de Energia Elétrica
       </h3>
-      <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
+      <p className="mb-6" style={{ color: 'var(--color-text-medium)' }}>
         Esta é a etapa final da jornada, onde a energia elétrica é entregue aos consumidores 
         em tensões seguras e utilizáveis.
       </p>
@@ -710,14 +417,14 @@ function ComponentsSection() {
   const handleComponentClick = useCallback((index) => { setActiveComponent(index) }, [])
 
   return (
-    <section id="components" 
-      className="rounded-xl shadow-lg p-6 md:p-8 mt-12 border animate-on-scroll scroll-mt-20"
+    <section 
+      className="rounded-xl shadow-lg p-6 md:p-8 mt-12 border animate-on-scroll"
       style={{ backgroundColor: 'var(--color-bg-card)', borderColor: 'var(--color-border)' }}
     >
-      <h3 className="text-3xl sm:text-4xl font-bold text-center mb-2" style={{ color: 'var(--color-primary-dark)' }}>
+      <h3 className="text-3xl font-bold text-center mb-2" style={{ color: 'var(--color-primary-dark)' }}>
         4. Componentes Chave de um Sistema de Potência
       </h3>
-      <p className="text-base sm:text-lg mb-8 text-center max-w-3xl mx-auto" style={{ color: 'var(--color-text-medium)' }}>
+      <p className="mb-8 text-center max-w-3xl mx-auto" style={{ color: 'var(--color-text-medium)' }}>
         Um sistema de potência é composto por diversos equipamentos. 
         Clique nos botões para conhecer a função de cada um.
       </p>
@@ -739,11 +446,11 @@ function ComponentsSection() {
       >
         {activeComponent !== null ? (
           <>
-            <h4 className="font-bold text-lg sm:text-xl mb-2">{AppDataModel.componentsData[activeComponent].name}</h4>
-            <p className="text-base sm:text-lg">{AppDataModel.componentsData[activeComponent].description}</p>
+            <h4 className="font-bold text-lg mb-2">{AppDataModel.componentsData[activeComponent].name}</h4>
+            <p>{AppDataModel.componentsData[activeComponent].description}</p>
           </>
         ) : (
-          <p className="text-center text-base sm:text-lg">Selecione um componente para ver sua descrição.</p>
+          <p className="text-center">Selecione um componente para ver sua descrição.</p>
         )}
       </div>
     </section>
@@ -815,31 +522,27 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="min-h-screen">
-      <NavigationHeader />
+    <div className="app-container container mx-auto p-4 md:p-8">
+      <PageHeader />
       
-      <div className="max-w-6xl mx-auto p-4 sm:p-6 md:p-8">
-        <PageHeader />
+      <main className="main-content">
+        <ImportantLinksSection />
         
-        <main className="main-content">
-          <ImportantLinksSection />
-          
-          <MainNavigation 
-            activeSection={activeSection}
-            onSectionChange={handleSectionChange}
-          />
-          
-          <div id="content-container" className="mt-4">
-            <GenerationSection isActive={activeSection === 'geracao'} />
-            <TransmissionSection isActive={activeSection === 'transmissao'} />
-            <DistributionSection isActive={activeSection === 'distribuicao'} />
-          </div>
+        <MainNavigation 
+          activeSection={activeSection}
+          onSectionChange={handleSectionChange}
+        />
+        
+        <div id="content-container" className="mt-4">
+          <GenerationSection isActive={activeSection === 'geracao'} />
+          <TransmissionSection isActive={activeSection === 'transmissao'} />
+          <DistributionSection isActive={activeSection === 'distribuicao'} />
+        </div>
 
-          <ComponentsSection />
-        </main>
+        <ComponentsSection />
+      </main>
 
-        <PageFooter />
-      </div>
+      <PageFooter />
     </div>
   )
 }
