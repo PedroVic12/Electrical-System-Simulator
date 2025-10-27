@@ -102,7 +102,7 @@ function NavigationHeader({ onNavigate }) {
                 alt="Logo ONS" 
                 className="h-10 w-auto"
               />
-              <img src="assets/matriz_energetica_2025_ONS.png" alt="" className="h-40 w-auto" />
+              {/* <img src="assets/matriz_energetica_2025_ONS.png" alt="" className="h-40 w-auto" /> */}
 
             </div>
 
