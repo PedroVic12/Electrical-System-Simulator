@@ -11,6 +11,8 @@ const Chart = dynamic(() => import('chart.js/auto').then((mod) => mod.Chart), { 
 // MVC INTEGRATION - Integração com Model-View-Controller
 // ============================================================================
 
+//     https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app
+
 
 function NextJSComponenetTemplate() {
   return (
@@ -19,6 +21,9 @@ function NextJSComponenetTemplate() {
     <h2>   Start building with Next.js  </h2>
     Go from beginner to expert by learning the foundations of Next.js and building a fully functional demo website that uses all the latest features.
     </div>
+
+
+    
   )
 }
 
