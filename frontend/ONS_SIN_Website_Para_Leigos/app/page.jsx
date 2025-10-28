@@ -11,6 +11,19 @@ const Chart = dynamic(() => import('chart.js/auto').then((mod) => mod.Chart), { 
 // MVC INTEGRATION - Integração com Model-View-Controller
 // ============================================================================
 
+
+function NextJSComponenetTemplate() {
+  return (
+    <div>
+          
+    <h2>   Start building with Next.js  </h2>
+    Go from beginner to expert by learning the foundations of Next.js and building a fully functional demo website that uses all the latest features.
+    </div>
+  )
+}
+
+
+
 // DATA MODEL - Carregado do arquivo público
 const AppDataModel = {
   generationData: [
