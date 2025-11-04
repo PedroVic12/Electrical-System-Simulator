@@ -1113,6 +1113,8 @@ export default function Home() {
         <PageHeader />
         
         <main className="main-content">
+        <NextJSComponenetTemplate/>
+        
           <ImportantLinksSection />
           
           <MainNavigation 
