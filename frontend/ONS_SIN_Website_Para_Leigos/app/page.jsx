@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { Menu, X, ChevronDown, ChevronRight, LucideFileSignature } from 'lucide-react'
 
+
 // Importar Chart.js dinamicamente para evitar problemas de SSR
 const Chart = dynamic(() => import('chart.js/auto').then((mod) => mod.Chart), { ssr: false })
 
