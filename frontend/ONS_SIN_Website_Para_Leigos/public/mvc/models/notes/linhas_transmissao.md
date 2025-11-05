@@ -18,13 +18,27 @@ Para minimizar perdas, a energia é transmitida em alta tensão, o que requer es
   A energia é transmitida em alta voltagem para reduzir as perdas por calor.As subestações aumentam a tensão para a transmissão e a reduzem novamente antes de chegar aos consumidores.** **
 * **Classificação:**
 
-  As linhas são classificadas por níveis de tensão.As mais comuns são as de alta tensão (HV) acima de ![img]()69 kV69  kV
+  Junto às [usinas](https://www.mundodaeletrica.com.br/maiores-usinas-geradoras-de-energia-eletrica/), as subestações elevadoras elevam o nível da tensão e abaixam o nível da corrente, com a intenção de facilitar o transporte da energia elétrica. Esse transporte é realizado por diferentes segmentos da rede elétrica que são definidos com base na função que exercem:
 
-  , extra alta tensão (EHV) entre ![img]()220 kV220  kV
+  * Transmissão: redes que interligam a geração aos centros de carga
+  * Interconexão: interligação entre sistemas independentes
+  * Subtransmissão: rede para casos onde a distribuição não se conecta à transmissão, havendo um estágio intermediário de repartição da energia entre várias regiões
+  * Distribuição: rede que interliga a transmissão ou subtransmissão aos pontos de consumo, ela é subdividida em distribuição primária (nível de média tensão – MT) ou distribuição secundária (nível de uso residencial)
 
-  e ![img]()765 kV765  kV
+  As tensões de transmissão usualmente adotadas no Brasil, em corrente alternada, podem variar de 138 kV até 765 kV incluindo neste intervalo as tensões de 230 kV, 345 kV, 440 kV e 500 kV.
 
-  , e ultra alta tensão (UHV) acima de ![]()765 kV765  kV
+  Os sistemas de subtransmissão contam com níveis mais baixos de tensão, tais como 34,5 kV, 69 ou 88 kV e 138 kV. Eles alimentam as subestações de distribuição, cujos alimentadores primários de saída operam normalmente em níveis de 13,8 kV.
+
+  Junto aos pequenos consumidores, existe uma outra redução do nível de tensão para valores entre 127 V e 220 V, na qual operam os alimentadores secundários.
+
+  As redes de transmissão podem ser dividas em:
+
+  * Redes com tensões nominais iguais ou superiores a 230 kV são denominadas de redes em EHV (Extra Alta Tensão) e no Brasil são chamadas rede básicas de transmissão
+  * Redes com tensões nominais iguais e entre 69 kV e 138 kV são denominadas redes em AT (Alta Tensão)
+  * Redes com tensão nominal entre 1 kV e 69 kV são denominadas redes em MT (Média Tensão ou em Tensão Primária)
+  * Redes com tensão abaixo de 1 kV são denominadas como redes em Baixa Tensão (ou em Tensão Secundária)
+
+  No Brasil, existe também um sistema que opera em corrente contínua, o Sistema de Itaipu, com nível de tensão de aproximadamente 600 kV DC.
 
   .** **
 * **Faixa de servidão:**

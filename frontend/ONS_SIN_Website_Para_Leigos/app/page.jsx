@@ -4,33 +4,174 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { Menu, X, ChevronDown, ChevronRight, LucideFileSignature } from 'lucide-react'
 
-
-import renderMarkdownFile from './controllers/renderMarkdown'
-
+import MarkdownPage from './UI/components/MarkdownPage'
 
 // Importar Chart.js dinamicamente para evitar problemas de SSR
 const Chart = dynamic(() => import('chart.js/auto').then((mod) => mod.Chart), { ssr: false })
 
 // ============================================================================
-// MVC INTEGRATION - Integração com Model-View-Controller
+// Nextjs with tailwind and MVC componentes in one file with renderMarkdown files from directory notes
 // ============================================================================
 
 //     https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app
 
 
+// ==================================================================================
+
+
+
+// widgets UI tags components - HTML
 function NextJSComponenetTemplate() {
   return (
     <div>
-          
-    <h2>   Start building with Next.js  </h2>
-    Go from beginner to expert by learning the foundations of Next.js and building a fully functional demo website that uses all the latest features.
+
+      <h2>   Start building with Next.js  </h2>
+      Go from beginner to expert by learning the foundations of Next.js and building a fully functional demo website that uses all the latest features.
     </div>
 
 
-    
+
   )
 }
 
+// components/ImgContainer.jsx
+function ImgContainer({ src, alt, className = "", ...props }) {
+  // Handle both relative and absolute paths
+  const imagePath = src.startsWith('/') ? src : `/${src}`;
+
+  return (
+    <div className={`relative w-full ${className}`}>
+      <img
+        src={imagePath}
+        alt={alt || "Image"}
+        className="w-full h-auto object-contain"
+        loading="lazy"
+        {...props}
+      />
+    </div>
+  );
+}
+
+// DATABASE CONTROLLER - Funções para carregar notas MD
+const loadMarkdownNote = async (notePath) => {
+  try {
+    const response = await fetch(notePath)
+    if (!response.ok) return null
+    return await response.text()
+  } catch (error) {
+    console.error('Erro ao carregar nota:', error)
+    return null
+  }
+}
+
+// FLOW ARROW COMPONENT
+function FlowArrow() {
+  return (
+    <>
+      <div className="flow-arrow hidden md:block mx-4">→</div>
+      <div className="flow-arrow block md:hidden my-2">↓</div>
+    </>
+  )
+}
+
+// new fucntion for animations
+function animateOnScroll() {
+  const elements = document.querySelectorAll('.animate-on-scroll')
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible')
+        observer.unobserve(entry.target)
+      }
+    })
+  })
+
+  elements.forEach(element => observer.observe(element))
+}
+
+// const markdownToHtml = (markdown) => {
+//   if (!markdown) return '';
+
+//   // Separa o markdown em blocos por linhas em branco
+//   const blocks = markdown.split(/\n\n/);
+
+//   const htmlBlocks = blocks.map(block => {
+//     const trimmedBlock = block.trim();
+
+//     // Converte blocos de lista (começando com "- ")
+//     if (trimmedBlock.startsWith('- ')) {
+//       const items = trimmedBlock.split('\n').map(item => {
+//         const content = item.replace(/^\s*-\s*/, '');
+//         // Aplica negrito dentro dos itens da lista
+//         const boldedContent = content.replace(/\*\*(.*?)\*\*/gim, '<strong 
+//       class= "font-semibold" > $1</strong > ');
+//             return `<li class="ml-4 mb-1">• ${boldedContent}</li>`;
+//       }).join('');
+//       return `<ul class="list-disc pl-5 mt-2 space-y-1">${items}</ul>`;
+//     }
+
+//     // Converte cabeçalhos
+//     if (trimmedBlock.startsWith('#')) {
+//       if (trimmedBlock.startsWith('### ')) {
+//         return `<h3 class="text-lg sm:text-xl font-bold mt-3 sm:mt-4 mb-2">
+//       ${trimmedBlock.replace('### ', '')}</h3>`;
+//       }
+//       if (trimmedBlock.startsWith('## ')) {
+//         return `<h2 class="text-xl sm:text-2xl font-bold mt-4 sm:mt-6 mb-2 
+//       sm:mb-3">${trimmedBlock.replace('## ', '')}</h2>`;
+//       }
+//       if (trimmedBlock.startsWith('# ')) {
+//         return `<h1 class="text-2xl sm:text-3xl font-bold mt-6 sm:mt-8 mb-3 
+//       sm:mb-4">${trimmedBlock.replace('# ', '')}</h1>`;
+//       }
+//     }
+
+//     // Se não for lista ou cabeçalho, trata como parágrafo
+//     if (trimmedBlock) {
+//       // Aplica negrito dentro dos parágrafos
+//       const boldedBlock = trimmedBlock.replace(/\*\*(.*?)\*\*/gim, '<strong 
+//       class= "font-semibold" > $1</strong > ');
+//           return `<p class="mb-3 sm:mb-4 text-sm sm:text-base">${boldedBlock}</p>`;
+//     }
+
+//     return ''; // Retorna string vazia para blocos vazios
+//   });
+
+//   return htmlBlocks.join('');
+// };
+
+
+
+function VideoContainer({
+  path_video,
+  width = "500px",  // Default to pixel values
+  height = "300px", // Default to pixel values
+  objectFit = "cover",
+  className = "",
+  ...props
+}) {
+  return (
+    <video
+      className={className}
+      style={{
+        width: width,
+        height: height,
+        objectFit: objectFit,
+        display: 'block' // Ensures no extra space around
+      }}
+      autoPlay
+      loop
+      muted
+      playsInline
+      {...props}
+    >
+      <source src={path_video} type="video/mp4" />
+    </video>
+  );
+}
+
+// ==================================================================================
+// MVC INTEGRATION - Integração com Model-View-Controller
 
 
 // DATA MODEL - Carregado do arquivo público
@@ -64,33 +205,14 @@ const AppDataModel = {
   }
 }
 
-// DATABASE CONTROLLER - Funções para carregar notas MD
-const loadMarkdownNote = async (notePath) => {
-  try {
-    const response = await fetch(notePath)
-    if (!response.ok) return null
-    return await response.text()
-  } catch (error) {
-    console.error('Erro ao carregar nota:', error)
-    return null
-  }
-}
 
-const markdownToHtml = (markdown) => {
-  if (!markdown) return ''
-  return markdown
-    .replace(/^### (.*$)/gim, '<h3 class="text-lg sm:text-xl font-bold mt-3 sm:mt-4 mb-2">$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2 class="text-xl sm:text-2xl font-bold mt-4 sm:mt-6 mb-2 sm:mb-3">$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1 class="text-2xl sm:text-3xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4">$1</h1>')
-    .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-semibold">$1</strong>')
-    .replace(/^\- (.*$)/gim, '<li class="ml-4 mb-1">• $1</li>')
-    .replace(/\n\n/g, '</p><p class="mb-3 sm:mb-4 text-sm sm:text-base">')
-}
 
 // NAVIGATION HEADER - Header fixo com navegação
 function NavigationHeader({ onNavigate }) {
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false)
   const [expandedMenus, setExpandedMenus] = useState({})
+  // Inside your NavigationHeader component:
+  const [showVideo, setShowVideo] = useState(false);
 
   const toggleSubMenu = (menuId) => {
     setExpandedMenus(prev => ({ ...prev, [menuId]: !prev[menuId] }))
@@ -102,7 +224,7 @@ function NavigationHeader({ onNavigate }) {
       const headerOffset = 80
       const elementPosition = element.getBoundingClientRect().top
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset
-      
+
       window.scrollTo({
         top: offsetPosition,
         behavior: 'smooth'
@@ -117,14 +239,15 @@ function NavigationHeader({ onNavigate }) {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center">
-              <img 
-                src="/assets/Logo_ONSInspira.png" 
-                alt="Logo ONS" 
-                className="h-10 w-auto"
-              />
-              {/* <img src="assets/matriz_energetica_2025_ONS.png" alt="" className="h-40 w-auto" /> */}
+            {/* Logo and Video Container */}
+            <div className="flex items-center space-x-4">
+              <div className="flex-shrink-0">
+                <img
+                  src="/assets/Logo_ONSInspira.png"
+                  alt="Logo ONS"
+                  className="h-10 w-auto"
+                />
+              </div>
 
             </div>
 
@@ -138,7 +261,7 @@ function NavigationHeader({ onNavigate }) {
             </nav>
 
             {/* Menu Hamburguer - Mobile */}
-            <button 
+            <button
               onClick={() => setIsSideMenuOpen(!isSideMenuOpen)}
               className="md:hidden p-2 rounded-lg hover:bg-gray-100"
             >
@@ -149,9 +272,8 @@ function NavigationHeader({ onNavigate }) {
       </header>
 
       {/* Side Menu - Multi-level */}
-      <aside className={`fixed top-16 left-0 z-40 w-64 h-screen transition-transform ${
-        isSideMenuOpen ? 'translate-x-0' : '-translate-x-full'
-      } bg-white border-r border-gray-200 md:hidden`}>
+      <aside className={`fixed top-16 left-0 z-40 w-64 h-screen transition-transform ${isSideMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        } bg-white border-r border-gray-200 md:hidden`}>
         <div className="h-full px-3 py-4 overflow-y-auto">
           <ul className="space-y-2 font-medium">
             {/* Início */}
@@ -227,7 +349,7 @@ function NavigationHeader({ onNavigate }) {
                   </li>
                   <li>
                     <button onClick={() => scrollToSection('components')} className="flex items-center w-full p-2 text-gray-700 rounded-lg hover:bg-gray-100 text-sm">
-                      📡 Linhas
+                      📡 Linhas de Transmissão
                     </button>
                   </li>
                   <li>
@@ -264,7 +386,7 @@ function NavigationHeader({ onNavigate }) {
 
       {/* Overlay para fechar o menu */}
       {isSideMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
           onClick={() => setIsSideMenuOpen(false)}
         />
@@ -275,6 +397,8 @@ function NavigationHeader({ onNavigate }) {
 
 // PAGE HEADER - Banner principal
 function PageHeader() {
+  const [showVideo, setShowVideo] = useState(false);
+
   return (
     <header id="intro" className="page-header text-center mb-8 sm:mb-10 md:mb-12 px-4 animate-on-scroll pt-20">
       <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-5 leading-tight" style={{ color: 'var(--color-primary-dark)' }}>
@@ -283,14 +407,37 @@ function PageHeader() {
       <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: 'var(--color-text-medium)' }}>
         Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que move nosso mundo.
       </p>
-      <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: 'var(--color-text-medium)' }}>
+      <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2 mb-6" style={{ color: 'var(--color-text-medium)' }}>
         Simulação de Sistemas Elétricos de ponta, ao alcance do seu clique.
       </p>
-      <img 
-        src="/assets/Logo_ONSInspira.png" 
-        alt="Logo ONS Inspira" 
-        className="mx-auto h-32 sm:h-40 md:h-48 w-auto mb-4 mt-4"
-      />
+
+      {/* Image/Video Container */}
+      <div
+        className="relative mx-auto w-48 sm:w-64 md:w-80 h-32 sm:h-40 md:h-48 cursor-pointer"
+        onClick={() => setShowVideo(!showVideo)}
+        onMouseEnter={() => setShowVideo(true)}
+        onMouseLeave={() => setShowVideo(false)}
+      >
+        {/* Logo Image - shown by default */}
+        <img
+          src="/assets/Logo_ONSInspira.png"
+          alt="Logo ONS Inspira"
+          className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${showVideo ? 'opacity-0' : 'opacity-100'
+            }`}
+        />
+
+        {/* Video - shown on hover/click */}
+        <div className={`absolute inset-0 w-full h-full transition-opacity duration-500 ${showVideo ? 'opacity-100' : 'opacity-0'
+          }`}>
+          <VideoContainer
+            path_video="/assets/Animação_Logo_ONS_INOVAE.mp4"
+            width="500px"
+            height="150"
+            objectFit="cover"
+            className="mx-auto my-4"
+          />
+        </div>
+      </div>
     </header>
   )
 }
@@ -315,29 +462,27 @@ function SiteCard({ siteKey, siteName, siteUrl, siteColor, allowIframe }) {
         <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3" style={{ color: 'var(--color-primary)' }}>
           {siteName}
         </h3>
-        
+
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
           {allowIframe && (
             <button
               onClick={handleToggleIframe}
-              className={`view-mode-btn flex-1 px-3 sm:px-4 py-2 rounded-lg font-medium border-2 text-sm sm:text-base ${
-                viewMode === 'iframe' 
-                  ? 'active border-transparent' 
-                  : `border-${siteColor} text-${siteColor} hover:bg-${siteColor} hover:text-white`
-              }`}
+              className={`view-mode-btn flex-1 px-3 sm:px-4 py-2 rounded-lg font-medium border-2 text-sm sm:text-base ${viewMode === 'iframe'
+                ? 'active border-transparent'
+                : `border-${siteColor} text-${siteColor} hover:bg-${siteColor} hover:text-white`
+                }`}
             >
               <span className="hidden sm:inline">📺 Ver no Iframe</span>
               <span className="sm:hidden">📺 Iframe</span>
             </button>
           )}
-          
+
           <button
             onClick={handleOpenNewTab}
-            className={`view-mode-btn flex-1 px-3 sm:px-4 py-2 rounded-lg font-medium border-2 text-sm sm:text-base ${
-              viewMode === 'newtab' 
-                ? 'active border-transparent' 
-                : `border-${siteColor} text-${siteColor} hover:bg-${siteColor} hover:text-white`
-            }`}
+            className={`view-mode-btn flex-1 px-3 sm:px-4 py-2 rounded-lg font-medium border-2 text-sm sm:text-base ${viewMode === 'newtab'
+              ? 'active border-transparent'
+              : `border-${siteColor} text-${siteColor} hover:bg-${siteColor} hover:text-white`
+              }`}
           >
             <span className="hidden sm:inline">🔗 Abrir em Nova Aba</span>
             <span className="sm:hidden">🔗 Nova Aba</span>
@@ -346,9 +491,9 @@ function SiteCard({ siteKey, siteName, siteUrl, siteColor, allowIframe }) {
 
         {viewMode === 'iframe' && allowIframe && (
           <div className="iframe-container flex justify-center mt-2 sm:mt-4">
-            <iframe 
+            <iframe
               id={`iframe-${siteKey}`}
-              src={siteUrl} 
+              src={siteUrl}
               className="w-full sm:w-[500px] md:w-[600px] h-[400px] sm:h-[500px] md:h-[600px] border-2 sm:border-4 rounded-lg shadow-lg"
               style={{ borderColor: 'var(--color-primary-border)', aspectRatio: '1/1' }}
               frameBorder="0"
@@ -374,7 +519,7 @@ function ImportantLinksSection() {
       { id: 'sinmaps', name: 'Mapas do SIN', url: 'https://www.ons.org.br/paginas/sobre-o-sin/mapas', color: 'blue-500', iframe: false },
       { id: 'ons-plc1', name: 'Procedimentos de Rede', url: 'https://www.ons.org.br/paginas/sobre-o-ons/procedimentos-de-rede/o-que-sao', color: 'blue-700', iframe: false },
       { id: 'ons-plc2', name: 'Resposta em Demanda', url: 'https://www.ons.org.br/paginas/energia-amanha/resposta-da-demanda', color: 'blue-700', iframe: false },
-    
+
     ],
     dados: [
       { id: 'ons', name: 'ONS - Carga e Geração', url: 'https://www.ons.org.br/paginas/energia-agora/carga-e-geracao', color: 'blue-700', iframe: true }
@@ -403,7 +548,7 @@ function ImportantLinksSection() {
 
   return (
     <section id="sites" className="mb-8 sm:mb-12 md:mb-16 animate-on-scroll scroll-mt-20">
-      <div className="text-center mb-8">
+      <div className="text-center mb-8 mt-8">
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2" style={{ color: 'var(--color-primary-dark)' }}>
           🔗 Links Importantes
         </h2>
@@ -416,25 +561,22 @@ function ImportantLinksSection() {
       <div className="flex justify-center gap-2 sm:gap-4 mb-6 flex-wrap">
         <button
           onClick={() => handleCategoryChange('mapas')}
-          className={`tab-btn px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all ${
-            activeCategory === 'mapas' ? 'active' : 'bg-slate-200 hover:bg-cyan-500 hover:text-white'
-          }`}
+          className={`tab-btn px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all ${activeCategory === 'mapas' ? 'active' : 'bg-slate-200 hover:bg-cyan-500 hover:text-white'
+            }`}
         >
           🗺️ Mapas
         </button>
         <button
           onClick={() => handleCategoryChange('dados')}
-          className={`tab-btn px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all ${
-            activeCategory === 'dados' ? 'active' : 'bg-slate-200 hover:bg-cyan-500 hover:text-white'
-          }`}
+          className={`tab-btn px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all ${activeCategory === 'dados' ? 'active' : 'bg-slate-200 hover:bg-cyan-500 hover:text-white'
+            }`}
         >
           📊 Dados em Tempo Real
         </button>
         <button
           onClick={() => handleCategoryChange('regulacao')}
-          className={`tab-btn px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all ${
-            activeCategory === 'regulacao' ? 'active' : 'bg-slate-200 hover:bg-cyan-500 hover:text-white'
-          }`}
+          className={`tab-btn px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all ${activeCategory === 'regulacao' ? 'active' : 'bg-slate-200 hover:bg-cyan-500 hover:text-white'
+            }`}
         >
           ⚖️ Regulação
         </button>
@@ -445,7 +587,7 @@ function ImportantLinksSection() {
         <div className="relative">
           {/* Carousel Content */}
           <div className="overflow-hidden">
-            <div 
+            <div
               className="flex transition-transform duration-500 ease-in-out"
               style={{ transform: `translateX(-${currentSlide * 100}%)` }}
             >
@@ -490,9 +632,8 @@ function ImportantLinksSection() {
                 <button
                   key={index}
                   onClick={() => setCurrentSlide(index)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    currentSlide === index ? 'bg-cyan-600 w-8' : 'bg-gray-300'
-                  }`}
+                  className={`w-2 h-2 rounded-full transition-all ${currentSlide === index ? 'bg-cyan-600 w-8' : 'bg-gray-300'
+                    }`}
                   aria-label={`Ir para slide ${index + 1}`}
                 />
               ))}
@@ -504,20 +645,12 @@ function ImportantLinksSection() {
   )
 }
 
-// FLOW ARROW COMPONENT
-function FlowArrow() {
-  return (
-    <>
-      <div className="flow-arrow hidden md:block mx-4">→</div>
-      <div className="flow-arrow block md:hidden my-2">↓</div>
-    </>
-  )
-}
+
 
 // NAVIGATION BUTTON COMPONENT - Agora apenas informativo
 function NavigationButton({ id, icon, title, description, onClick }) {
   return (
-    <div 
+    <div
       id={`btn-${id}`}
       onClick={onClick}
       className="main-nav-btn m-2 cursor-pointer p-6 rounded-xl hover:bg-cyan-100 transition-all duration-300 shadow-md hover:shadow-lg bg-white"
@@ -570,9 +703,8 @@ function MainNavigation({ onNavigate }) {
 function TabButton({ index, name, isActive, onClick }) {
   return (
     <button
-      className={`tab-btn px-4 py-2 rounded-md text-sm sm:text-base font-medium transition-all duration-200 ${
-        isActive ? 'active' : 'bg-slate-200 hover:bg-cyan-500 hover:text-white'
-      }`}
+      className={`tab-btn px-4 py-2 rounded-md text-sm sm:text-base font-medium transition-all duration-200 ${isActive ? 'active' : 'bg-slate-200 hover:bg-cyan-500 hover:text-white'
+        }`}
       data-index={index}
       onClick={onClick}
     >
@@ -582,20 +714,6 @@ function TabButton({ index, name, isActive, onClick }) {
 }
 
 
-// new fucntion for animations
-function animateOnScroll() {
-  const elements = document.querySelectorAll('.animate-on-scroll')
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible')
-        observer.unobserve(entry.target)
-      }
-    })
-  })
-
-  elements.forEach(element => observer.observe(element))
-}
 
 // GENERATION CHART COMPONENT - Matriz Energética (%)
 function ReusableChart({ chartId, type, data, options, deps = [] }) {
@@ -635,7 +753,7 @@ function ReusableChart({ chartId, type, data, options, deps = [] }) {
       }
       cleanup()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps)
 
   return (
@@ -666,7 +784,7 @@ function GenerationChart() {
     }
   }
   return (
-    <ReusableChart 
+    <ReusableChart
       chartId="generationPercentChart"
       type="doughnut"
       data={data}
@@ -698,7 +816,7 @@ function CapacityChart() {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: function(value) {
+          callback: function (value) {
             try { return Number(value).toLocaleString() + ' MW' } catch { return value + ' MW' }
           }
         }
@@ -711,7 +829,7 @@ function CapacityChart() {
   }
 
   return (
-    <ReusableChart 
+    <ReusableChart
       chartId="capacityMWChart"
       type="bar"
       data={data}
@@ -727,10 +845,10 @@ function GenerationSection({ isOpen, onToggle }) {
   const handleTabClick = useCallback((index) => { setActiveTab(index) }, [])
 
   return (
-    <section 
+    <section
       id="content-geracao"
       className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
-      style={{ 
+      style={{
         borderColor: isOpen ? 'var(--color-primary-border)' : 'var(--color-border)',
         minHeight: isOpen ? 'auto' : '180px'
       }}
@@ -744,16 +862,15 @@ function GenerationSection({ isOpen, onToggle }) {
           className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-all"
           aria-label={isOpen ? 'Recolher seção' : 'Expandir seção'}
         >
-          <ChevronDown 
-            size={24} 
-            className={`text-cyan-600 transition-transform duration-300 ${
-              isOpen ? 'rotate-180' : ''
-            }`} 
+          <ChevronDown
+            size={24}
+            className={`text-cyan-600 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''
+              }`}
           />
         </button>
       </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
-        Esta é a primeira etapa, onde a energia é produzida a partir de diversas fontes. 
+        Esta é a primeira etapa, onde a energia é produzida a partir de diversas fontes.
         Explore os principais tipos de usinas e veja uma representação de como elas compõem nossa matriz energética.
       </p>
       <div className="space-y-8">
@@ -782,6 +899,11 @@ function GenerationSection({ isOpen, onToggle }) {
             <h4 className="text-xl sm:text-2xl font-semibold text-center mb-4">Capacidade Instalada (MW)</h4>
             <CapacityChart />
           </div>
+
+          <div className="flex flex-col items-center scroll-mt-20" id='matriz-energetica-ons'>
+            <img src="assets/matriz_energetica_2025_ONS.png" alt="" className="h-40 w-auto" />
+
+          </div>
         </div>
       </div>
     </section>
@@ -797,10 +919,10 @@ function TransmissionSection({ isOpen, onToggle }) {
   ]
 
   return (
-    <section 
+    <section
       id="content-transmissao"
       className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
-      style={{ 
+      style={{
         borderColor: isOpen ? 'var(--color-primary-border)' : 'var(--color-border)',
         minHeight: isOpen ? 'auto' : '180px'
       }}
@@ -814,16 +936,15 @@ function TransmissionSection({ isOpen, onToggle }) {
           className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-all"
           aria-label={isOpen ? 'Recolher seção' : 'Expandir seção'}
         >
-          <ChevronDown 
-            size={24} 
-            className={`text-cyan-600 transition-transform duration-300 ${
-              isOpen ? 'rotate-180' : ''
-            }`} 
+          <ChevronDown
+            size={24}
+            className={`text-cyan-600 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''
+              }`}
           />
         </button>
       </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
-        Após ser gerada, a energia precisa viajar grandes distâncias. 
+        Após ser gerada, a energia precisa viajar grandes distâncias.
         Esta seção detalha como esse transporte é feito de forma eficiente e segura.
       </p>
       <ul className="space-y-4">
@@ -846,10 +967,10 @@ function DistributionSection({ isOpen, onToggle }) {
   ]
 
   return (
-    <section 
+    <section
       id="content-distribuicao"
       className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
-      style={{ 
+      style={{
         borderColor: isOpen ? 'var(--color-primary-border)' : 'var(--color-border)',
         minHeight: isOpen ? 'auto' : '180px'
       }}
@@ -863,16 +984,15 @@ function DistributionSection({ isOpen, onToggle }) {
           className="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 transition-all"
           aria-label={isOpen ? 'Recolher seção' : 'Expandir seção'}
         >
-          <ChevronDown 
-            size={24} 
-            className={`text-cyan-600 transition-transform duration-300 ${
-              isOpen ? 'rotate-180' : ''
-            }`} 
+          <ChevronDown
+            size={24}
+            className={`text-cyan-600 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''
+              }`}
           />
         </button>
       </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
-        Esta é a etapa final da jornada, onde a energia elétrica é entregue aos consumidores 
+        Esta é a etapa final da jornada, onde a energia elétrica é entregue aos consumidores
         em tensões seguras e utilizáveis.
       </p>
       <ul className="space-y-4">
@@ -890,9 +1010,8 @@ function DistributionSection({ isOpen, onToggle }) {
 function ComponentButton({ index, name, isActive, onClick }) {
   return (
     <button
-      className={`component-btn p-3 text-center rounded-lg font-semibold transition-all duration-200 ${
-        isActive ? 'active' : 'bg-slate-100 hover:bg-cyan-600 hover:text-white'
-      }`}
+      className={`component-btn p-3 text-center rounded-lg font-semibold transition-all duration-200 ${isActive ? 'active' : 'bg-slate-100 hover:bg-cyan-600 hover:text-white'
+        }`}
       data-index={index}
       onClick={onClick}
     >
@@ -902,31 +1021,24 @@ function ComponentButton({ index, name, isActive, onClick }) {
 }
 
 // COMPONENTS SECTION
-// COMPONENTS SECTION
 function ComponentsSection() {
   const [activeComponent, setActiveComponent] = useState(null)
-  const handleComponentClick = useCallback((index) => { 
+  const handleComponentClick = useCallback((index) => {
     setActiveComponent(prev => prev === index ? null : index) // Toggle selection
   }, [])
 
   // Check if the active component is "Linhas de Transmissão"
-  const isTransmissionLine = activeComponent !== null && 
+  const isTransmissionLine = activeComponent !== null &&
     AppDataModel.componentsData[activeComponent].name === "Linhas de Transmissão";
 
-// // Example usage
-//   renderMarkdownFile('/path/to/your/markdown/folder', 'your-markdown-file')
-//     .then(result => {
-//       console.log('Markdown rendered successfully');
-//       // The markdown will be appended to the body of your document
-//       // inside a div with id 'markdown-container' (default)
-//     })
-//     .catch(error => {
-//       console.error('Error:', error);
-//     });
+  // Usando e pegando informações em arquivos .md separados
+  const transmissionLineHtml = MarkdownPage("linhas_transmissao.md");
+  console.log(transmissionLineHtml);
+
 
   return (
-    <section 
-      id="components" 
+    <section
+      id="components"
       className="rounded-xl shadow-lg p-6 md:p-8 mt-12 border animate-on-scroll scroll-mt-20"
       style={{ backgroundColor: 'var(--color-bg-card)', borderColor: 'var(--color-border)' }}
     >
@@ -934,7 +1046,7 @@ function ComponentsSection() {
         4. Componentes Chave de um Sistema de Potência
       </h3>
       <p className="text-base sm:text-lg mb-8 text-center max-w-3xl mx-auto" style={{ color: 'var(--color-text-medium)' }}>
-        Um sistema de potência é composto por diversos equipamentos. 
+        Um sistema de potência é composto por diversos equipamentos.
         Clique nos botões para conhecer a função de cada um.
       </p>
       <div id="components-btn-container" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 mb-6">
@@ -948,8 +1060,8 @@ function ComponentsSection() {
           />
         ))}
       </div>
-      <div 
-        id="component-content-display" 
+      <div
+        id="component-content-display"
         className="p-6 rounded-lg min-h-[100px] transition-all duration-300"
         style={{ backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary-dark)' }}
       >
@@ -961,14 +1073,14 @@ function ComponentsSection() {
             <p className="text-base sm:text-lg mb-4">
               {AppDataModel.componentsData[activeComponent].description}
             </p>
-            
+
             {/* Conditional content for Transmission Lines */}
             {isTransmissionLine && (
               <div className="mt-4 p-4 bg-white bg-opacity-20 rounded-lg">
                 <h5 className="font-semibold mb-2">Sobre as Linhas de Transmissão:</h5>
                 <p className="text-sm sm:text-base">
-                  As linhas de transmissão são fundamentais para o SIN (Sistema Interligado Nacional), 
-                  conectando as usinas geradoras aos centros de consumo. Elas operam em diferentes níveis 
+                  As linhas de transmissão são fundamentais para o SIN (Sistema Interligado Nacional),
+                  conectando as usinas geradoras aos centros de consumo. Elas operam em diferentes níveis
                   de tensão, desde as linhas de transmissão de alta tensão (AT) até as de extra-alta tensão (EAT).
                   <br /><br />
                   Principais características:
@@ -979,6 +1091,10 @@ function ComponentsSection() {
                     <li>Utilizam torres de aço ou concreto para suporte</li>
                   </ul>
                 </p>
+
+
+                <a href="https://www.mundodaeletrica.com.br/o-que-sao-linhas-de-transmissao-caracteristicas-curiosidades/">Leia mais sobre Linhas de Transmissão</a>
+
               </div>
             )}
           </>
@@ -993,15 +1109,15 @@ function ComponentsSection() {
 }
 
 // EQUATIONS SECTION COMPONENT - Placeholder para futuro
-function InequacoesSectionPLC(){
+function InequacoesSectionPLC() {
   return (
-      <section>
-        <h3>Inequações para controle de Reativo do Sistema</h3>
-        <p>Uso de inequações como uma regra de tres investigando o antes e depois de uma sobrecarga em MW como (1800 MW) numa linhas</p>
-        <p>A matriz de Indutancia (Jacobiano) me traz a caracteristica de como a linha se comporta em relação ao valor de P e Q. </p>
-        <p>Com isso posso calcular o valor de P e Q para que a linha não ultrapasse a sua capacidade de transporte.</p>
-        <p>Existe o PV e PQ para controles em SEP</p>
-      </section>
+    <section>
+      <h3>Inequações para controle de Reativo do Sistema</h3>
+      <p>Uso de inequações como uma regra de tres investigando o antes e depois de uma sobrecarga em MW como (1800 MW) numa linhas</p>
+      <p>A matriz de Indutancia (Jacobiano) me traz a caracteristica de como a linha se comporta em relação ao valor de P e Q. </p>
+      <p>Com isso posso calcular o valor de P e Q para que a linha não ultrapasse a sua capacidade de transporte.</p>
+      <p>Existe o PV e PQ para controles em SEP</p>
+    </section>
   )
 }
 
@@ -1010,11 +1126,11 @@ function EquationsSection() {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <section 
+    <section
       id="equations"
       className="rounded-xl shadow-lg p-6 md:p-8 mt-12 mb-12 border-2 animate-on-scroll scroll-mt-20"
-      style={{ 
-        backgroundColor: 'var(--color-bg-card)', 
+      style={{
+        backgroundColor: 'var(--color-bg-card)',
         borderColor: 'var(--color-primary-border)'
       }}
     >
@@ -1034,7 +1150,7 @@ function EquationsSection() {
           )}
         </button>
       </div>
-      
+
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
         Explore as principais equações que governam os Sistemas Elétricos de Potência.
         Esta seção será expandida com equações em LaTeX e implementações em Python com SymPy.
@@ -1068,7 +1184,7 @@ function EquationsSection() {
         </div>
       )}
 
-      <InequacoesSectionPLC/>
+      <InequacoesSectionPLC />
 
     </section>
   )
@@ -1146,7 +1262,7 @@ export default function Home() {
       ...prev,
       [sectionKey]: true
     }))
-    
+
     // Fazer scroll após um pequeno delay para garantir que o card expandiu
     setTimeout(() => {
       const element = document.getElementById(sectionId)
@@ -1154,7 +1270,7 @@ export default function Home() {
         const headerOffset = 80
         const elementPosition = element.getBoundingClientRect().top
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset
-        
+
         window.scrollTo({
           top: offsetPosition,
           behavior: 'smooth'
@@ -1173,42 +1289,48 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <NavigationHeader />
-      
+
       <div className="max-w-6xl mx-auto p-4 sm:p-6 md:p-8">
         <PageHeader />
-        
+
         <main className="main-content">
 
-        
+
           <ImportantLinksSection />
 
-          img de ONS aqui
-          
-          <MainNavigation 
+          <ImgContainer
+            src="assets/geracao_transmissao_distribuicao_ONS.jpeg"
+            alt="Sistema de Transmissão ONS"
+            width="400"    // Largura em pixels
+            height="300"   // Altura em pixels
+            className="my-4" // optional
+          />
+
+          <MainNavigation
             onNavigate={handleNavigate}
           />
           img de Operador Jurassic Wolrd Aqui
           <div id="content-container" className="mt-4">
-            <GenerationSection 
+            <GenerationSection
               isOpen={openSections.geracao}
               onToggle={() => toggleSection('geracao')}
             />
-            <TransmissionSection 
+            <TransmissionSection
               isOpen={openSections.transmissao}
               onToggle={() => toggleSection('transmissao')}
             />
             Imagem de Linhas de Transmissão aqui
-            <DistributionSection 
+            <DistributionSection
               isOpen={openSections.distribuicao}
               onToggle={() => toggleSection('distribuicao')}
             />
           </div>
 
           <ComponentsSection />
-          
+
           <EquationsSection />
         </main>
-        <NextJSComponenetTemplate/>
+        <NextJSComponenetTemplate />
         <PageFooter />
       </div>
     </div>
