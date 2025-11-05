@@ -945,6 +945,19 @@ function ComponentsSection() {
 }
 
 // EQUATIONS SECTION COMPONENT - Placeholder para futuro
+function InequacoesSectionPLC(){
+  return (
+      <section>
+        <h3>Inequações para controle de Reativo do Sistema</h3>
+        <p>Uso de inequações como uma regra de tres investigando o antes e depois de uma sobrecarga em MW como (1800 MW) numa linhas</p>
+        <p>A matriz de Indutancia (Jacobiano) me traz a caracteristica de como a linha se comporta em relação ao valor de P e Q. </p>
+        <p>Com isso posso calcular o valor de P e Q para que a linha não ultrapasse a sua capacidade de transporte.</p>
+        <p>Existe o PV e PQ para controles em SEP</p>
+      </section>
+  )
+}
+
+
 function EquationsSection() {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -1006,6 +1019,9 @@ function EquationsSection() {
           </div>
         </div>
       )}
+
+      <InequacoesSectionPLC/>
+
     </section>
   )
 }
@@ -1114,14 +1130,16 @@ export default function Home() {
         <PageHeader />
         
         <main className="main-content">
-        <NextJSComponenetTemplate/>
+
         
           <ImportantLinksSection />
+
+          img de ONS aqui
           
           <MainNavigation 
             onNavigate={handleNavigate}
           />
-          
+          img de Operador Jurassic Wolrd Aqui
           <div id="content-container" className="mt-4">
             <GenerationSection 
               isOpen={openSections.geracao}
@@ -1131,6 +1149,7 @@ export default function Home() {
               isOpen={openSections.transmissao}
               onToggle={() => toggleSection('transmissao')}
             />
+            Imagem de Linhas de Transmissão aqui
             <DistributionSection 
               isOpen={openSections.distribuicao}
               onToggle={() => toggleSection('distribuicao')}
@@ -1141,7 +1160,7 @@ export default function Home() {
           
           <EquationsSection />
         </main>
-
+        <NextJSComponenetTemplate/>
         <PageFooter />
       </div>
     </div>
