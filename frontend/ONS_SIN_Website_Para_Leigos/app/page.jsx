@@ -5,6 +5,9 @@ import dynamic from 'next/dynamic'
 import { Menu, X, ChevronDown, ChevronRight, LucideFileSignature } from 'lucide-react'
 
 
+import renderMarkdownFile from './controllers/renderMarkdown'
+
+
 // Importar Chart.js dinamicamente para evitar problemas de SSR
 const Chart = dynamic(() => import('chart.js/auto').then((mod) => mod.Chart), { ssr: false })
 
@@ -41,12 +44,12 @@ const AppDataModel = {
   ],
   componentsData: [
     { id: 'geradores', name: 'Geradores', description: 'Convertem outras formas de energia (mecânica, térmica, etc.) em energia elétrica. São o coração das usinas.' },
-    { id: 'transformadores', name: 'Transformadores', description: 'Alteram os níveis de tensão da eletricidade. Elevam a tensão para a transmissão e a reduzem para a distribuição e consumo.' },
-    { id: 'linhas', name: 'Linhas', description: 'Conduzem a energia através de cabos aéreos ou subterrâneos, formando as redes de transmissão e distribuição.' },
-    { id: 'disjuntores', name: 'Disjuntores', description: 'Controlam o fluxo de energia e protegem o sistema contra falhas. Atuam como interruptores de grande porte.' },
-    { id: 'reles', name: 'Relés', description: 'Detectam condições anormais (curtos-circuitos) e acionam os disjuntores para isolar a falha e proteger o resto do sistema.' },
-    { id: 'barramentos', name: 'Barramentos', description: 'São barras condutoras que conectam vários circuitos em uma subestação, funcionando como um nó de distribuição de energia.' },
-    { id: 'reativos', name: 'Reativos', description: 'Capacitores e Reatores são usados para controlar a tensão e compensar a potência reativa na rede, melhorando a eficiência e a estabilidade.' }
+    { id: 'transformadores', name: 'Transformadores', description: 'Podem ser em Fase ou em Série. Alteram os níveis de tensão da eletricidade. Elevam a tensão para a transmissão e a reduzem para a distribuição e consumo.' },
+    { id: 'linhas', name: 'Linhas de Transmissão', description: 'Conduzem a energia através de cabos aéreos ou subterrâneos, formando as redes de transmissão e distribuição.' },
+    { id: 'disjuntores', name: 'Disjuntores', description: 'Controlam o fluxo de energia e protegem o sistema contra falhas. Atuam como interruptores de grande porte em Substações' },
+    { id: 'reles', name: 'Relés', description: 'Detectam condições anormais (curtos-circuitos) e acionam os disjuntores para isolar a falha e proteger o resto do sistema. Hoje em dia é possivel controlar os relés remotamente utilizando IEEds e IOT.' },
+    { id: 'barramentos', name: 'Barras', description: 'São barras condutoras que conectam vários circuitos em uma subestação, funcionando como um nó de distribuição de energia.' },
+    { id: 'reativos', name: 'Reatores', description: 'Reatores são usados para controlar a tensão e compensar a potência reativa na rede, melhorando a eficiência e a estabilidade.' }
   ],
   externalSites: {
     sin: { id: 'sin', name: 'SIN', url: 'https://sig.ons.org.br/app/sinmaps/', color: 'blue-500', iframe: true },
@@ -899,12 +902,31 @@ function ComponentButton({ index, name, isActive, onClick }) {
 }
 
 // COMPONENTS SECTION
+// COMPONENTS SECTION
 function ComponentsSection() {
   const [activeComponent, setActiveComponent] = useState(null)
-  const handleComponentClick = useCallback((index) => { setActiveComponent(index) }, [])
+  const handleComponentClick = useCallback((index) => { 
+    setActiveComponent(prev => prev === index ? null : index) // Toggle selection
+  }, [])
+
+  // Check if the active component is "Linhas de Transmissão"
+  const isTransmissionLine = activeComponent !== null && 
+    AppDataModel.componentsData[activeComponent].name === "Linhas de Transmissão";
+
+// // Example usage
+//   renderMarkdownFile('/path/to/your/markdown/folder', 'your-markdown-file')
+//     .then(result => {
+//       console.log('Markdown rendered successfully');
+//       // The markdown will be appended to the body of your document
+//       // inside a div with id 'markdown-container' (default)
+//     })
+//     .catch(error => {
+//       console.error('Error:', error);
+//     });
 
   return (
-    <section id="components" 
+    <section 
+      id="components" 
       className="rounded-xl shadow-lg p-6 md:p-8 mt-12 border animate-on-scroll scroll-mt-20"
       style={{ backgroundColor: 'var(--color-bg-card)', borderColor: 'var(--color-border)' }}
     >
@@ -933,11 +955,37 @@ function ComponentsSection() {
       >
         {activeComponent !== null ? (
           <>
-            <h4 className="font-bold text-lg sm:text-xl mb-2">{AppDataModel.componentsData[activeComponent].name}</h4>
-            <p className="text-base sm:text-lg">{AppDataModel.componentsData[activeComponent].description}</p>
+            <h4 className="font-bold text-lg sm:text-xl mb-2">
+              {AppDataModel.componentsData[activeComponent].name}
+            </h4>
+            <p className="text-base sm:text-lg mb-4">
+              {AppDataModel.componentsData[activeComponent].description}
+            </p>
+            
+            {/* Conditional content for Transmission Lines */}
+            {isTransmissionLine && (
+              <div className="mt-4 p-4 bg-white bg-opacity-20 rounded-lg">
+                <h5 className="font-semibold mb-2">Sobre as Linhas de Transmissão:</h5>
+                <p className="text-sm sm:text-base">
+                  As linhas de transmissão são fundamentais para o SIN (Sistema Interligado Nacional), 
+                  conectando as usinas geradoras aos centros de consumo. Elas operam em diferentes níveis 
+                  de tensão, desde as linhas de transmissão de alta tensão (AT) até as de extra-alta tensão (EAT).
+                  <br /><br />
+                  Principais características:
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <li>Operam em tensões a partir de 230 kV</li>
+                    <li>São monitoradas 24/7 pelo ONS</li>
+                    <li>Podem ser aéreas ou subterrâneas</li>
+                    <li>Utilizam torres de aço ou concreto para suporte</li>
+                  </ul>
+                </p>
+              </div>
+            )}
           </>
         ) : (
-          <p className="text-center text-base sm:text-lg">Selecione um componente para ver sua descrição.</p>
+          <p className="text-center text-base sm:text-lg">
+            Selecione um elemento do Sistema Elétrico para saber mais.
+          </p>
         )}
       </div>
     </section>
