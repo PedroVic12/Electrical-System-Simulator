@@ -26,7 +26,6 @@ function NextJSComponenetTemplate() {
     Go from beginner to expert by learning the foundations of Next.js and building a fully functional demo website that uses all the latest features.
     </div>
 
-
     
   )
 }
@@ -309,12 +308,27 @@ function SiteCard({ siteKey, siteName, siteUrl, siteColor, allowIframe }) {
     setViewMode(prev => prev === 'iframe' ? null : 'iframe')
   }
 
+  // Detectar se o cartão é de "mapas" (ajustável)
+  const showMapDescription = (() => {
+    const key = (siteKey || '').toLowerCase()
+    const name = (siteName || '').toLowerCase()
+    return key.includes('sin') || key.includes('map') || name.includes('mapa') || name.includes('sin')
+  })()
+
   return (
     <div className="site-card mb-4 sm:mb-6">
       <div className="flex flex-col">
         <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3" style={{ color: 'var(--color-primary)' }}>
           {siteName}
         </h3>
+
+        {/* Descrição específica para mapas (aparece antes das opções de visualização) */}
+        {showMapDescription && (
+          <p className="mb-3 text-sm sm:text-base text-gray-700">
+            Este mapa interativo permite explorar camadas do SIN, visualizar subestações e rotas de transmissão.
+            Você pode visualizar diretamente no iframe (quando disponível) ou abrir em uma nova aba para navegar com mais liberdade.
+          </p>
+        )}
         
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
           {allowIframe && (
