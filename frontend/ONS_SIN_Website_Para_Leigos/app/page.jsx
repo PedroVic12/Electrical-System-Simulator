@@ -274,11 +274,10 @@ function NavigationHeader({ onNavigate }) {
             </div>
 
             {/* Navigation Buttons - Desktop */}
-            <nav className="hidden md:flex space-x-4">
+            <nav className="hidden md:flex space-x-4 ">
               <button onClick={() => scrollToSection('intro')} className="nav-header-btn">Início</button>
               <button onClick={() => scrollToSection('generation')} className="nav-header-btn">Geração</button>
               <button onClick={() => scrollToSection('components')} className="nav-header-btn">Componentes</button>
-              <button onClick={() => scrollToSection('chart')} className="nav-header-btn">Estatísticas</button>
               <button onClick={() => scrollToSection('sites')} className="nav-header-btn">Sites Úteis</button>
             </nav>
 
@@ -383,15 +382,6 @@ function NavigationHeader({ onNavigate }) {
               )}
             </li>
 
-            {/* Estatísticas */}
-            <li>
-              <button
-                onClick={() => scrollToSection('chart')}
-                className="flex items-center w-full p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              >
-                <span className="ml-3">📊 Estatísticas</span>
-              </button>
-            </li>
 
             {/* Sites Úteis */}
             <li>
