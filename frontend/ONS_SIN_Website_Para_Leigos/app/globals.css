@@ -37,26 +37,26 @@
 /* Variáveis para o tema escuro (Dark Mode - Foco no Azul Escuro) */
 [data-theme="dark"] {
   /* Cores base */
-  --color-primary: #60a5fa; /* Azul Claro para Destaque (legível no escuro) */
-  --color-primary-dark: #3b82f6; /* Azul mais saturado */
+  --color-primary: #60a5fa;
+  --color-primary-dark: #3b82f6;
   --color-primary-light: #1e40af;
   
   /* Cores de texto */
-  --color-text: #e2e8f0; /* Off-White (Alto Contraste) */
-  --color-text-secondary: #94a3b8; /* Cinza azulado para detalhes */
+  --color-text: #e2e8f0;
+  --color-text-secondary: #94a3b8;
   --color-text-light: #f8fafc;
   
-  /* Cores de fundo (Navy/Azul Escuro) */
-  --color-bg: #0a192f; /* Base profunda, ideal para leituras longas */
-  --color-bg-secondary: #172a45; /* Fundo de botões/elementos */
-  --color-bg-card: #172a45; /* Fundo de cards (para separação visual) */
+  /* Cores de fundo */
+  --color-bg: #0a192f;
+  --color-bg-secondary: #172a45;
+  --color-bg-card: #172a45;
   
   /* Bordas */
   --color-border: #334155;
   --color-border-hover: #60a5fa;
   
   /* Cores de destaque */
-  --color-accent: #60a5fa; 
+  --color-accent: #60a5fa;
   --color-success: #34d399;
   --color-warning: #fbbf24;
   --color-error: #f87171;
@@ -215,12 +215,6 @@ html {
 }
 
 /* Tema Switch */
-.theme-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
 
 
 input:checked + .theme-slider {

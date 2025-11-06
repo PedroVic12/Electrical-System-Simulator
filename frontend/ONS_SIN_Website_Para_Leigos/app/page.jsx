@@ -179,11 +179,11 @@ function VideoContainer({
 // DATA MODEL - Carregado do arquivo público
 const AppDataModel = {
   generationData: [
-    { id: 'hidreletricas', name: 'Hidrelétricas', description: 'Utilizam a força da água para girar turbinas e geradores. São uma fonte limpa e renovável, mas dependem de recursos hídricos.', notePath: '/mvc/models/notes/hidreletricas.md', capacityMW: 109000 },
-    { id: 'termeletricas', name: 'Termelétricas', description: 'Queimam combustíveis fósseis ou biomassa para aquecer água, produzir vapor e girar turbinas. São flexíveis, mas emitem gases de efeito estufa.', notePath: '/mvc/models/notes/termeletricas.md', capacityMW: 35000 },
-    { id: 'nucleares', name: 'Nucleares', description: 'Utilizam a fissão nuclear para gerar calor, que produz vapor para as turbinas. São eficientes e não emitem gases de efeito estufa, mas geram resíduos radioativos.', notePath: '/mvc/models/notes/nucleares.md', capacityMW: 3500 },
-    { id: 'eolicas', name: 'Eólicas', description: 'Convertem a energia do vento em eletricidade através de aerogeradores. São renováveis e limpas, mas intermitentes.', notePath: '/mvc/models/notes/eolicas.md', capacityMW: 19000 },
-    { id: 'solares', name: 'Solares', description: 'Convertem a luz do sol em eletricidade, seja por painéis fotovoltaicos (diretamente) ou por usinas termossolares. Também são renováveis e limpas, mas intermitentes.', notePath: '/mvc/models/notes/solares.md', capacityMW: 8500 }
+    { id: 'hidreletricas', name: 'Hidrelétricas', description: 'Utilizam a força da água para girar turbinas e geradores. São uma fonte limpa e renovável, mas dependem de recursos hídricos.', notePath: '/mvc/models/notes/hidreletricas.md', capacityMW: 48645.5  },
+    { id: 'termeletricas', name: 'Termelétricas', description: 'Queimam combustíveis fósseis ou biomassa para aquecer água, produzir vapor e girar turbinas. São flexíveis, mas emitem gases de efeito estufa.', notePath: '/mvc/models/notes/termeletricas.md', capacityMW: 12786.0  },
+    { id: 'nucleares', name: 'Nucleares', description: 'Utilizam a fissão nuclear para gerar calor, que produz vapor para as turbinas. São eficientes e não emitem gases de efeito estufa, mas geram resíduos radioativos.', notePath: '/mvc/models/notes/nucleares.md', capacityMW: 5015 },
+    { id: 'eolicas', name: 'Eólicas', description: 'Convertem a energia do vento em eletricidade através de aerogeradores. São renováveis e limpas, mas intermitentes.', notePath: '/mvc/models/notes/eolicas.md', capacityMW: 12056.4 },
+    { id: 'solares', name: 'Solares', description: 'Convertem a luz do sol em eletricidade, seja por painéis fotovoltaicos (diretamente) ou por usinas termossolares. Também são renováveis e limpas, mas intermitentes.', notePath: '/mvc/models/notes/solares.md', capacityMW: 15000 }
   ],
   componentsData: [
     { id: 'geradores', name: 'Geradores', description: 'Convertem outras formas de energia (mecânica, térmica, etc.) em energia elétrica. São o coração das usinas.' },
@@ -427,10 +427,10 @@ function PageHeader() {
         Sistema Elétrico de Potência Interativo para Leigos e Estudantes
       </h1>
       <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: 'var(--color-text-medium)' }}>
-        Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que move nosso mundo.
+        Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que abastece nosso mundo.
       </p>
       <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2 mb-6" style={{ color: 'var(--color-text-medium)' }}>
-        Simulação de Sistemas Elétricos de ponta, ao alcance do seu clique.
+        Simulação de Sistemas Elétricos de Potência ao alcance de um clique.
       </p>
 
       {/* Image/Video Container */}
@@ -446,17 +446,17 @@ function PageHeader() {
           alt="Logo ONS Inspira"
           className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${showVideo ? 'opacity-0' : 'opacity-100'
             }`}
-        />
+        />        
+
 
         {/* Video - shown on hover/click */}
         <div className={`absolute inset-0 w-full h-full transition-opacity duration-500 ${showVideo ? 'opacity-100' : 'opacity-0'
           }`}>
           <VideoContainer
             path_video="/assets/Animação_Logo_ONS_INOVAE.mp4"
-            width="500px"
-            height="150"
+            width="300px"
+            height="300px"
             objectFit="cover"
-            className="mx-auto my-4"
           />
         </div>
       </div>
@@ -689,7 +689,7 @@ function NavigationButton({ id, icon, title, description, onClick }) {
         </div>
       </div>
       <div className="mt-3 pt-3 border-t border-gray-200">
-        <p className="text-sm text-gray-500 italic">👆 Clique para ver esta etapa abaixo</p>
+        <p className="text-sm text-gray-500 italic">👆 Clique para ver</p>
       </div>
     </div>
   )
@@ -698,9 +698,9 @@ function NavigationButton({ id, icon, title, description, onClick }) {
 // MAIN NAVIGATION COMPONENT
 function MainNavigation({ onNavigate }) {
   const navigationSections = [
-    { id: 'geracao', sectionId: 'content-geracao', icon: '⚡', title: 'Geração', description: 'Onde tudo começa' },
-    { id: 'transmissao', sectionId: 'content-transmissao', icon: '🗼', title: 'Transmissão', description: 'Levando energia longe' },
-    { id: 'distribuicao', sectionId: 'content-distribuicao', icon: '🏠', title: 'Distribuição', description: 'Energia na sua porta' }
+    { id: 'geracao', sectionId: 'content-geracao', icon: '⚡', title: 'Geração', description: 'Onde tudo começa convertendo outras fontes de energia' },
+    { id: 'transmissao', sectionId: 'content-transmissao', icon: '🗼', title: 'Transmissão', description: 'Transportando a energia para todo o Brasil' },
+    { id: 'distribuicao', sectionId: 'content-distribuicao', icon: '🏠', title: 'Distribuição', description: 'Quando a Energia chega na sua casa e na sua cidade' }
   ]
 
   return (
@@ -824,7 +824,7 @@ function CapacityChart() {
   const data = {
     labels,
     datasets: [{
-      label: 'Capacidade Instalada (MW)',
+      label: 'Capacidade admissivel (MW)',
       data: capacityData,
       backgroundColor: AppDataModel.chartData.backgroundColor,
       borderColor: AppDataModel.chartData.backgroundColor.map(color => color),
@@ -892,8 +892,8 @@ function GenerationSection({ isOpen, onToggle }) {
         </button>
       </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
-        Esta é a primeira etapa, onde a energia é produzida a partir de diversas fontes.
-        Explore os principais tipos de usinas e veja uma representação de como elas compõem nossa matriz energética.
+        Esta é a primeira etapa, onde a energia é produzida de diversas Usinas.
+        Explore os principais tipos de fontes de Usinas e veja uma representação de como elas compõem nossa matriz energética.
       </p>
       <div className="space-y-8">
         {/* Tabs e Descrição */}
@@ -906,7 +906,7 @@ function GenerationSection({ isOpen, onToggle }) {
           <div id="tab-content-container" className="p-4 rounded-lg min-h-[200px]" style={{ backgroundColor: 'var(--color-bg-card-alt)' }}>
             <p className="mb-3">{AppDataModel.generationData[activeTab].description}</p>
             <p className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>
-              Capacidade Instalada: {AppDataModel.generationData[activeTab].capacityMW.toLocaleString()} MW
+              Capacidade admissível: {AppDataModel.generationData[activeTab].capacityMW.toLocaleString()} MW
             </p>
           </div>
         </div>
@@ -922,11 +922,11 @@ function GenerationSection({ isOpen, onToggle }) {
             <CapacityChart />
           </div>
 
-          <div className="flex flex-col items-center scroll-mt-20" id='matriz-energetica-ons'>
-            <img src="assets/matriz_energetica_2025_ONS.png" alt="" className="h-40 w-auto" />
-
-          </div>
+          <ImgContainer src="assets/matriz_energetica_2025_ONS.png" alt="Matriz Energética ONS" />
         </div>
+
+        <MarkdownPage filePath="/mvc/models/notes/geracao_eng_eletrica.md" />
+
       </div>
     </section>
   )
@@ -1014,14 +1014,14 @@ function DistributionSection({ isOpen, onToggle }) {
         </button>
       </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
-        Esta é a etapa final da jornada, onde a energia elétrica é entregue aos consumidores
-        em tensões seguras e utilizáveis.
+        Esta é a etapa final, onde a energia elétrica é entregue aos consumidores em suas casas usando transformadores para reduzir Altas Tensões em tensões seguras e prontas para serem usadas.
       </p>
       <ul className="space-y-4">
         {distributionItems.map((item, index) => (
           <li key={index} className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-card-alt)' }}>
             <strong>{item.title}:</strong> {item.description}
-          </li>
+          </li>                
+
         ))}
       </ul>
     </section>
@@ -1052,7 +1052,7 @@ function ComponentsSection() {
   // Check if the active component is "Linhas de Transmissão"
   const isTransmissionLine = activeComponent !== null &&
     AppDataModel.componentsData[activeComponent].name === "Linhas de Transmissão";
-;
+
 
 
   return (
@@ -1332,7 +1332,11 @@ export default function Home() {
             onNavigate={handleNavigate}
           />
           
-          img de Operador Jurassic World Aqui
+
+          <ImgContainer src="assets/energia_jurassic_wolrd.jpg" alt="Operador Jurassic World" width="400" height="300" className="my-4" />
+          
+          
+
           <div id="content-container" className="mt-4">
             <GenerationSection
               isOpen={openSections.geracao}
