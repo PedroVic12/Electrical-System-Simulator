@@ -39,11 +39,10 @@ Para minimizar perdas, a energia é transmitida em alta tensão, o que requer es
   * Redes com tensão abaixo de 1 kV são denominadas como redes em Baixa Tensão (ou em Tensão Secundária)
 
   No Brasil, existe também um sistema que opera em corrente contínua, o Sistema de Itaipu, com nível de tensão de aproximadamente 600 kV DC.
+* **Proteção:**
 
-  .** **
-* **Faixa de servidão:**
-
-  Uma faixa de terra ao longo da linha de transmissão é destinada à sua construção e manutenção, com restrições de segurança.** **
+  **Uma faixa de terra ao longo da linha de transmissão é destinada à sua construção e manutenção, com restrições de segurança.**
+* 
 * **Sinalização:**
 
   Esferas de sinalização (geralmente laranjas) e outras sinalizações são instaladas nos cabos para aumentar a visibilidade para aeronaves e prevenir acidentes

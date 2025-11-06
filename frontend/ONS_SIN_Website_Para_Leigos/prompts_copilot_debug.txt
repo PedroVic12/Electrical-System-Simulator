@@ -1,0 +1,3 @@
+boa noite to com sono e cansado mas preciso debugar um codigo aqui de frontend de nexts em 
+  @app/page.jsx e com @app/globals.css usando @app/UI/components/MarkdownPage.js para renderizar 
+  @public/mvc/models/notes/linhas_transmissao.md

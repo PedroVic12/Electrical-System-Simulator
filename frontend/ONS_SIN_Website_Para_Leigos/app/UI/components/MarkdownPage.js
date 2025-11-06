@@ -1,69 +1,55 @@
-'use client'; // Adicione esta linha no topo se estiver usando o App Router do Next.js
-
+'use client';
 
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
-const MarkdownViewer = ({ fileName }) => {
-  const [htmlContent, setHtmlContent] = useState('');
+const MarkdownPage = ({ filePath }) => {
+  const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!fileName) return;
+    if (!filePath) {
+      setError('Nenhum caminho de arquivo fornecido');
+      setLoading(false);
+      return;
+    }
 
-    // O componente busca os dados da sua API, que está em /pages/api/markdown.js
-    fetch(`/api/markdown?file=${fileName}`)
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`Erro ao buscar o arquivo: ${res.status}`);
+    const fetchMarkdown = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(filePath);
+        if (!response.ok) {
+          throw new Error(`Erro ao carregar o arquivo: ${response.status}`);
         }
-        return res.json();
-      })
-      .then(data => {
-        if (data.success) {
-          setHtmlContent(data.html);
-        } else {
-          throw new Error(data.error || 'Falha ao carregar o conteúdo.');
-        }
-      })
-      .catch(err => {
-        setError(err.message);
-      })
-      .finally(() => {
+        const text = await response.text();
+        setContent(text);
+        setError(null);
+      } catch (err) {
+        console.error('Erro ao carregar o Markdown:', err);
+        setError(`Erro ao carregar o conteúdo: ${err.message}`);
+      } finally {
         setLoading(false);
-      });
-  }, [fileName]);
+      }
+    };
+
+    fetchMarkdown();
+  }, [filePath]);
 
   if (loading) {
     return <div>Carregando...</div>;
   }
 
   if (error) {
-    return <div className="text-red-500">Erro: {error}</div>;
+    return <div className="text-red-500 p-4 bg-red-50 rounded">{error}</div>;
   }
 
-  // A div renderiza o HTML que veio do servidor
   return (
-    <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+    <div className="markdown-content p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-card-alt)' }}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+    </div>
   );
 };
 
-
-export default function MarkdownPage(fileName) {
-  return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-4">Resultado da rota /api fazendo o Fetch do meu arquivo markdown</h1>
-      
-      {/* 
-        Aqui você usa o componente para renderizar um arquivo .md da sua pasta /models/notes
-        Basta passar o nome do arquivo como uma prop.
-      */}
-      <MarkdownViewer fileName={fileName} />
-
-      <hr className="my-8" />
-
-
-
-    </div>
-  );
-}
+export { MarkdownPage };

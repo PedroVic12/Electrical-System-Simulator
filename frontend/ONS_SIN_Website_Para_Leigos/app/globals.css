@@ -2,57 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/* * PALETA DE CORES OTMIZADA: NAVY BLUE (Azul Escuro)
+ * Foco: Alto contraste e conforto visual para longos Sprints de estudo.
+ */
+
 /* Variáveis para o tema claro (padrão) */
 :root {
   /* Cores base */
-  --color-primary: #087fb2;
+  --color-primary: #1e40af; /* Azul Profundo (Navy) */
   --color-primary-dark: #003a8c;
-  --color-primary-light: #ced0d1;
+  --color-primary-light: #dbeafe; /* Light Blue BG */
   
   /* Cores de texto */
-  --color-text: #1e293b;
-  --color-text-secondary: #003a8c;
+  --color-text: #1a202c; /* Quase preto */
+  --color-text-secondary: #475569; /* Cinza escuro para detalhes */
   --color-text-light: #f8fafc;
   
   /* Cores de fundo */
   --color-bg: #ffffff;
-  --color-bg-secondary: #000000;
-  --color-bg-card: #ffffff5d;
+  --color-bg-secondary: #f1f5f9; /* Fundo de botões/elementos */
+  --color-bg-card: #ffffff;
   
   /* Bordas */
-  --color-border: #000000;
-  --color-border-hover: #000000;
+  --color-border: #e2e8f0; /* Cinza claro */
+  --color-border-hover: #1e40af; /* Borda primária */
   
   /* Cores de destaque */
-  --color-accent: #3b82f6;
+  --color-accent: #3b82f6; 
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
 }
 
-/* Variáveis para o tema escuro */
+/* Variáveis para o tema escuro (Dark Mode - Foco no Azul Escuro) */
 [data-theme="dark"] {
   /* Cores base */
-  --color-primary: #0ea5e9;
-  --color-primary-dark: #022f5880;
-  --color-primary-light: #0ea5e9;
+  --color-primary: #60a5fa; /* Azul Claro para Destaque (legível no escuro) */
+  --color-primary-dark: #3b82f6; /* Azul mais saturado */
+  --color-primary-light: #1e40af;
   
   /* Cores de texto */
-  --color-text: #f1f5f9;
-  --color-text-secondary: #94a3b8;
+  --color-text: #e2e8f0; /* Off-White (Alto Contraste) */
+  --color-text-secondary: #94a3b8; /* Cinza azulado para detalhes */
   --color-text-light: #f8fafc;
   
-  /* Cores de fundo */
-  --color-bg: #0f172a;
-  --color-bg-secondary: #1e293b;
-  --color-bg-card: #1e293b;
+  /* Cores de fundo (Navy/Azul Escuro) */
+  --color-bg: #0a192f; /* Base profunda, ideal para leituras longas */
+  --color-bg-secondary: #172a45; /* Fundo de botões/elementos */
+  --color-bg-card: #172a45; /* Fundo de cards (para separação visual) */
   
   /* Bordas */
   --color-border: #334155;
-  --color-border-hover: #475569;
+  --color-border-hover: #60a5fa;
   
   /* Cores de destaque */
-  --color-accent: #60a5fa;
+  --color-accent: #60a5fa; 
   --color-success: #34d399;
   --color-warning: #fbbf24;
   --color-error: #f87171;
@@ -62,9 +66,17 @@
 body {
   font-family: 'Inter', sans-serif;
   color: var(--color-text);
-  background-color: var(--color-bg);
+  /* CORREÇÃO CRÍTICA: Garante que o fundo use a variável */
+  background-color: var(--color-bg) !important;
   transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh; /* Garante que o fundo cubra toda a tela */
 }
+
+/* --- REMOVIDO O HEADER QUEBRADO --- */
+/* O header (navegação) agora é 100% controlado 
+   pelo seu App.jsx (ex: bg-[#0a1226]) */
+
+/* --- ESTILOS DE COMPONENTES REVISADOS --- */
 
 /* Seções de conteúdo */
 .content-section {
@@ -89,6 +101,7 @@ body {
   left: 0;
   right: 0;
   height: 80px;
+  /* Gradiente para cor do card, não do body */
   background: linear-gradient(to bottom, transparent, var(--color-bg-card));
   pointer-events: none;
 }
@@ -123,23 +136,25 @@ body {
 
 .main-nav-btn:not(.active):hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  /* Sombra mais suave */
+  box-shadow: 0 4px 6px -1px rgba(var(--color-bg-secondary), 0.1), 0 2px 4px -1px rgba(var(--color-bg-secondary), 0.06);
   border-color: var(--color-primary);
 }
 
 .main-nav-btn.active {
   border-color: var(--color-primary);
   transform: scale(1.02);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  /* Sombra sutil para destaque */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 2px 0 rgba(0, 0, 0, 0.1);
 }
 
-/* Animações */
+/* Animações (mantidas, mas o pulso usa a cor primária) */
 @keyframes pulse-border {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4);
+    box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.4); /* Usar cor de destaque */
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(56, 189, 248, 0);
+    box-shadow: 0 0 0 8px rgba(96, 165, 250, 0);
   }
 }
 
@@ -154,7 +169,7 @@ body {
   padding: 0.5rem 1rem;
   font-weight: 500;
   color: var(--color-text);
-  background-color: var(--color-bg-card);
+  background-color: var(--color-bg-secondary); /* Usa cor secundária para botões */
   border: 1px solid var(--color-border);
 }
 
@@ -163,7 +178,7 @@ body {
 }
 
 .tab-btn:hover:not(.active), .component-btn:hover:not(.active) {
-  background-color: var(--color-bg-secondary);
+  background-color: var(--color-bg); /* Volta para o fundo principal no hover */
   border-color: var(--color-border-hover);
 }
 
@@ -171,19 +186,6 @@ body {
   font-size: 2rem;
   color: var(--color-text-secondary);
   transition: color 0.2s ease;
-}
-
-/* Animações de scroll */
-.animate-on-scroll {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease-out, transform 0.7s ease-out;
-  transition-delay: 0.3s;
-}
-
-.animate-on-scroll.is-visible {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 /* Cards */
@@ -202,37 +204,6 @@ body {
   transform: translateY(-2px);
 }
 
-/* Iframes responsivos */
-.square-iframe {
-  width: 100%;
-  max-width: 600px;
-  aspect-ratio: 1 / 1;
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  background-color: var(--color-bg-card);
-}
-
-/* Navegação */
-.nav-header-btn {
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  color: var(--color-text);
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
-  background-color: var(--color-bg-card);
-}
-
-.nav-header-btn:hover {
-  background-color: var(--color-primary);
-  color: white;
-  transform: translateY(-2px);
-}
-
-.nav-header-btn:active {
-  transform: translateY(0);
-}
-
 /* Scroll suave */
 html {
   scroll-behavior: smooth;
@@ -243,27 +214,7 @@ html {
   scroll-margin-top: 5rem;
 }
 
-/* Carrossel */
-.carousel-container {
-  position: relative;
-  overflow: hidden;
-  border-radius: 0.5rem;
-  background-color: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-}
-
-.carousel-slide {
-  transition: transform 0.5s ease-in-out;
-}
-
 /* Tema Switch */
-.theme-switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 30px;
-}
-
 .theme-switch input {
   opacity: 0;
   width: 0;
@@ -304,75 +255,80 @@ input:checked + .theme-slider:before {
   background-color: var(--color-primary);
 }
 
-/* Ícones do tema */
-.theme-icon {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-text);
-  font-size: 1rem;
-}
-
-.theme-icon.sun {
-  left: 8px;
-}
-
-.theme-icon.moon {
-  right: 8px;
-}
-
-/* Responsividade */
-@media (max-width: 640px) {
-  .carousel-control {
-    width: 32px;
-    height: 32px;
-    padding: 4px;
-  }
-  
-  .main-nav-btn, .nav-header-btn, .tab-btn, .component-btn {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-  }
-}
-
-
-/* No final do seu arquivo globals.css */
-[data-theme="dark"] {
-  /* Garantir que o fundo do body use a cor escura */
-  --color-bg: #0f172a; /* Cor de fundo escura */
-  --color-text: #f1f5f9; /* Cor do texto principal */
-  --color-text-secondary: #94a3b8; /* Cor do texto secundário */
-}
-
-/* Aplicar o tema ao body */
+/* Aplicar o tema ao body (Reforço) */
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Garantir que os textos usem as cores corretas */
-p, h1, h2, h3, h4, h5, h6, span, div, a {
+/* Garantir que todos os elementos de texto usem a cor correta */
+p, h1, h2, h3, h4, h5, h6, span, div, a, li {
   color: var(--color-text);
 }
 
-/* Seletor para textos secundários */
-.text-secondary, .text-gray-600, .text-gray-500 {
-  color: var(--color-text-secondary) !important;
+/* Markdown Content Styles */
+.markdown-content h1 {
+  font-size: 2.25rem; /* text-4xl */
+  font-weight: bold;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--color-primary-dark);
 }
-
-/* Seletor para fundos de seções */
-.bg-white, .bg-gray-50, .bg-gray-100 {
-  background-color: var(--color-bg-card) !important;
+.markdown-content h2 {
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: bold;
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
 }
-
-/* Seletor para cartões */
-.card, .bg-white, .bg-opacity-90 {
-  background-color: var(--color-bg-card) !important;
-  color: var(--color-text) !important;
+.markdown-content h3 {
+  font-size: 1.5rem; /* text-2xl */
+  font-weight: bold;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
 }
-
-/* Seletor para bordas */
-.border, .border-gray-200 {
-  border-color: var(--color-border) !important;
+.markdown-content p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+.markdown-content ul {
+  list-style-type: disc;
+  padding-left: 2rem;
+  margin-bottom: 1rem;
+}
+.markdown-content li {
+  margin-bottom: 0.5rem;
+}
+.markdown-content strong {
+  font-weight: 600;
+  color: var(--color-text);
+}
+.markdown-content a {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+.markdown-content a:hover {
+  text-decoration: underline;
+}
+.markdown-content code {
+  background-color: var(--color-bg-secondary);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}
+.markdown-content pre {
+  background-color: var(--color-bg-secondary);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+}
+.markdown-content blockquote {
+  border-left: 4px solid var(--color-primary);
+  padding-left: 1rem;
+  margin-left: 0;
+  font-style: italic;
+  color: var(--color-text-secondary);
 }

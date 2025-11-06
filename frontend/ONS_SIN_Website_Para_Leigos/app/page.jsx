@@ -8,7 +8,7 @@ import { Menu, X, ChevronDown, ChevronRight, LucideFileSignature } from 'lucide-
 const ThemeToggle = dynamic(() => import('./UI/components/ThemeToggle'), { ssr: false })
 const Chart = dynamic(() => import('chart.js/auto').then((mod) => mod.Chart), { ssr: false })
 
-import MarkdownPage from './UI/components/MarkdownPage'
+import { MarkdownPage } from './UI/components/MarkdownPage'
 
 // ============================================================================
 // Nextjs with tailwind and MVC componentes in one file with renderMarkdown files from directory notes
@@ -238,7 +238,7 @@ function NavigationHeader({ onNavigate }) {
   return (
     <>
       {/* Header Fixo */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a1226] shadow-md">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a1226] border-b border-gray-200 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo and Video Container */}
@@ -1051,10 +1051,7 @@ function ComponentsSection() {
   // Check if the active component is "Linhas de Transmissão"
   const isTransmissionLine = activeComponent !== null &&
     AppDataModel.componentsData[activeComponent].name === "Linhas de Transmissão";
-
-  // Usando e pegando informações em arquivos .md separados
-  const transmissionLineHtml = MarkdownPage("linhas_transmissao.md");
-  console.log(transmissionLineHtml);
+;
 
 
   return (
@@ -1097,6 +1094,7 @@ function ComponentsSection() {
 
             {/* Conditional content for Transmission Lines */}
             {isTransmissionLine && (
+
               <div className="mt-4 p-4 bg-white bg-opacity-20 rounded-lg">
                 <h5 className="font-semibold mb-2">Sobre as Linhas de Transmissão:</h5>
                 <p className="text-sm sm:text-base">
@@ -1112,6 +1110,10 @@ function ComponentsSection() {
                     <li>Utilizam torres de aço ou concreto para suporte</li>
                   </ul>
                 </p>
+                <br />
+                <p>Pedro Victor tem que estudar SEP, CA, Eletromag, Circuitos Digitais e Sinais e Sistemas para entender melhor o que é a transmissão de energia elétrica.</p>
+
+                <MarkdownPage filePath="/mvc/models/notes/linhas_transmissao.md" />
 
 
                 <a href="https://www.mundodaeletrica.com.br/o-que-sao-linhas-de-transmissao-caracteristicas-curiosidades/">Leia mais sobre Linhas de Transmissão</a>
