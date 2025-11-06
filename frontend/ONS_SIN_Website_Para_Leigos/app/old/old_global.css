@@ -1,0 +1,210 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #0890b2;
+  --color-primary-dark: #000000;
+  --color-primary-light: #ffffff;
+  --color-primary-border: #67e8f9;
+  --color-text-dark: #4476c8;
+  --color-text-medium: #475569;
+  --color-text-light: #f8fafc;
+  --color-bg-card: #dadada;
+  --color-bg-card-alt: #f8fafc;
+  --color-bg-body-start: #ffffff;
+  --color-bg-body-end: #424fb0;
+  --color-border: #e2e8f0;
+  --color-zinc: #a1a1aa;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  color: var(--color-text-dark);
+  background-color: var(--color-bg-body-start);
+  transition: background 0.7s ease-out;
+}
+
+.content-section {
+  opacity: 1;
+  max-height: 200px;
+  overflow: hidden;
+  transition: all 0.6s ease-in-out;
+  background-color: var(--color-bg-card);
+  border-color: var(--color-border);
+  position: relative;
+}
+
+/* Gradiente no final quando fechado */
+.content-section:not(.open)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, var(--color-bg-card));
+  pointer-events: none;
+}
+
+/* Quando aberto */
+.content-section.open {
+  opacity: 1;
+  max-height: 5000px;
+  overflow: visible;
+}
+
+.content-section.open::after {
+  display: none;
+}
+
+/* Conteúdo interno quando fechado */
+.content-section:not(.open) > *:not(:first-child):not(:nth-child(2)) {
+  opacity: 0.3;
+}
+
+.main-nav-btn {
+  border-width: 2px;
+  border-color: transparent;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.main-nav-btn:not(.active):hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(8, 145, 178, 0.2);
+}
+
+.main-nav-btn.active {
+  border-color: var(--color-primary-border);
+  background-color: var(--color-primary-light);
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+}
+
+/* Animação de pulse para indicar interatividade */
+@keyframes pulse-border {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(8, 145, 178, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(8, 145, 178, 0);
+  }
+}
+
+.main-nav-btn:not(.active) {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+.tab-btn.active {
+  background-color: var(--color-primary);
+  color: var(--color-text-light);
+}
+
+.component-btn.active {
+  background-color: var(--color-primary);
+  color: var(--color-text-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.flow-arrow {
+  font-size: 2rem;
+  color: var(--color-zinc);
+}
+
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.7s ease-out;
+  transition-delay: 0.3s;
+}
+
+.animate-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toggle-btn.active {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.site-card {
+  background-color: var(--color-bg-card-alt);
+  border: 2px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.site-card:hover {
+  border-color: var(--color-primary-border);
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.15);
+}
+
+.view-mode-btn {
+  transition: all 0.2s ease;
+}
+
+.view-mode-btn.active {
+  background-color: var(--color-primary);
+  color: white;
+  transform: scale(1.05);
+}
+
+.square-iframe {
+  width: 600px;
+  height: 600px;
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+/* Navigation Header Styles */
+.nav-header-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.nav-header-btn:hover {
+  background-color: var(--color-primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.nav-header-btn:active {
+  transform: translateY(0);
+}
+
+/* Smooth scroll offset for fixed header */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+.scroll-mt-20 {
+  scroll-margin-top: 5rem;
+}
+
+/* Carousel Styles */
+.carousel-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.carousel-slide {
+  transition: transform 0.5s ease-in-out;
+}
+
+/* Melhorar botões do carousel em mobile */
+@media (max-width: 640px) {
+  .carousel-control {
+    width: 32px;
+    height: 32px;
+    padding: 4px;
+  }
+}

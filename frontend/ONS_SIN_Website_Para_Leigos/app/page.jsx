@@ -4,10 +4,11 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { Menu, X, ChevronDown, ChevronRight, LucideFileSignature } from 'lucide-react'
 
-import MarkdownPage from './UI/components/MarkdownPage'
-
-// Importar Chart.js dinamicamente para evitar problemas de SSR
+// Componentes dinâmicos
+const ThemeToggle = dynamic(() => import('./UI/components/ThemeToggle'), { ssr: false })
 const Chart = dynamic(() => import('chart.js/auto').then((mod) => mod.Chart), { ssr: false })
+
+import MarkdownPage from './UI/components/MarkdownPage'
 
 // ============================================================================
 // Nextjs with tailwind and MVC componentes in one file with renderMarkdown files from directory notes
@@ -196,7 +197,8 @@ const AppDataModel = {
     sin: { id: 'sin', name: 'SIN', url: 'https://sig.ons.org.br/app/sinmaps/', color: 'blue-500', iframe: true },
     sinmaps: { id: 'sinmaps', name: 'SIN Maps', url: 'https://www.ons.org.br/paginas/sobre-o-sin/mapas', color: 'blue-500', iframe: false },
     aneel: { id: 'aneel', name: 'ANEEL', url: 'https://www.gov.br/aneel/pt-br', color: 'blue-600', iframe: false },
-    ons: { id: 'ons', name: 'ONS - Carga e Geração em tempo real', url: 'https://www.ons.org.br/paginas/energia-agora/carga-e-geracao', color: 'blue-700', iframe: true }
+    ons: { id: 'ons', name: 'ONS - Carga e Geração em tempo real', url: 'https://www.ons.org.br/paginas/energia-agora/carga-e-geracao', color: 'blue-700', iframe: true },
+    tempo: {id: "clima-tempo", name:"Clima Tempo ao vivo", url: "https://www.climatempo.com.br/previsao-do-tempo/15-dias/cidade/4952/campogrande-rj", color: "blue-700", iframe: true}
   },
   chartData: {
     labels: ['Hidrelétrica', 'Termelétrica', 'Eólica', 'Solar', 'Nuclear & Outras'],
@@ -236,19 +238,38 @@ function NavigationHeader({ onNavigate }) {
   return (
     <>
       {/* Header Fixo */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a1226] shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo and Video Container */}
             <div className="flex items-center space-x-4">
-              <div className="flex-shrink-0">
-                <img
-                  src="/assets/Logo_ONSInspira.png"
-                  alt="Logo ONS"
-                  className="h-10 w-auto"
-                />
-              </div>
+              {/* Logo Image */}
+                <div className="flex items-center space-x-4">
+                  {/* Logo como link para a página inicial */}
+                  <a 
+                    href="#inicio" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollToSection('intro');
+                    }}
+                    className="rounded-full border border-primary-border p-1 transition-colors hover:bg-transparent focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                    aria-label="Ir para o início"
+                  >
+                    <img
+                      src="/assets/Logo_ONSInspira.png"
+                      alt="Logo ONS - Voltar ao início"
+                      width={40}
+                      height={40}
+                      className="h-10 w-auto"
+                      loading="lazy"
+                    />
+                  </a>
 
+                  {/* Alternador de tema - visível apenas em telas médias para cima */}
+                  <div className="hidden md:block">
+                    <ThemeToggle />
+                  </div>
+                </div>
             </div>
 
             {/* Navigation Buttons - Desktop */}
