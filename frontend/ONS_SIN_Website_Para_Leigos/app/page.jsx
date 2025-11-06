@@ -1297,7 +1297,7 @@ export default function Home() {
           behavior: 'smooth'
         })
       }
-    }, 100)
+    }, 500)
   }, [])
 
   const toggleSection = useCallback((sectionKey) => {
@@ -1315,8 +1315,6 @@ export default function Home() {
         <PageHeader />
 
         <main className="main-content">
-
-
           <ImportantLinksSection />
 
           <ImgContainer
@@ -1330,7 +1328,8 @@ export default function Home() {
           <MainNavigation
             onNavigate={handleNavigate}
           />
-          img de Operador Jurassic Wolrd Aqui
+          
+          img de Operador Jurassic World Aqui
           <div id="content-container" className="mt-4">
             <GenerationSection
               isOpen={openSections.geracao}

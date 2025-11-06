@@ -30,7 +30,8 @@ export default function ThemeToggle() {
     // Atualiza o estado e o atributo data-theme
     setIsDark(!isDark);
     document.documentElement.setAttribute('data-theme', newTheme);
-    
+    document.documentElement.classList.toggle('dark', isDark);
+
     // Salva a preferência no localStorage
     localStorage.setItem('theme', newTheme);
   };

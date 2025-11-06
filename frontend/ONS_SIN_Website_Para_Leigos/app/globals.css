@@ -6,18 +6,18 @@
 :root {
   /* Cores base */
   --color-primary: #087fb2;
-  --color-primary-dark: #073c85;
-  --color-primary-light: #e0f2fe;
+  --color-primary-dark: #003a8c;
+  --color-primary-light: #ced0d1;
   
   /* Cores de texto */
   --color-text: #1e293b;
-  --color-text-secondary: #475569;
+  --color-text-secondary: #003a8c;
   --color-text-light: #f8fafc;
   
   /* Cores de fundo */
   --color-bg: #ffffff;
-  --color-bg-secondary: #f8fafc;
-  --color-bg-card: #ffffffaa;
+  --color-bg-secondary: #000000;
+  --color-bg-card: #ffffff5d;
   
   /* Bordas */
   --color-border: #000000;
@@ -68,6 +68,7 @@ body {
 
 /* Seções de conteúdo */
 .content-section {
+  padding: 1rem;
   opacity: 1;
   max-height: 200px;
   overflow: hidden;
@@ -128,8 +129,6 @@ body {
 
 .main-nav-btn.active {
   border-color: var(--color-primary);
-  background-color: var(--color-primary);
-  color: white;
   transform: scale(1.02);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
@@ -160,8 +159,6 @@ body {
 }
 
 .tab-btn.active, .component-btn.active, .view-mode-btn.active, .toggle-btn.active {
-  background-color: var(--color-primary);
-  color: white;
   border-color: var(--color-primary);
 }
 
@@ -336,4 +333,46 @@ input:checked + .theme-slider:before {
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
   }
+}
+
+
+/* No final do seu arquivo globals.css */
+[data-theme="dark"] {
+  /* Garantir que o fundo do body use a cor escura */
+  --color-bg: #0f172a; /* Cor de fundo escura */
+  --color-text: #f1f5f9; /* Cor do texto principal */
+  --color-text-secondary: #94a3b8; /* Cor do texto secundário */
+}
+
+/* Aplicar o tema ao body */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Garantir que os textos usem as cores corretas */
+p, h1, h2, h3, h4, h5, h6, span, div, a {
+  color: var(--color-text);
+}
+
+/* Seletor para textos secundários */
+.text-secondary, .text-gray-600, .text-gray-500 {
+  color: var(--color-text-secondary) !important;
+}
+
+/* Seletor para fundos de seções */
+.bg-white, .bg-gray-50, .bg-gray-100 {
+  background-color: var(--color-bg-card) !important;
+}
+
+/* Seletor para cartões */
+.card, .bg-white, .bg-opacity-90 {
+  background-color: var(--color-bg-card) !important;
+  color: var(--color-text) !important;
+}
+
+/* Seletor para bordas */
+.border, .border-gray-200 {
+  border-color: var(--color-border) !important;
 }
