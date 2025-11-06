@@ -3,12 +3,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { Menu, X, ChevronDown, ChevronRight, LucideFileSignature } from 'lucide-react'
+import { MarkdownPage } from './UI/components/MarkdownPage'
 
 // Componentes dinâmicos
 const ThemeToggle = dynamic(() => import('./UI/components/ThemeToggle'), { ssr: false })
 const Chart = dynamic(() => import('chart.js/auto').then((mod) => mod.Chart), { ssr: false })
 
-import { MarkdownPage } from './UI/components/MarkdownPage'
 
 // ============================================================================
 // Nextjs with tailwind and MVC componentes in one file with renderMarkdown files from directory notes
@@ -16,6 +16,7 @@ import { MarkdownPage } from './UI/components/MarkdownPage'
 
 //     https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app
 
+//! npm install react-markdown remark-gfm
 
 // ==================================================================================
 
