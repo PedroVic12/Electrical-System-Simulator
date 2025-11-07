@@ -92,57 +92,6 @@ function animateOnScroll() {
   elements.forEach(element => observer.observe(element))
 }
 
-// const markdownToHtml = (markdown) => {
-//   if (!markdown) return '';
-
-//   // Separa o markdown em blocos por linhas em branco
-//   const blocks = markdown.split(/\n\n/);
-
-//   const htmlBlocks = blocks.map(block => {
-//     const trimmedBlock = block.trim();
-
-//     // Converte blocos de lista (começando com "- ")
-//     if (trimmedBlock.startsWith('- ')) {
-//       const items = trimmedBlock.split('\n').map(item => {
-//         const content = item.replace(/^\s*-\s*/, '');
-//         // Aplica negrito dentro dos itens da lista
-//         const boldedContent = content.replace(/\*\*(.*?)\*\*/gim, '<strong 
-//       class= "font-semibold" > $1</strong > ');
-//             return `<li class="ml-4 mb-1">• ${boldedContent}</li>`;
-//       }).join('');
-//       return `<ul class="list-disc pl-5 mt-2 space-y-1">${items}</ul>`;
-//     }
-
-//     // Converte cabeçalhos
-//     if (trimmedBlock.startsWith('#')) {
-//       if (trimmedBlock.startsWith('### ')) {
-//         return `<h3 class="text-lg sm:text-xl font-bold mt-3 sm:mt-4 mb-2">
-//       ${trimmedBlock.replace('### ', '')}</h3>`;
-//       }
-//       if (trimmedBlock.startsWith('## ')) {
-//         return `<h2 class="text-xl sm:text-2xl font-bold mt-4 sm:mt-6 mb-2 
-//       sm:mb-3">${trimmedBlock.replace('## ', '')}</h2>`;
-//       }
-//       if (trimmedBlock.startsWith('# ')) {
-//         return `<h1 class="text-2xl sm:text-3xl font-bold mt-6 sm:mt-8 mb-3 
-//       sm:mb-4">${trimmedBlock.replace('# ', '')}</h1>`;
-//       }
-//     }
-
-//     // Se não for lista ou cabeçalho, trata como parágrafo
-//     if (trimmedBlock) {
-//       // Aplica negrito dentro dos parágrafos
-//       const boldedBlock = trimmedBlock.replace(/\*\*(.*?)\*\*/gim, '<strong 
-//       class= "font-semibold" > $1</strong > ');
-//           return `<p class="mb-3 sm:mb-4 text-sm sm:text-base">${boldedBlock}</p>`;
-//     }
-
-//     return ''; // Retorna string vazia para blocos vazios
-//   });
-
-//   return htmlBlocks.join('');
-// };
-
 
 
 function VideoContainer({
@@ -416,14 +365,17 @@ function PageHeader() {
   return (
     <header id="intro" className="page-header text-center mb-8 sm:mb-10 md:mb-12 px-4 animate-on-scroll pt-20">
       <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-5 leading-tight" style={{ color: 'var(--color-primary-dark)' }}>
-        Sistema Elétrico de Potência Interativo para Leigos e Estudantes
+        SEP Interativo para Leigos e Estudantes
       </h1>
       <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: 'var(--color-text-medium)' }}>
         Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que abastece nosso mundo.
       </p>
       <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2 mb-6" style={{ color: 'var(--color-text-medium)' }}>
-        Simulação de Sistemas Elétricos de Potência ao alcance de um clique.
+        Entenda como funciona a Simulação, Planejamennto e Modelagem Matemática de Sistemas Elétricos de Potência ao alcance de um clique.
       </p>
+
+      <p>Este site é feito em parceria ao projeto ONS Inspira, um projeto social que estimula jovens e talentos promissores contra a evasão escolar</p>
+
 
       {/* Image/Video Container */}
       <div
@@ -433,14 +385,12 @@ function PageHeader() {
         onMouseLeave={() => setShowVideo(false)}
       >
         {/* Logo Image - shown by default */}
-        <p>Este site é feito em parceria ao projeto ONS Inspira, um projeto social que estimula jovens e talentos promissores contra a evasão escolar</p>
         <img
           src="/assets/Logo_ONSInspira.png"
           alt="Logo ONS Inspira"
           className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${showVideo ? 'opacity-0' : 'opacity-100'
             }`}
         />
-        <p>Logo ONS Inspira</p>
 
 
         {/* Video - shown on hover/click */}
