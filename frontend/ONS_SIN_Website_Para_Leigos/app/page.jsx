@@ -50,7 +50,7 @@ function ImgContainer({ src, alt, className = "", ...props }) {
         loading="lazy"
         {...props}
       />
-      <p>{alt}</p>
+      <p className="text-[9px] text-center">{alt}</p>
     </div>
   );
 }
