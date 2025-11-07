@@ -50,6 +50,7 @@ function ImgContainer({ src, alt, className = "", ...props }) {
         loading="lazy"
         {...props}
       />
+      <p>{alt}</p>
     </div>
   );
 }
@@ -179,8 +180,8 @@ function VideoContainer({
 // DATA MODEL - Carregado do arquivo público
 const AppDataModel = {
   generationData: [
-    { id: 'hidreletricas', name: 'Hidrelétricas', description: 'Utilizam a força da água para girar turbinas e geradores. São uma fonte limpa e renovável, mas dependem de recursos hídricos.', notePath: '/mvc/models/notes/hidreletricas.md', capacityMW: 48645.5  },
-    { id: 'termeletricas', name: 'Termelétricas', description: 'Queimam combustíveis fósseis ou biomassa para aquecer água, produzir vapor e girar turbinas. São flexíveis, mas emitem gases de efeito estufa.', notePath: '/mvc/models/notes/termeletricas.md', capacityMW: 12786.0  },
+    { id: 'hidreletricas', name: 'Hidrelétricas', description: 'Utilizam a força da água para girar turbinas e geradores. São uma fonte limpa e renovável, mas dependem de recursos hídricos.', notePath: '/mvc/models/notes/hidreletricas.md', capacityMW: 48645.5 },
+    { id: 'termeletricas', name: 'Termelétricas', description: 'Queimam combustíveis fósseis ou biomassa para aquecer água, produzir vapor e girar turbinas. São flexíveis, mas emitem gases de efeito estufa.', notePath: '/mvc/models/notes/termeletricas.md', capacityMW: 12786.0 },
     { id: 'nucleares', name: 'Nucleares', description: 'Utilizam a fissão nuclear para gerar calor, que produz vapor para as turbinas. São eficientes e não emitem gases de efeito estufa, mas geram resíduos radioativos.', notePath: '/mvc/models/notes/nucleares.md', capacityMW: 5015 },
     { id: 'eolicas', name: 'Eólicas', description: 'Convertem a energia do vento em eletricidade através de aerogeradores. São renováveis e limpas, mas intermitentes.', notePath: '/mvc/models/notes/eolicas.md', capacityMW: 12056.4 },
     { id: 'solares', name: 'Solares', description: 'Convertem a luz do sol em eletricidade, seja por painéis fotovoltaicos (diretamente) ou por usinas termossolares. Também são renováveis e limpas, mas intermitentes.', notePath: '/mvc/models/notes/solares.md', capacityMW: 15000 }
@@ -199,7 +200,7 @@ const AppDataModel = {
     sinmaps: { id: 'sinmaps', name: 'SIN Maps', url: 'https://www.ons.org.br/paginas/sobre-o-sin/mapas', color: 'blue-500', iframe: false },
     aneel: { id: 'aneel', name: 'ANEEL', url: 'https://www.gov.br/aneel/pt-br', color: 'blue-600', iframe: false },
     ons: { id: 'ons', name: 'ONS - Carga e Geração em tempo real', url: 'https://www.ons.org.br/paginas/energia-agora/carga-e-geracao', color: 'blue-700', iframe: true },
-    tempo: {id: "clima-tempo", name:"Clima Tempo ao vivo", url: "https://www.climatempo.com.br/previsao-do-tempo/15-dias/cidade/4952/campogrande-rj", color: "blue-700", iframe: true}
+    tempo: { id: "clima-tempo", name: "Clima Tempo ao vivo", url: "https://www.climatempo.com.br/previsao-do-tempo/15-dias/cidade/4952/campogrande-rj", color: "blue-700", iframe: true }
   },
   chartData: {
     labels: ['Hidrelétrica', 'Termelétrica', 'Eólica', 'Solar', 'Nuclear & Outras'],
@@ -245,32 +246,33 @@ function NavigationHeader({ onNavigate }) {
             {/* Logo and Video Container */}
             <div className="flex items-center space-x-4">
               {/* Logo Image */}
-                <div className="flex items-center space-x-4">
-                  {/* Logo como link para a página inicial */}
-                  <a 
-                    href="#inicio" 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      scrollToSection('intro');
-                    }}
-                    className="rounded-full border border-primary-border p-1 transition-colors hover:bg-transparent focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                    aria-label="Ir para o início"
-                  >
-                    <img
-                      src="/assets/Logo_ONSInspira.png"
-                      alt="Logo ONS - Voltar ao início"
-                      width={40}
-                      height={40}
-                      className="h-10 w-auto"
-                      loading="lazy"
-                    />
-                  </a>
+              <div className="flex items-center space-x-4">
+                {/* Logo como link para a página inicial */}
+                <a
+                  href="#inicio"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToSection('intro');
+                  }}
+                  className="rounded-full border border-primary-border p-1 transition-colors hover:bg-transparent focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  aria-label="Ir para o início"
+                >
 
-                  {/* Alternador de tema - visível apenas em telas médias para cima */}
-                  <div className="hidden md:block">
-                    <ThemeToggle />
-                  </div>
+                  <img
+                    src="/assets/Logo_ONSInspira.png"
+                    alt="Logo ONS - Voltar ao início"
+                    width={40}
+                    height={40}
+                    className="h-10 w-auto"
+                    loading="lazy"
+                  />
+                </a>
+
+                {/* Alternador de tema - visível apenas em telas médias para cima */}
+                <div className="hidden md:block">
+                  <ThemeToggle />
                 </div>
+              </div>
             </div>
 
             {/* Navigation Buttons - Desktop */}
@@ -431,12 +433,14 @@ function PageHeader() {
         onMouseLeave={() => setShowVideo(false)}
       >
         {/* Logo Image - shown by default */}
+        <p>Este site é feito em parceria ao projeto ONS Inspira, um projeto social que estimula jovens e talentos promissores contra a evasão escolar</p>
         <img
           src="/assets/Logo_ONSInspira.png"
           alt="Logo ONS Inspira"
           className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${showVideo ? 'opacity-0' : 'opacity-100'
             }`}
-        />        
+        />
+        <p>Logo ONS Inspira</p>
 
 
         {/* Video - shown on hover/click */}
@@ -912,6 +916,7 @@ function GenerationSection({ isOpen, onToggle }) {
             <CapacityChart />
           </div>
 
+          <p>Na imagem abaixo, podemos ver como é feito o planejametno da Matriz energética pelo ONS</p>
           <ImgContainer src="assets/matriz_energetica_2025_ONS.png" alt="Matriz Energética ONS" />
         </div>
 
@@ -1010,7 +1015,7 @@ function DistributionSection({ isOpen, onToggle }) {
         {distributionItems.map((item, index) => (
           <li key={index} className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-card-alt)' }}>
             <strong>{item.title}:</strong> {item.description}
-          </li>                
+          </li>
 
         ))}
       </ul>
@@ -1321,11 +1326,11 @@ export default function Home() {
           <MainNavigation
             onNavigate={handleNavigate}
           />
-          
+
 
           <ImgContainer src="assets/energia_jurassic_wolrd.jpg" alt="Operador Jurassic World" width="400" height="300" className="my-4" />
-          
-          
+
+
 
           <div id="content-container" className="mt-4">
             <GenerationSection
