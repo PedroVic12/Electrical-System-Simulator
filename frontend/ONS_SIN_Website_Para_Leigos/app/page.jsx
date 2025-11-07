@@ -1265,10 +1265,10 @@ export default function Home() {
         <main className="main-content">
           <ImportantLinksSection />
 
-          <p>Na imagem abaixo, podemos ver como é feita a diferença entre cada estágio da Energia elétrica</p>
+          <p>Na imagem abaixo, podemos ver cada etapa da Energia Elétrica</p>
           <ImgContainer
             src="assets/geracao_transmissao_distribuicao_ONS.jpeg"
-            alt="Sistema de Transmissão de Energia Elétrica do jogo Jurassic World Evolution"
+            alt="Sistema de Transmissão de Energia Elétrica"
             width="400"    // Largura em pixels
             height="300"   // Altura em pixels
             className="my-4" // optional
