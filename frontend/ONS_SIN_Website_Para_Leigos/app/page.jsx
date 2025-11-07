@@ -1293,7 +1293,7 @@ export default function Home() {
               onToggle={() => toggleSection('transmissao')}
             />
             <p>Na imagem abaixo, podemos ver como é representado uma Rede Elétrica com suas altas tensões de suas linhas de transmissão</p>
-            <ImgContainer src="REDE-DE-ENERGIA-ELETRICA-Desenho.png" alt="Rede Elétrica" width="400" height="300" className="my-4" />
+            <ImgContainer src="rede_eletrica_draw.jpg" alt="Rede Elétrica" width="400" height="300" className="my-4" />
 
             <DistributionSection
               isOpen={openSections.distribuicao}
