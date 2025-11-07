@@ -1315,9 +1315,10 @@ export default function Home() {
         <main className="main-content">
           <ImportantLinksSection />
 
+          <p>Na imagem abaixo, podemos ver como é feita a diferença entre cada estágio da Energia elétrica</p>
           <ImgContainer
             src="assets/geracao_transmissao_distribuicao_ONS.jpeg"
-            alt="Sistema de Transmissão ONS"
+            alt="Sistema de Transmissão de Energia Elétrica do jogo Jurassic World Evolution"
             width="400"    // Largura em pixels
             height="300"   // Altura em pixels
             className="my-4" // optional
@@ -1327,8 +1328,8 @@ export default function Home() {
             onNavigate={handleNavigate}
           />
 
-
-          <ImgContainer src="assets/energia_jurassic_wolrd.jpg" alt="Operador Jurassic World" width="400" height="300" className="my-4" />
+          <p>Na imagem abaixo, podemos ver como é representado a transmissão de Energia Elétrica em um jogo </p>
+          <ImgContainer src="assets/energia_jurassic_wolrd.jpg" alt="Operador SEP de Jurassic World Evolution" width="400" height="300" className="my-4" />
 
 
 
@@ -1341,7 +1342,9 @@ export default function Home() {
               isOpen={openSections.transmissao}
               onToggle={() => toggleSection('transmissao')}
             />
-            Imagem de Linhas de Transmissão aqui
+            <p>Na imagem abaixo, podemos ver como é representado uma Rede Elétrica com suas altas tensões de suas linhas de transmissão</p>
+            <ImgContainer src="REDE-DE-ENERGIA-ELETRICA-Desenho.png" alt="Rede Elétrica" width="400" height="300" className="my-4" />
+
             <DistributionSection
               isOpen={openSections.distribuicao}
               onToggle={() => toggleSection('distribuicao')}
