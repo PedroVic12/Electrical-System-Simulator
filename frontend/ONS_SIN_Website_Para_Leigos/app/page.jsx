@@ -208,7 +208,7 @@ function NavigationHeader({ onNavigate }) {
                 >
 
                   <img
-                    src="/assets/Logo_ONSInspira.png"
+                    src="/assets/ons_logo.jpg"
                     alt="Logo ONS - Voltar ao início"
                     width={40}
                     height={40}
