@@ -4,8 +4,14 @@
 
 Simulador interativo de redes elétricas inteligentes, com visualização web e análise de fluxo de potência em tempo real via PandaPower.
 
-# Simulador de Redes Elétricas - IEEE cases - Version 3.1.1
+# Simulador de Redes Elétricas - IEEE cases - Version 4.1.1
 
+## Tecnologias utilizadas:
+- Numpy
+- PandaPower
+- Scipy
+- Pyside6
+  
 ---
 
 1) instale as depedencias
