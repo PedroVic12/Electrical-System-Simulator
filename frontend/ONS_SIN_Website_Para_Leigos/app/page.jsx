@@ -136,13 +136,16 @@ const AppDataModel = {
     { id: 'solares', name: 'Solares', description: 'Convertem a luz do sol em eletricidade, seja por painéis fotovoltaicos (diretamente) ou por usinas termossolares. Também são renováveis e limpas, mas intermitentes.', notePath: '/mvc/models/notes/solares.md', capacityMW: 15000 }
   ],
   componentsData: [
+
+    { id: 'barramentos', name: 'Barras', description: 'São barras condutoras que conectam vários circuitos em uma subestação, funcionando como um nó de distribuição de energia.' },
+    { id: 'linhas', name: 'Linhas de Transmissão', description: 'Conduzem a energia através de cabos aéreos ou subterrâneos, formando as redes de transmissão e distribuição.' },
+    { id: 'reativos', name: 'Reatores', description: 'Reatores são usados para controlar a tensão e compensar a potência reativa na rede, melhorando a eficiência e a estabilidade.' },
     { id: 'geradores', name: 'Geradores', description: 'Convertem outras formas de energia (mecânica, térmica, etc.) em energia elétrica. São o coração das usinas.' },
     { id: 'transformadores', name: 'Transformadores', description: 'Podem ser em Fase ou em Série. Alteram os níveis de tensão da eletricidade. Elevam a tensão para a transmissão e a reduzem para a distribuição e consumo.' },
-    { id: 'linhas', name: 'Linhas de Transmissão', description: 'Conduzem a energia através de cabos aéreos ou subterrâneos, formando as redes de transmissão e distribuição.' },
+    { id: 'cargas', name: 'Cargas e Sobrecargas', description: '(em desenvolvimento e estudos)' },
+
     { id: 'disjuntores', name: 'Disjuntores', description: 'Controlam o fluxo de energia e protegem o sistema contra falhas. Atuam como interruptores de grande porte em Substações' },
-    { id: 'reles', name: 'Relés', description: 'Detectam condições anormais (curtos-circuitos) e acionam os disjuntores para isolar a falha e proteger o resto do sistema. Hoje em dia é possivel controlar os relés remotamente utilizando IEEds e IOT.' },
-    { id: 'barramentos', name: 'Barras', description: 'São barras condutoras que conectam vários circuitos em uma subestação, funcionando como um nó de distribuição de energia.' },
-    { id: 'reativos', name: 'Reatores', description: 'Reatores são usados para controlar a tensão e compensar a potência reativa na rede, melhorando a eficiência e a estabilidade.' }
+    { id: 'reles', name: 'Relés Digitais', description: 'Detectam condições anormais (curtos-circuitos) e acionam os disjuntores para isolar a falha e proteger o resto do sistema. Hoje em dia é possivel controlar os relés remotamente utilizando IEEds e IOT.' },
   ],
   externalSites: {
     sin: { id: 'sin', name: 'SIN', url: 'https://sig.ons.org.br/app/sinmaps/', color: 'blue-500', iframe: true },
