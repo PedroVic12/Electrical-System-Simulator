@@ -1281,7 +1281,7 @@ export default function Home() {
             onNavigate={handleNavigate}
           />
 
-          <p>Na imagem abaixo, podemos ver como é representado a transmissão de Energia Elétrica em um jogo </p>
+          <p>Na imagem abaixo, podemos ver a representação do processo de Transmissão de Energia Elétrica em um jogo </p>
           <ImgContainer src="assets/energia_jurassic_wolrd.jpg" alt="Operador SEP de Jurassic World Evolution" width="400" height="300" className="my-4" />
 
 
