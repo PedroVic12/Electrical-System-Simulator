@@ -6,7 +6,6 @@ import pandapower.networks as pn
 import pandapower.plotting as plot
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -17,6 +16,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont, QColor
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from styles import AppStyles
 
@@ -30,6 +30,7 @@ try:
     from PySide6.QtWebEngineWidgets import QWebEngineView
     import plotly.graph_objects as go
     import plotly.io as pio
+
     PLOTLY_AVAILABLE = True
 except ImportError:
     PLOTLY_AVAILABLE = False
