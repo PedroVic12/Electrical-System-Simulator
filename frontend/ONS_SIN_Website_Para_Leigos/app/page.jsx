@@ -497,7 +497,8 @@ function ImportantLinksSection() {
     ],
     dados: [
       { id: 'ons', name: 'ONS - Carga e Geração', url: 'https://www.ons.org.br/paginas/energia-agora/carga-e-geracao', color: 'blue-700', iframe: true },
-      { id: "pivision", name: "Usina Complexo Madeira - Dados em tempo Real", url: "http://rbvis02.reger.ons/PIVision/#/Displays/12361/MADEIRA_HVDC", color: "blue-700", iframe: true }
+      { id: "pivision", name: "Usina Complexo Madeira - Dados em tempo Real", url: "http://rbvis02.reger.ons/PIVision/#/Displays/12361/MADEIRA_HVDC", color: "blue-700", iframe: true },
+      { id: "sin-pivision", name: "SIN - PIVISION", url: "http://rbvis02.reger.ons/PIVision/#/Displays/12393/SIN-PI-VISION", color: "blue-700", iframe: true }
 
     ],
     regulacao: [
