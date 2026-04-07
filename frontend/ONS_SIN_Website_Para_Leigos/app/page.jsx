@@ -124,9 +124,10 @@ function VideoContainer({
 
 // ==================================================================================
 // MVC INTEGRATION - Integração com Model-View-Controller
+// ==================================================================================
 
-
-// DATA MODEL - Carregado do arquivo público
+// ! Refatoração 1) 
+//! DATA MODEL - Carregado do arquivo público
 const AppDataModel = {
   generationData: [
     { id: 'hidreletricas', name: 'Hidrelétricas', description: 'Utilizam a força da água para girar turbinas e geradores. São uma fonte limpa e renovável, mas dependem de recursos hídricos.', notePath: '/mvc/models/notes/hidreletricas.md', capacityMW: 48645.5 },
@@ -162,6 +163,7 @@ const AppDataModel = {
 }
 
 
+// ! Refatoração 2) AppBarTemplate Header webiste
 
 // NAVIGATION HEADER - Header fixo com navegação
 function NavigationHeader({ onNavigate }) {
@@ -411,6 +413,9 @@ function PageHeader() {
   )
 }
 
+
+// ! Refatoração 3) Main Core Website Components - Tailwindcss
+
 // SITE CARD COMPONENT - Responsivo
 function SiteCard({ siteKey, siteName, siteUrl, siteColor, allowIframe }) {
   const [viewMode, setViewMode] = useState(null)
@@ -488,11 +493,12 @@ function ImportantLinksSection() {
       { id: 'sinmaps', name: 'Mapas do SIN', url: 'https://www.ons.org.br/paginas/sobre-o-sin/mapas', color: 'blue-500', iframe: false },
       { id: 'ons-plc1', name: 'Procedimentos de Rede', url: 'https://www.ons.org.br/paginas/sobre-o-ons/procedimentos-de-rede/o-que-sao', color: 'blue-700', iframe: false },
       { id: 'ons-plc2', name: 'Resposta em Demanda', url: 'https://www.ons.org.br/paginas/energia-amanha/resposta-da-demanda', color: 'blue-700', iframe: false },
-      { id: "pivision", name: "Dados em tempo Real", url: "http://rbvis02.reger.ons/PIVision/#/Displays/12361/MADEIRA_HVDC", color: "blue-700", iframe: true }
 
     ],
     dados: [
-      { id: 'ons', name: 'ONS - Carga e Geração', url: 'https://www.ons.org.br/paginas/energia-agora/carga-e-geracao', color: 'blue-700', iframe: true }
+      { id: 'ons', name: 'ONS - Carga e Geração', url: 'https://www.ons.org.br/paginas/energia-agora/carga-e-geracao', color: 'blue-700', iframe: true },
+      { id: "pivision", name: "Usina Complexo Madeira - Dados em tempo Real", url: "http://rbvis02.reger.ons/PIVision/#/Displays/12361/MADEIRA_HVDC", color: "blue-700", iframe: true }
+
     ],
     regulacao: [
       { id: 'aneel', name: 'ANEEL', url: 'https://www.gov.br/aneel/pt-br', color: 'blue-600', iframe: false },
@@ -683,6 +689,111 @@ function TabButton({ index, name, isActive, onClick }) {
   )
 }
 
+// COMPONENT BUTTON
+function ComponentButton({ index, name, isActive, onClick }) {
+  return (
+    <button
+      className={`component-btn p-3 text-center rounded-lg font-semibold transition-all duration-200 ${isActive ? 'active' : 'bg-slate-100 hover:bg-cyan-600 hover:text-white'
+        }`}
+      data-index={index}
+      onClick={onClick}
+    >
+      {name}
+    </button>
+  )
+}
+
+// COMPONENTS SECTION
+function ComponentsSection() {
+  const [activeComponent, setActiveComponent] = useState(null)
+  const handleComponentClick = useCallback((index) => {
+    setActiveComponent(prev => prev === index ? null : index) // Toggle selection
+  }, [])
+
+  // Check if the active component is "Linhas de Transmissão"
+  const isTransmissionLine = activeComponent !== null &&
+    AppDataModel.componentsData[activeComponent].name === "Linhas de Transmissão";
+
+
+
+  return (
+    <section
+      id="components"
+      className="rounded-xl shadow-lg p-6 md:p-8 mt-12 border animate-on-scroll scroll-mt-20"
+      style={{ backgroundColor: 'var(--color-bg-card)', borderColor: 'var(--color-border)' }}
+    >
+      <h3 className="text-3xl sm:text-4xl font-bold text-center mb-2" style={{ color: 'var(--color-primary-dark)' }}>
+        4. Componentes Chave de um Sistema de Potência
+      </h3>
+      <p className="text-base sm:text-lg mb-8 text-center max-w-3xl mx-auto" style={{ color: 'var(--color-text-medium)' }}>
+        Um sistema de potência é composto por diversos equipamentos.
+        Clique nos botões para conhecer a função de cada um.
+      </p>
+      <div id="components-btn-container" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+        {AppDataModel.componentsData.map((component, index) => (
+          <ComponentButton
+            key={index}
+            index={index}
+            name={component.name}
+            isActive={activeComponent === index}
+            onClick={() => handleComponentClick(index)}
+          />
+        ))}
+      </div>
+      <div
+        id="component-content-display"
+        className="p-6 rounded-lg min-h-[100px] transition-all duration-300"
+        style={{ backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary-dark)' }}
+      >
+        {activeComponent !== null ? (
+          <>
+            <h4 className="font-bold text-lg sm:text-xl mb-2">
+              {AppDataModel.componentsData[activeComponent].name}
+            </h4>
+            <p className="text-base sm:text-lg mb-4">
+              {AppDataModel.componentsData[activeComponent].description}
+            </p>
+
+            {/* Conditional content for Transmission Lines */}
+            {isTransmissionLine && (
+
+              <div className="mt-4 p-4 bg-white bg-opacity-20 rounded-lg">
+                <h5 className="font-semibold mb-2">Sobre as Linhas de Transmissão:</h5>
+                <p className="text-sm sm:text-base">
+                  As linhas de transmissão são fundamentais para o SIN (Sistema Interligado Nacional),
+                  conectando as usinas geradoras aos centros de consumo. Elas operam em diferentes níveis
+                  de tensão, desde as linhas de transmissão de alta tensão (AT) até as de extra-alta tensão (EAT).
+                  <br /><br />
+                  Principais características:
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <li>Operam em tensões a partir de 230 kV</li>
+                    <li>São monitoradas 24/7 pelo ONS</li>
+                    <li>Podem ser aéreas ou subterrâneas</li>
+                    <li>Utilizam torres de aço ou concreto para suporte</li>
+                  </ul>
+                </p>
+                <br />
+                <p>Pedro Victor tem que estudar SEP, CA, Eletromag, Circuitos Digitais e Sinais e Sistemas para entender melhor o que é a transmissão de energia elétrica.</p>
+
+                <MarkdownPage filePath="/mvc/models/notes/linhas_transmissao.md" />
+
+
+                <a href="https://www.mundodaeletrica.com.br/o-que-sao-linhas-de-transmissao-caracteristicas-curiosidades/">Leia mais sobre Linhas de Transmissão</a>
+
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-center text-base sm:text-lg">
+            Selecione um elemento do Sistema Elétrico para saber mais.
+          </p>
+        )}
+      </div>
+    </section>
+  )
+}
+
+// ! Refatoração 4) Data Analysis - Website dashboard components
 
 
 // GENERATION CHART COMPONENT - Matriz Energética (%)
@@ -808,6 +919,9 @@ function CapacityChart() {
     />
   )
 }
+
+
+// ! Refatoração 5) SEP SECTIONS - Generation, Transmission and Distribution in ONS using de SIN of Brazil 
 
 // GENERATION SECTION COMPONENT
 function GenerationSection({ isOpen, onToggle }) {
@@ -977,109 +1091,6 @@ function DistributionSection({ isOpen, onToggle }) {
   )
 }
 
-// COMPONENT BUTTON
-function ComponentButton({ index, name, isActive, onClick }) {
-  return (
-    <button
-      className={`component-btn p-3 text-center rounded-lg font-semibold transition-all duration-200 ${isActive ? 'active' : 'bg-slate-100 hover:bg-cyan-600 hover:text-white'
-        }`}
-      data-index={index}
-      onClick={onClick}
-    >
-      {name}
-    </button>
-  )
-}
-
-// COMPONENTS SECTION
-function ComponentsSection() {
-  const [activeComponent, setActiveComponent] = useState(null)
-  const handleComponentClick = useCallback((index) => {
-    setActiveComponent(prev => prev === index ? null : index) // Toggle selection
-  }, [])
-
-  // Check if the active component is "Linhas de Transmissão"
-  const isTransmissionLine = activeComponent !== null &&
-    AppDataModel.componentsData[activeComponent].name === "Linhas de Transmissão";
-
-
-
-  return (
-    <section
-      id="components"
-      className="rounded-xl shadow-lg p-6 md:p-8 mt-12 border animate-on-scroll scroll-mt-20"
-      style={{ backgroundColor: 'var(--color-bg-card)', borderColor: 'var(--color-border)' }}
-    >
-      <h3 className="text-3xl sm:text-4xl font-bold text-center mb-2" style={{ color: 'var(--color-primary-dark)' }}>
-        4. Componentes Chave de um Sistema de Potência
-      </h3>
-      <p className="text-base sm:text-lg mb-8 text-center max-w-3xl mx-auto" style={{ color: 'var(--color-text-medium)' }}>
-        Um sistema de potência é composto por diversos equipamentos.
-        Clique nos botões para conhecer a função de cada um.
-      </p>
-      <div id="components-btn-container" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-        {AppDataModel.componentsData.map((component, index) => (
-          <ComponentButton
-            key={index}
-            index={index}
-            name={component.name}
-            isActive={activeComponent === index}
-            onClick={() => handleComponentClick(index)}
-          />
-        ))}
-      </div>
-      <div
-        id="component-content-display"
-        className="p-6 rounded-lg min-h-[100px] transition-all duration-300"
-        style={{ backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary-dark)' }}
-      >
-        {activeComponent !== null ? (
-          <>
-            <h4 className="font-bold text-lg sm:text-xl mb-2">
-              {AppDataModel.componentsData[activeComponent].name}
-            </h4>
-            <p className="text-base sm:text-lg mb-4">
-              {AppDataModel.componentsData[activeComponent].description}
-            </p>
-
-            {/* Conditional content for Transmission Lines */}
-            {isTransmissionLine && (
-
-              <div className="mt-4 p-4 bg-white bg-opacity-20 rounded-lg">
-                <h5 className="font-semibold mb-2">Sobre as Linhas de Transmissão:</h5>
-                <p className="text-sm sm:text-base">
-                  As linhas de transmissão são fundamentais para o SIN (Sistema Interligado Nacional),
-                  conectando as usinas geradoras aos centros de consumo. Elas operam em diferentes níveis
-                  de tensão, desde as linhas de transmissão de alta tensão (AT) até as de extra-alta tensão (EAT).
-                  <br /><br />
-                  Principais características:
-                  <ul className="list-disc pl-5 mt-2 space-y-1">
-                    <li>Operam em tensões a partir de 230 kV</li>
-                    <li>São monitoradas 24/7 pelo ONS</li>
-                    <li>Podem ser aéreas ou subterrâneas</li>
-                    <li>Utilizam torres de aço ou concreto para suporte</li>
-                  </ul>
-                </p>
-                <br />
-                <p>Pedro Victor tem que estudar SEP, CA, Eletromag, Circuitos Digitais e Sinais e Sistemas para entender melhor o que é a transmissão de energia elétrica.</p>
-
-                <MarkdownPage filePath="/mvc/models/notes/linhas_transmissao.md" />
-
-
-                <a href="https://www.mundodaeletrica.com.br/o-que-sao-linhas-de-transmissao-caracteristicas-curiosidades/">Leia mais sobre Linhas de Transmissão</a>
-
-              </div>
-            )}
-          </>
-        ) : (
-          <p className="text-center text-base sm:text-lg">
-            Selecione um elemento do Sistema Elétrico para saber mais.
-          </p>
-        )}
-      </div>
-    </section>
-  )
-}
 
 // EQUATIONS SECTION COMPONENT - Placeholder para futuro
 function InequacoesSectionPLC() {
@@ -1163,6 +1174,8 @@ function EquationsSection() {
   )
 }
 
+
+
 // FOOTER COMPONENT
 function PageFooter() {
   return (
@@ -1173,7 +1186,10 @@ function PageFooter() {
   )
 }
 
-// MAIN APP COMPONENT
+// ! Refatoração 6) - Paginas em rotas separadas em arquivos diferentes 
+//!===========================================================================
+
+//! MAIN APP COMPONENT
 export default function Home() {
   const [activeSection, setActiveSection] = useState(null)
 
