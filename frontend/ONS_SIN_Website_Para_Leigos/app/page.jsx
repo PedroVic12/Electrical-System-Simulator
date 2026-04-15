@@ -490,6 +490,9 @@ function ImportantLinksSection() {
   const categories = {
     mapas: [
       { id: 'sin', name: 'SIN Interativo', url: 'https://sig.ons.org.br/app/sinmaps/', color: 'blue-500', iframe: true },
+      { id: "pv-plc-control", name: "Meus displays - PIVISION", url: "http://rbvis02.reger.ons/PIVision/#/Displays/23279/PLC---PV-Control", color: "blue-500", iframe: true },
+      { id: "sp-440kv", name: "SP 440kV - PIVISION", url: "http://rbvis02.reger.ons/PIVision/#/Displays/23061/Tela-S%C3%A3o-Paulo-440-kV", color: "blue-500", iframe: true },
+      { id: "RJ-ES-500KV", name: "Área RJ-ES - PIVISION", url: "http://rbvis02.reger.ons/PIVision/#/Displays/23259/%C3%81rea-RJ-ES--500-345-kV", color: "blue-500", iframe: true },
       { id: 'sinmaps', name: 'Mapas do SIN', url: 'https://www.ons.org.br/paginas/sobre-o-sin/mapas', color: 'blue-500', iframe: false },
       { id: 'ons-plc1', name: 'Procedimentos de Rede', url: 'https://www.ons.org.br/paginas/sobre-o-ons/procedimentos-de-rede/o-que-sao', color: 'blue-700', iframe: false },
       { id: 'ons-plc2', name: 'Resposta em Demanda', url: 'https://www.ons.org.br/paginas/energia-amanha/resposta-da-demanda', color: 'blue-700', iframe: false },
@@ -503,6 +506,7 @@ function ImportantLinksSection() {
     ],
     regulacao: [
       { id: 'aneel', name: 'ANEEL', url: 'https://www.gov.br/aneel/pt-br', color: 'blue-600', iframe: false },
+      { id: "dados-aneel": name: "Dados Abertos ANEEL", url: "https://leis.org/aneel", color: "blue-600", iframe: false },
       { id: 'docs', name: 'Documentos Publicados', url: 'https://www.ons.org.br/paginas/conhecimento/acervo-digital/documentos-e-publicacoes', color: 'blue-600', iframe: false },
       { id: 'docs-glossario', name: 'Glossário', url: 'https://www.ons.org.br/paginas/conhecimento/glossario', color: 'blue-600', iframe: false }
     ]
