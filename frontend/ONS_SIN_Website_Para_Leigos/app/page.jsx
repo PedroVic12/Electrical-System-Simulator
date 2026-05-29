@@ -1056,6 +1056,7 @@ function TransmissionSection({ isOpen, onToggle }) {
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
         <strong>Complementaridade Energética: </strong> Permite o uso otimizado de diferentes matrizes. Quando há seca (periodo onde há menor força das águas), o sistema pode despachar masi energias eólicas ou termelétricas, mantendo o sistema estável.
         <br />
+        <br />
         <strong>Economia: </strong> Evita que cada região precise construir usinas superdimensionadas apenas para atender seus picos de consumo, dividindo os custos e recursos entre todo o território brasileiro.
       </p>
 
