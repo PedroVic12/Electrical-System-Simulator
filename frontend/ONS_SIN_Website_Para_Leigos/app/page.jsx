@@ -504,7 +504,7 @@ function ImportantLinksSection() {
     ],
     regulacao: [
       { id: 'aneel', name: 'ANEEL', url: 'https://www.gov.br/aneel/pt-br', color: 'blue-600', iframe: false },
-      { id: "dados-aneel": name: "Dados Abertos ANEEL", url: "https://leis.org/aneel", color: "blue-600", iframe: false },
+      { id: "dados-aneel", name: "Dados Abertos ANEEL", url: "https://leis.org/aneel", color: "blue-600", iframe: false },
       { id: 'docs', name: 'Documentos Publicados', url: 'https://www.ons.org.br/paginas/conhecimento/acervo-digital/documentos-e-publicacoes', color: 'blue-600', iframe: false },
       { id: 'docs-glossario', name: 'Glossário', url: 'https://www.ons.org.br/paginas/conhecimento/glossario', color: 'blue-600', iframe: false }
     ]
@@ -1002,7 +1002,7 @@ function GenerationSection({ isOpen, onToggle }) {
 function TransmissionSection({ isOpen, onToggle }) {
   const transmissionItems = [
     { title: 'Elevação de Tensões', description: 'Para reduzir as perdas, a Energia é transmitida em tensões muito elevadas, permitindo transportar mais energia com menos desperdício. A Energia sai da Usina e passa por subestações elevadoras que usam transformadores para elevar a tensão na saída das usinas e rebaixá-la perto das cidades. Os transformadores aumentam a tensão em 230KV ou 500KV. Isso é necessário para reduzir a corrente elétrica e evitar as perdas de energia por aquecimento em longas distãncias' },
-    { title: 'O papel do ONS (Operador Nacional do Sistema Elétrico)' , description: 'O ONS funciona como o "Maestro" dessa etapa. As suas principais funções na tranmissão incluem: Despacho centralizado das Usinas, Garantia de Segurança na operação, Intercâmbios Regionais '},
+    { title: 'O papel do ONS (Operador Nacional do Sistema Elétrico)', description: 'O ONS funciona como o "Maestro" dessa etapa. As suas principais funções na tranmissão incluem: Despacho centralizado das Usinas, Garantia de Segurança na operação, Intercâmbios Regionais ' },
     { title: 'Linhas de Transmissão', description: 'A eletricidade viaja pelas gigantescas Linhas de Tranmissão que são as grandes torres e cabos que levam a eletricidade por todo o país.' },
     { title: 'Subestações, Redução e Distribuição', description: 'Ao chegar ao destino, a energia passam por subestações abaixadoras, que reduzem a tensão para os níveis seguros antes de a energia ser entregue pelas redes de distribuição locais até as tomadas no valor de 110V ou 220V' }
   ]
@@ -1046,18 +1046,18 @@ function TransmissionSection({ isOpen, onToggle }) {
       </ul>
 
       <h2>As Vantagens do SIN</h2>
-      
+
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
-          Por conectar todo o Brasil em uma única malha em paralelo, não é possivel rastrear a origem exata da energai que chega aos consumidores. A energia pode vir de uma Hidrelétrica na Amazônia ou um parque eólico no Nordeste ou de uma térmica no Rio de Janeiro. Então, o SIN possuis algumas vantagens:
+        Por conectar todo o Brasil em uma única malha em paralelo, não é possivel rastrear a origem exata da energai que chega aos consumidores. A energia pode vir de uma Hidrelétrica na Amazônia ou um parque eólico no Nordeste ou de uma térmica no Rio de Janeiro. Então, o SIN possuis algumas vantagens:
       </p>
 
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
-        <strong>Complementaridade Energética: </strong> Permite o uso otimizado de diferentes matrizes. Quando há seca (periodo onde há menor força das águas), o sistema pode despachar masi energias eólicas ou termelétricas, mantendo o sistema estável.    
-        <strong>Economia: </strong> Evita que cada região precise construir usinas superdimensionadas apenas para atender seus picos de consumo, dividindo os custos e recursos entre todo o território brasileiro. 
+        <strong>Complementaridade Energética: </strong> Permite o uso otimizado de diferentes matrizes. Quando há seca (periodo onde há menor força das águas), o sistema pode despachar masi energias eólicas ou termelétricas, mantendo o sistema estável.
+        <strong>Economia: </strong> Evita que cada região precise construir usinas superdimensionadas apenas para atender seus picos de consumo, dividindo os custos e recursos entre todo o território brasileiro.
       </p>
-      
-      
-      
+
+
+
     </section>
   )
 }
