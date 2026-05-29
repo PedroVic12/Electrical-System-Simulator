@@ -372,16 +372,14 @@ function PageHeader() {
       <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-5 leading-tight" style={{ color: 'var(--color-primary-dark)' }}>
         SEP Interativo para Leigos e Estudantes
       </h1>
-      <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: 'var(--color-text-medium)' }}>
-        Uma jornada visual pela geração, transmissão e distribuição da energia elétrica que abastece nosso mundo.
+      <p className="text-base sm:text-lg md:text-lg max-w-3xl mx-auto px-2" style={{ color: 'var(--color-text-medium)' }}>
+        Uma jornada pelos estudos de Engenharia Elétrica passadno pela Geração, Transmissão e Distribuição da Energia Elétrica que abastece nosso mundo e todo Brasil.
       </p>
-      <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2 mb-6" style={{ color: 'var(--color-text-medium)' }}>
-        Entenda como funciona a Simulação, Planejamennto e Modelagem Matemática de Sistemas Elétricos de Potência ao alcance de um clique.
+      <p className="text-base sm:text-lg md:text-lg max-w-3xl mx-auto px-2 mb-6" style={{ color: 'var(--color-text-medium)' }}>
+        Entenda como funciona os Estudos de Simulação, Planejamento de Curto Prazo e Modelagem Matemática de Sistemas Elétricos de Potência ao alcance de um clique.
       </p>
 
       <p>Este site é feito em parceria ao projeto ONS Inspira, um projeto social que estimula jovens e talentos promissores contra a evasão escolar</p>
-
-
       {/* Image/Video Container */}
       <div
         className="relative mx-auto w-48 sm:w-64 md:w-80 h-32 sm:h-40 md:h-48 cursor-pointer"
@@ -534,7 +532,7 @@ function ImportantLinksSection() {
           🔗 Links Importantes
         </h2>
         <p className="text-base sm:text-lg md:text-xl" style={{ color: 'var(--color-text-medium)' }}>
-          Explore os principais órgãos e sistemas do setor elétrico brasileiro
+          Explore os principais órgãos e dados públicos do SIN (Sistema Interligado Nacional)
         </p>
       </div>
 
@@ -657,9 +655,9 @@ function NavigationButton({ id, icon, title, description, onClick }) {
 // MAIN NAVIGATION COMPONENT
 function MainNavigation({ onNavigate }) {
   const navigationSections = [
-    { id: 'geracao', sectionId: 'content-geracao', icon: '⚡', title: 'Geração', description: 'Onde tudo começa convertendo outras fontes de energia' },
-    { id: 'transmissao', sectionId: 'content-transmissao', icon: '🗼', title: 'Transmissão', description: 'Transportando a energia para todo o Brasil' },
-    { id: 'distribuicao', sectionId: 'content-distribuicao', icon: '🏠', title: 'Distribuição', description: 'Quando a Energia chega na sua casa e na sua cidade' }
+    { id: 'geracao', sectionId: 'content-geracao', icon: '⚡', title: 'Geração', description: 'Usinas despacham diveras fontes de energia diferentes' },
+    { id: 'transmissao', sectionId: 'content-transmissao', icon: '🗼', title: 'Transmissão', description: 'Transportando e Operando a Energia para todo o Brasil' },
+    { id: 'distribuicao', sectionId: 'content-distribuicao', icon: '🏠', title: 'Distribuição', description: 'Quando a Energia chega na sua casa e na sua cidade nas tensões de 110V ou 220V nas tomadas' }
   ]
 
   return (
@@ -959,7 +957,7 @@ function GenerationSection({ isOpen, onToggle }) {
         </button>
       </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
-        Esta é a primeira etapa, onde a energia é produzida de diversas Usinas.
+        Esta é a primeira etapa, o ONS coordena as usinas geradoras (Hidréltricas, Eólicas, Solares, Nuclear e Térmicas) para enviar eletricidade em alta tensão por mais de 170 mil quilômetros de linhas de tranmissão.
         Explore os principais tipos de fontes de Usinas e veja uma representação de como elas compõem nossa matriz energética.
       </p>
       <div className="space-y-8">
@@ -1003,9 +1001,10 @@ function GenerationSection({ isOpen, onToggle }) {
 // TRANSMISSION SECTION COMPONENT
 function TransmissionSection({ isOpen, onToggle }) {
   const transmissionItems = [
-    { title: 'Altas Tensões', description: 'Para reduzir perdas, a energia é transmitida em tensões muito elevadas, permitindo transportar mais energia com menos desperdício.' },
-    { title: 'Linhas de Transmissão', description: 'São as grandes torres e cabos que levam a eletricidade por todo o país.' },
-    { title: 'Subestações de Transmissão', description: 'Usam transformadores para elevar a tensão na saída das usinas e rebaixá-la perto das cidades.' }
+    { title: 'Elevação de Tensões', description: 'Para reduzir as perdas, a Energia é transmitida em tensões muito elevadas, permitindo transportar mais energia com menos desperdício. A Energia sai da Usina e passa por subestações elevadoras que usam transformadores para elevar a tensão na saída das usinas e rebaixá-la perto das cidades. Os transformadores aumentam a tensão em 230KV ou 500KV. Isso é necessário para reduzir a corrente elétrica e evitar as perdas de energia por aquecimento em longas distãncias' },
+    { title: 'O papel do ONS (Operador Nacional do Sistema Elétrico)' , description: 'O ONS funciona como o "Maestro" dessa etapa. As suas principais funções na tranmissão incluem: Despacho centralizado das Usinas, Garantia de Segurança na operação, Intercâmbios Regionais '},
+    { title: 'Linhas de Transmissão', description: 'A eletricidade viaja pelas gigantescas Linhas de Tranmissão que são as grandes torres e cabos que levam a eletricidade por todo o país.' },
+    { title: 'Subestações, Redução e Distribuição', description: 'Ao chegar ao destino, a energia passam por subestações abaixadoras, que reduzem a tensão para os níveis seguros antes de a energia ser entregue pelas redes de distribuição locais até as tomadas no valor de 110V ou 220V' }
   ]
 
   return (
@@ -1034,9 +1033,10 @@ function TransmissionSection({ isOpen, onToggle }) {
         </button>
       </div>
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
-        Após ser gerada, a energia precisa viajar grandes distâncias.
-        Esta seção detalha como esse transporte é feito de forma eficiente e segura.
+        Após a Energia ser gerada pelas Usinas, a energia precisa viajar quilômetros de distâncias. A transmissão é o elo entrea a geração nas usinas e a distribuição para os consumidores de residências e comércios. O processo ocorre em etapas:
       </p>
+
+
       <ul className="space-y-4">
         {transmissionItems.map((item, index) => (
           <li key={index} className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-card-alt)' }}>
@@ -1044,6 +1044,20 @@ function TransmissionSection({ isOpen, onToggle }) {
           </li>
         ))}
       </ul>
+
+      <h2>As Vantagens do SIN</h2>
+      
+      <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
+          Por conectar todo o Brasil em uma única malha em paralelo, não é possivel rastrear a origem exata da energai que chega aos consumidores. A energia pode vir de uma Hidrelétrica na Amazônia ou um parque eólico no Nordeste ou de uma térmica no Rio de Janeiro. Então, o SIN possuis algumas vantagens:
+      </p>
+
+      <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
+        <strong>Complementaridade Energética: </strong> Permite o uso otimizado de diferentes matrizes. Quando há seca (periodo onde há menor força das águas), o sistema pode despachar masi energias eólicas ou termelétricas, mantendo o sistema estável.    
+        <strong>Economia: </strong> Evita que cada região precise construir usinas superdimensionadas apenas para atender seus picos de consumo, dividindo os custos e recursos entre todo o território brasileiro. 
+      </p>
+      
+      
+      
     </section>
   )
 }
@@ -1051,9 +1065,9 @@ function TransmissionSection({ isOpen, onToggle }) {
 // DISTRIBUTION SECTION COMPONENT
 function DistributionSection({ isOpen, onToggle }) {
   const distributionItems = [
-    { title: 'Redução de Tensão', description: 'Transformadores em subestações de distribuição reduzem a tensão para níveis utilizáveis e seguros.' },
-    { title: 'Redes de Distribuição', description: 'São os cabos e postes nas cidades que levam a energia até os transformadores de rua e, daí, para os consumidores.' },
-    { title: 'Consumo Final', description: 'A energia chega em residências, comércios e indústrias, pronta para ser utilizada.' }
+    { title: 'Redução de Tensão', description: 'Os Transformadores Trifásicos e Monofásicos em subestações de distribuição reduzem a tensão para níveis utilizáveis e seguros.' },
+    { title: 'Redes de Distribuição', description: 'São os cabos e postes nas cidades que levam a energia até os transformadores de rua para a casa dos consumidores.' },
+    { title: 'Consumo de Energia para as pesssoas ', description: 'A energia chega em residências, comércios e indústrias, pronta para ser utilizada.' }
   ]
 
   return (
