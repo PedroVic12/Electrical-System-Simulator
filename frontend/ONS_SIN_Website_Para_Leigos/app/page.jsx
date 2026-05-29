@@ -1045,7 +1045,9 @@ function TransmissionSection({ isOpen, onToggle }) {
         ))}
       </ul>
 
-      <h2>As Vantagens do SIN</h2>
+      <h2 className='text-2xl font-bold mb-4' style={{ color: 'var(--color-primary-dark)' }}>
+        As Vantagens do SIN
+      </h2>
 
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
         Por conectar todo o Brasil em uma única malha em paralelo, não é possivel rastrear a origem exata da energai que chega aos consumidores. A energia pode vir de uma Hidrelétrica na Amazônia ou um parque eólico no Nordeste ou de uma térmica no Rio de Janeiro. Então, o SIN possuis algumas vantagens:
@@ -1053,6 +1055,7 @@ function TransmissionSection({ isOpen, onToggle }) {
 
       <p className="text-base sm:text-lg mb-6" style={{ color: 'var(--color-text-medium)' }}>
         <strong>Complementaridade Energética: </strong> Permite o uso otimizado de diferentes matrizes. Quando há seca (periodo onde há menor força das águas), o sistema pode despachar masi energias eólicas ou termelétricas, mantendo o sistema estável.
+        <br />
         <strong>Economia: </strong> Evita que cada região precise construir usinas superdimensionadas apenas para atender seus picos de consumo, dividindo os custos e recursos entre todo o território brasileiro.
       </p>
 
@@ -1332,7 +1335,7 @@ export default function Home() {
               onToggle={() => toggleSection('transmissao')}
             />
             <p>Na imagem abaixo, podemos ver como é representado uma Rede Elétrica com suas altas tensões de suas linhas de transmissão</p>
-            <ImgContainer src="rede_eletrica_draw.jpg" alt="Rede Elétrica" width="400" height="300" className="my-4" />
+            <ImgContainer src="assets/rede_eletrica_draw.jpg" alt="Rede Elétrica" width="400" height="300" className="my-4" />
 
             <DistributionSection
               isOpen={openSections.distribuicao}
