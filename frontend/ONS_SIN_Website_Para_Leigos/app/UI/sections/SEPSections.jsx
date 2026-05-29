@@ -29,12 +29,8 @@ export function GenerationSection({ isOpen, onToggle }) {
   return (
     <section
       id="content-geracao"
-      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
-      style={{ 
-        borderColor: isOpen ? 'var(--color-primary)' : 'var(--color-border)',
-        backgroundColor: 'var(--color-bg-card)',
-        color: 'var(--color-text)'
-      }}
+      className={`content-section shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
+      style={{ borderColor: isOpen ? 'var(--color-primary)' : 'var(--color-border)' }}
     >
       <div className="flex items-start justify-between mb-4">
         <h3 className="text-3xl sm:text-4xl font-bold" style={{ color: 'var(--color-primary-dark)' }}>
@@ -94,12 +90,8 @@ export function TransmissionSection({ isOpen, onToggle }) {
   return (
     <section
       id="content-transmissao"
-      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
-      style={{ 
-        borderColor: isOpen ? 'var(--color-primary)' : 'var(--color-border)',
-        backgroundColor: 'var(--color-bg-card)',
-        color: 'var(--color-text)'
-      }}
+      className={`content-section shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
+      style={{ borderColor: isOpen ? 'var(--color-primary)' : 'var(--color-border)' }}
     >
       <div className="flex items-start justify-between mb-4">
         <h3 className="text-3xl sm:text-4xl font-bold" style={{ color: 'var(--color-primary-dark)' }}>
@@ -152,12 +144,8 @@ export function DistributionSection({ isOpen, onToggle }) {
   return (
     <section
       id="content-distribuicao"
-      className={`content-section rounded-xl shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
-      style={{ 
-        borderColor: isOpen ? 'var(--color-primary)' : 'var(--color-border)',
-        backgroundColor: 'var(--color-bg-card)',
-        color: 'var(--color-text)'
-      }}
+      className={`content-section shadow-lg p-6 md:p-8 mb-8 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
+      style={{ borderColor: isOpen ? 'var(--color-primary)' : 'var(--color-border)' }}
     >
       <div className="flex items-start justify-between mb-4">
         <h3 className="text-3xl sm:text-4xl font-bold" style={{ color: 'var(--color-primary-dark)' }}>

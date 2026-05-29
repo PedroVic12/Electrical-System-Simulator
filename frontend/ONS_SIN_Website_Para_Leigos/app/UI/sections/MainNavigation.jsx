@@ -6,19 +6,14 @@ function NavigationButton({ icon, title, description, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="main-nav-btn m-2 cursor-pointer p-6 rounded-xl transition-all duration-300 shadow-md flex flex-col items-center text-center"
-      style={{
-        backgroundColor: 'var(--color-bg-card)',
-        borderColor: 'var(--color-border)',
-        color: 'var(--color-text)',
-        minWidth: '250px'
-      }}
+      className="main-nav-btn m-2 cursor-pointer p-6 transition-all duration-300 flex flex-col items-center text-center group"
+      style={{ minWidth: '250px' }}
     >
       <div className="flex items-center justify-between w-full mb-4">
         <h2 className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>
           {icon} {title}
         </h2>
-        <ChevronDown size={28} className="text-cyan-600" />
+        <ChevronDown size={28} className="text-cyan-600 transition-transform group-hover:translate-y-1" />
       </div>
       <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{description}</p>
       <div className="mt-4 pt-4 border-t w-full" style={{ borderColor: 'var(--color-border)' }}>

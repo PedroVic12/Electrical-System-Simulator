@@ -24,7 +24,7 @@ export function NavigationHeader() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a1226] border-b border-white/10 shadow-md">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b shadow-sm transition-colors duration-300" style={{ backgroundColor: 'var(--color-header-bg)', borderColor: 'var(--color-border)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo e Toggle */}
@@ -32,7 +32,8 @@ export function NavigationHeader() {
               <a 
                 href="#inicio" 
                 onClick={(e) => { e.preventDefault(); scrollToSection('intro'); }} 
-                className="rounded-full border border-white/20 p-1 transition-colors hover:bg-white/5"
+                className="rounded-full border p-1 transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+                style={{ borderColor: 'var(--color-border)' }}
               >
                 <img src="/assets/ons_logo.jpg" alt="Logo ONS" width={40} height={40} className="h-10 w-auto rounded-full" />
               </a>
@@ -50,12 +51,13 @@ export function NavigationHeader() {
                 >
                   ⚡ Geração <ChevronDown size={14} />
                 </button>
-                <div className="absolute hidden group-hover:block top-full left-0 bg-[#0a1226] border border-white/10 rounded-lg shadow-xl py-2 w-48">
+                <div className="absolute hidden group-hover:block top-full left-0 border rounded-xl shadow-2xl py-2 w-52 transition-all z-[60]" style={{ backgroundColor: 'var(--color-bg-card)', borderColor: 'var(--color-border)' }}>
                   {['Hidrelétricas', 'Termelétricas', 'Nucleares', 'Eólicas', 'Solares'].map(item => (
                     <button 
                       key={item}
                       onClick={() => scrollToSection('content-geracao')}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                      className="block w-full text-left px-5 py-3 text-sm hover:bg-black/5 dark:hover:bg-white/10 transition-colors font-medium"
+                      style={{ color: 'var(--color-text)' }}
                     >
                       {item}
                     </button>
@@ -73,7 +75,8 @@ export function NavigationHeader() {
             {/* Mobile Menu Button */}
             <button 
               onClick={() => setIsSideMenuOpen(!isSideMenuOpen)} 
-              className="md:hidden p-2 rounded-lg text-white hover:bg-white/10"
+              className="md:hidden p-2 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+              style={{ color: 'var(--color-text)' }}
             >
               {isSideMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>

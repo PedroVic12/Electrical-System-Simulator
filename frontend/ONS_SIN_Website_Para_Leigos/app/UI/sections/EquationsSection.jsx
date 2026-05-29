@@ -10,11 +10,9 @@ export function EquationsSection() {
   return (
     <section 
       id="equations" 
-      className="rounded-xl shadow-lg p-6 md:p-8 mt-12 mb-12 border-2 animate-on-scroll scroll-mt-20"
+      className={`content-section shadow-lg p-6 md:p-8 mt-12 mb-12 border-2 animate-on-scroll scroll-mt-20 ${isOpen ? 'open' : ''}`}
       style={{
-        backgroundColor: 'var(--color-bg-card)',
         borderColor: 'var(--color-primary-border)',
-        color: 'var(--color-text)'
       }}
     >
       <div className="flex items-start justify-between mb-4">
