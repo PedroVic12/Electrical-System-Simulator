@@ -54,7 +54,7 @@ export default function Home() {
 
       <NavigationHeader />
 
-      <div className="max-w-6xl mx-auto p-4 sm:p-6 md:p-8 pt-24">
+      <div className="max-w-6xl mx-auto p-4 sm:p-6 md:p-8 pt-32">
         <main className="main-content">
           <ImportantLinksSection />
 
